@@ -1,0 +1,203 @@
+{
+  "products": {
+    "cart": "Add to Cart",
+    "contact": "Contact"
+  },
+  "nav": {
+    "book": "Book appointment",
+    "bookHint": "Leave your phone number and a specialist will call to book a consultation or fitting.",
+    "bookPlaceholder": "Phone number",
+    "bookSubmit": "Book now",
+    "home": "Home",
+    "collection": "Collection",
+    "bridal": "Bridal gowns",
+    "aodai": "Ao dai",
+    "services": "Our services",
+    "search": "Search",
+    "account": "Account",
+    "bag": "Bag",
+    "top": {
+      "contact": "Contact",
+      "reviews": "Reviews",
+      "shipping": "Shipping",
+      "faq": "FAQ",
+      "services": "Services"
+    },
+    "homeColumns": [
+      {
+        "title": "New In",
+        "links": [
+          { "label": "Elise Ball Gown", "href": "/catalog/elise-ball-gown" },
+          { "label": "Aria A-Line", "href": "/catalog/aria-a-line" },
+          { "label": "Luna Mini", "href": "/catalog/luna-mini" },
+          { "label": "2-in-1 Camille", "href": "/catalog/camille-2-in-1" }
+        ]
+      },
+      {
+        "title": "Collection",
+        "links": [
+          { "label": "Spring 2026", "href": "/catalog/spring-2026" },
+          { "label": "Atelier Noir", "href": "/catalog/atelier-noir" },
+          { "label": "Garden Muse", "href": "/catalog/garden-muse" }
+        ]
+      },
+      {
+        "title": "Bride stories",
+        "links": [
+          { "label": "Lan Anh’s story", "href": "/catalog/lan-anh" },
+          { "label": "Minh Thu’s story", "href": "/catalog/minh-thu" }
+        ]
+      }
+    ],
+    "collectionColumns": [
+      {
+        "title": "2026",
+        "links": [
+          { "label": "Bloom", "href": "/catalog/bloom" },
+          { "label": "Opera", "href": "/catalog/opera" }
+        ]
+      },
+      {
+        "title": "2025",
+        "links": [
+          { "label": "Silk Route", "href": "/catalog/silk-route" },
+          { "label": "After Party", "href": "/catalog/after-party" }
+        ]
+      }
+    ],
+    "bridalColumns": [
+      {
+        "title": "Silhouette",
+        "links": [
+          { "label": "All gowns", "href": "/catalog/all-gowns" },
+          { "label": "Ball gown", "href": "/catalog/ball-gown" },
+          { "label": "A-line", "href": "/catalog/a-line" },
+          { "label": "Mini dress", "href": "/catalog/mini-dress" },
+          { "label": "2-in-1 Dresses", "href": "/catalog/2-in-1" }
+        ]
+      },
+      {
+        "title": "Neckline",
+        "links": [
+          { "label": "Strapless", "href": "/catalog/strapless" },
+          { "label": "Sweetheart", "href": "/catalog/sweetheart" },
+          { "label": "Off-the-shoulder", "href": "/catalog/off-the-shoulder" },
+          { "label": "V-Neck", "href": "/catalog/v-neck" },
+          { "label": "Long Sleeve", "href": "/catalog/long-sleeve" }
+        ]
+      },
+      {
+        "title": "Fabric",
+        "links": [
+          { "label": "Sparkling", "href": "/catalog/sparkling" },
+          { "label": "Lace", "href": "/catalog/lace" },
+          { "label": "Tulle", "href": "/catalog/tulle" },
+          { "label": "Satin / Mikado / Taffeta", "href": "/catalog/satin" },
+          { "label": "Organza", "href": "/catalog/organza" }
+        ]
+      },
+      {
+        "title": "Accessories",
+        "links": [
+          { "label": "Detachable sleeves", "href": "/catalog/detachable-sleeves" },
+          { "label": "Bridal veil", "href": "/catalog/veil" },
+          { "label": "Petticoat", "href": "/catalog/petticoat" }
+        ]
+      }
+    ],
+    "aodaiColumns": [
+      {
+        "title": "Ao dai",
+        "links": [{ "label": "All ao dai", "href": "/catalog/all-ao-dai" }]
+      },
+      {
+        "title": "Color",
+        "links": [
+          { "label": "White", "href": "/catalog/ao-dai-white" },
+          { "label": "Red", "href": "/catalog/ao-dai-red" },
+          { "label": "Yellow", "href": "/catalog/ao-dai-yellow" }
+        ]
+      },
+      {
+        "title": "Fabric",
+        "links": [
+          { "label": "Silk", "href": "/catalog/ao-dai-silk" },
+          { "label": "Lace", "href": "/catalog/ao-dai-lace" },
+          { "label": "Mesh", "href": "/catalog/ao-dai-mesh" }
+        ]
+      }
+    ],
+    "serviceItems": [
+      { "label": "Book a bespoke design consultation", "href": "#footer" },
+      { "label": "Book a free in-store fitting", "href": "#footer" },
+      { "label": "Online tailoring process", "href": "#footer" }
+    ]
+  },
+  "brand": {
+    "name": "LINHouse",
+    "tagline": "Bridal atelier"
+  },
+  "home": {
+    "headline": "Bridal atelier",
+    "subhead": "Bespoke gowns for your wedding day."
+  },
+  "catalog": [
+    {
+      "name": "No.3 — Fern — VLTX-811 Luxury Ivory Ballgown Dress",
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.7 — Celeste — VLTX-204 Sparkling Ball Gown",
+      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.12 — Camille — 2-in-1 Convertible Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.5 — Luna — Mini Reception Dress",
+      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.9 — Aria — Lace A-Line Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.2 — Noir — Satin Off-The-Shoulder Gown",
+      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.14 — Muse — Organza Garden Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.8 — Vow — Sweetheart Tulle Ballgown",
+      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "footer": {
+    "customerService": "Customer service",
+    "customerServiceLinks": [
+      "Customer support information",
+      "Size guide",
+      "Warranty policy",
+      "Payment policy"
+    ],
+    "support": "Help",
+    "supportLinks": [
+      "Customer support",
+      "How to order",
+      "Shipping",
+      "Returns"
+    ],
+    "legal": "Terms & policies",
+    "legalLinks": ["Terms of use", "Privacy policy"],
+    "map": "Google Map",
+    "address": "Address linked to Google Map — 21 Nguyen Thai Hoc, District 1, HCMC",
+    "copy": "© 2026 LINHouse"
+  }
+}

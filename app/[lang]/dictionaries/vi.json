@@ -1,0 +1,203 @@
+{
+  "products": {
+    "cart": "Thêm vào giỏ hàng",
+    "contact": "Contact"
+  },
+  "nav": {
+    "book": "Đặt lịch hẹn",
+    "bookHint": "Để lại số điện thoại, chuyên viên sẽ liên hệ đặt lịch tư vấn và thử váy.",
+    "bookPlaceholder": "Để lại SĐT",
+    "bookSubmit": "Đặt lịch hẹn",
+    "home": "Trang chủ",
+    "collection": "Collection",
+    "bridal": "Váy cưới Bridal",
+    "aodai": "Áo dài",
+    "services": "Các dịch vụ của chúng tôi",
+    "search": "Tìm kiếm",
+    "account": "Tài khoản",
+    "bag": "Giỏ hàng",
+    "top": {
+      "contact": "Liên hệ",
+      "reviews": "Đánh giá",
+      "shipping": "Vận chuyển",
+      "faq": "FAQ",
+      "services": "Dịch vụ"
+    },
+    "homeColumns": [
+      {
+        "title": "New In",
+        "links": [
+          { "label": "Elise Ball Gown", "href": "/catalog/elise-ball-gown" },
+          { "label": "Aria A-Line", "href": "/catalog/aria-a-line" },
+          { "label": "Luna Mini", "href": "/catalog/luna-mini" },
+          { "label": "2-in-1 Camille", "href": "/catalog/camille-2-in-1" }
+        ]
+      },
+      {
+        "title": "Collection",
+        "links": [
+          { "label": "Spring 2026", "href": "/catalog/spring-2026" },
+          { "label": "Atelier Noir", "href": "/catalog/atelier-noir" },
+          { "label": "Garden Muse", "href": "/catalog/garden-muse" }
+        ]
+      },
+      {
+        "title": "Feedback từ cô dâu",
+        "links": [
+          { "label": "Câu chuyện Lan Anh", "href": "/catalog/lan-anh" },
+          { "label": "Câu chuyện Minh Thư", "href": "/catalog/minh-thu" }
+        ]
+      }
+    ],
+    "collectionColumns": [
+      {
+        "title": "2026",
+        "links": [
+          { "label": "Bloom", "href": "/catalog/bloom" },
+          { "label": "Opera", "href": "/catalog/opera" }
+        ]
+      },
+      {
+        "title": "2025",
+        "links": [
+          { "label": "Silk Route", "href": "/catalog/silk-route" },
+          { "label": "After Party", "href": "/catalog/after-party" }
+        ]
+      }
+    ],
+    "bridalColumns": [
+      {
+        "title": "Dáng váy",
+        "links": [
+          { "label": "Tất cả các dòng váy", "href": "/catalog/all-gowns" },
+          { "label": "Váy sân khấu / Ball gown", "href": "/catalog/ball-gown" },
+          { "label": "Váy dáng A", "href": "/catalog/a-line" },
+          { "label": "Váy ngắn / Mini dress", "href": "/catalog/mini-dress" },
+          { "label": "2-in-1 Dresses", "href": "/catalog/2-in-1" }
+        ]
+      },
+      {
+        "title": "Kiểu cổ / Ngực áo",
+        "links": [
+          { "label": "Cúp ngực / Strapless", "href": "/catalog/strapless" },
+          { "label": "Cổ tim / Sweetheart", "href": "/catalog/sweetheart" },
+          { "label": "Trễ vai / Off-the-shoulder", "href": "/catalog/off-the-shoulder" },
+          { "label": "Cổ V / V-Neck", "href": "/catalog/v-neck" },
+          { "label": "Tay dài / Long Sleeve", "href": "/catalog/long-sleeve" }
+        ]
+      },
+      {
+        "title": "Chất liệu",
+        "links": [
+          { "label": "Kim tuyến / Sparkling", "href": "/catalog/sparkling" },
+          { "label": "Ren / Lace", "href": "/catalog/lace" },
+          { "label": "Voan lưới / Tulle", "href": "/catalog/tulle" },
+          { "label": "Satin / Mikado / Taffeta", "href": "/catalog/satin" },
+          { "label": "Organza", "href": "/catalog/organza" }
+        ]
+      },
+      {
+        "title": "Phụ kiện kết hợp",
+        "links": [
+          { "label": "Áo choàng tay rời", "href": "/catalog/detachable-sleeves" },
+          { "label": "Voan cô dâu", "href": "/catalog/veil" },
+          { "label": "Tùng mặc váy", "href": "/catalog/petticoat" }
+        ]
+      }
+    ],
+    "aodaiColumns": [
+      {
+        "title": "Áo dài",
+        "links": [{ "label": "Tất cả áo dài", "href": "/catalog/all-ao-dai" }]
+      },
+      {
+        "title": "Màu sắc",
+        "links": [
+          { "label": "Trắng", "href": "/catalog/ao-dai-white" },
+          { "label": "Đỏ", "href": "/catalog/ao-dai-red" },
+          { "label": "Vàng", "href": "/catalog/ao-dai-yellow" }
+        ]
+      },
+      {
+        "title": "Chất liệu",
+        "links": [
+          { "label": "Lụa", "href": "/catalog/ao-dai-silk" },
+          { "label": "Ren", "href": "/catalog/ao-dai-lace" },
+          { "label": "Lưới", "href": "/catalog/ao-dai-mesh" }
+        ]
+      }
+    ],
+    "serviceItems": [
+      { "label": "Đặt lịch tư vấn với chuyên viên thiết kế may đo", "href": "#footer" },
+      { "label": "Đặt lịch thử váy miễn phí tại cửa hàng", "href": "#footer" },
+      { "label": "Quy trình may đo online", "href": "#footer" }
+    ]
+  },
+  "brand": {
+    "name": "LINHouse",
+    "tagline": "Atelier váy cưới"
+  },
+  "home": {
+    "headline": "Atelier váy cưới",
+    "subhead": "Thiết kế may đo cho ngày lễ của bạn."
+  },
+  "catalog": [
+    {
+      "name": "No.3 — Fern — VLTX-811 Luxury Ivory Ballgown Dress",
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.7 — Celeste — VLTX-204 Sparkling Ball Gown",
+      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.12 — Camille — 2-in-1 Convertible Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.5 — Luna — Mini Reception Dress",
+      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.9 — Aria — Lace A-Line Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.2 — Noir — Satin Off-The-Shoulder Gown",
+      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.14 — Muse — Organza Garden Wedding Dress",
+      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.8 — Vow — Sweetheart Tulle Ballgown",
+      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+    }
+  ],
+  "footer": {
+    "customerService": "Dịch vụ khách hàng",
+    "customerServiceLinks": [
+      "Thông tin hỗ trợ khách hàng",
+      "Hướng dẫn chọn size",
+      "Chính sách bảo hành",
+      "Chính sách thanh toán"
+    ],
+    "support": "Hỗ trợ khách hàng",
+    "supportLinks": [
+      "Hỗ trợ khách hàng",
+      "Hướng dẫn mua hàng",
+      "Vận chuyển",
+      "Chính sách đổi trả"
+    ],
+    "legal": "Điều khoản - Chính sách",
+    "legalLinks": ["Điều khoản sử dụng", "Chính sách bảo mật"],
+    "map": "Google Map",
+    "address": "Địa chỉ gắn với Google Map — 21 Nguyễn Thái Học, Quận 1, TP.HCM",
+    "copy": "© 2026 LINHouse"
+  }
+}
