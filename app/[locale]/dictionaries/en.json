@@ -180,6 +180,15 @@
     }
   ],
   "footer": {
+    "company": {
+      "title": "Company",
+      "name": "LINHouse",
+      "address": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
+      "phoneLabel": "Hotline",
+      "phone": "0902 678 114",
+      "emailLabel": "Email",
+      "email": "info@linhouse.com.vn"
+    },
     "customerService": "Customer service",
     "customerServiceLinks": [
       "Customer support information",
@@ -197,7 +206,7 @@
     "legal": "Terms & policies",
     "legalLinks": ["Terms of use", "Privacy policy"],
     "map": "Google Map",
-    "address": "Address linked to Google Map — 21 Nguyen Thai Hoc, District 1, HCMC",
+    "address": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
     "copy": "© 2026 LINHouse"
   }
 }

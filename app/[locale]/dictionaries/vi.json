@@ -70,28 +70,28 @@
         "title": "Dáng váy",
         "links": [
           { "label": "Tất cả các dòng váy", "href": "/catalog/all-gowns" },
-          { "label": "Váy sân khấu / Ball gown", "href": "/catalog/ball-gown" },
+          { "label": "Váy sân khấu", "href": "/catalog/ball-gown" },
           { "label": "Váy dáng A", "href": "/catalog/a-line" },
-          { "label": "Váy ngắn / Mini dress", "href": "/catalog/mini-dress" },
-          { "label": "2-in-1 Dresses", "href": "/catalog/2-in-1" }
+          { "label": "Váy ngắn", "href": "/catalog/mini-dress" },
+          { "label": "Váy 2 trong 1", "href": "/catalog/2-in-1" }
         ]
       },
       {
         "title": "Kiểu cổ / Ngực áo",
         "links": [
-          { "label": "Cúp ngực / Strapless", "href": "/catalog/strapless" },
-          { "label": "Cổ tim / Sweetheart", "href": "/catalog/sweetheart" },
-          { "label": "Trễ vai / Off-the-shoulder", "href": "/catalog/off-the-shoulder" },
-          { "label": "Cổ V / V-Neck", "href": "/catalog/v-neck" },
-          { "label": "Tay dài / Long Sleeve", "href": "/catalog/long-sleeve" }
+          { "label": "Cúp ngực", "href": "/catalog/strapless" },
+          { "label": "Cổ tim", "href": "/catalog/sweetheart" },
+          { "label": "Trễ vai", "href": "/catalog/off-the-shoulder" },
+          { "label": "Cổ V", "href": "/catalog/v-neck" },
+          { "label": "Tay dài", "href": "/catalog/long-sleeve" }
         ]
       },
       {
         "title": "Chất liệu",
         "links": [
-          { "label": "Kim tuyến / Sparkling", "href": "/catalog/sparkling" },
-          { "label": "Ren / Lace", "href": "/catalog/lace" },
-          { "label": "Voan lưới / Tulle", "href": "/catalog/tulle" },
+          { "label": "Kim tuyến", "href": "/catalog/sparkling" },
+          { "label": "Ren", "href": "/catalog/lace" },
+          { "label": "Voan lưới", "href": "/catalog/tulle" },
           { "label": "Satin / Mikado / Taffeta", "href": "/catalog/satin" },
           { "label": "Organza", "href": "/catalog/organza" }
         ]
@@ -180,6 +180,15 @@
     }
   ],
   "footer": {
+    "company": {
+      "title": "Thông tin công ty",
+      "name": "LINHouse",
+      "address": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
+      "phoneLabel": "Hotline",
+      "phone": "0902 678 114",
+      "emailLabel": "Email",
+      "email": "info@linhouse.com.vn"
+    },
     "customerService": "Dịch vụ khách hàng",
     "customerServiceLinks": [
       "Thông tin hỗ trợ khách hàng",
@@ -197,7 +206,7 @@
     "legal": "Điều khoản - Chính sách",
     "legalLinks": ["Điều khoản sử dụng", "Chính sách bảo mật"],
     "map": "Google Map",
-    "address": "Địa chỉ gắn với Google Map — 21 Nguyễn Thái Học, Quận 1, TP.HCM",
+    "address": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     "copy": "© 2026 LINHouse"
   }
 }

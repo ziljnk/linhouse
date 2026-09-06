@@ -1,9 +1,31 @@
 import type { Dictionary } from "@/app/[locale]/dictionaries"
 
+const MAP_QUERY =
+  "45+Nguy%E1%BB%85n+Tr%E1%BB%8Dng+Tuy%E1%BB%83n,+Ph%C6%B0%E1%BB%9Dng+15,+Ph%C3%BA+Nhu%E1%BA%ADn,+Tp.+H%E1%BB%93+Ch%C3%AD+Minh"
+const MAP_HREF = `https://www.google.com/maps?q=${MAP_QUERY}`
+const MAP_EMBED_SRC = `https://maps.google.com/maps?q=${MAP_QUERY}&z=16&output=embed`
+
 export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
+  const { company } = footer
+  const phoneHref = `tel:${company.phone.replaceAll(" ", "")}`
+
   return (
     <footer id="footer" className="bg-burgundy-deep px-10 pt-12 pb-8 text-ivory">
-      <div className="mx-auto mb-8 grid max-w-6xl gap-8 md:grid-cols-4">
+      <div className="mx-auto mb-8 grid max-w-7xl gap-8 sm:grid-cols-2 lg:grid-cols-[1.15fr_1fr_1fr_1fr_1.45fr]">
+        <div>
+          <h3 className="mb-4 text-xs tracking-[0.16em] text-gold uppercase">{company.title}</h3>
+          <p className="mb-3 font-[family-name:var(--font-heading)] text-xl text-ivory">{company.name}</p>
+          <p className="mb-3 text-sm leading-relaxed font-light text-ivory/80">{company.address}</p>
+          <a href={phoneHref} className="block py-0.5 text-sm font-light text-ivory/80 hover:text-ivory">
+            {company.phoneLabel}: {company.phone}
+          </a>
+          <a
+            href={`mailto:${company.email}`}
+            className="block py-0.5 text-sm font-light text-ivory/80 hover:text-ivory"
+          >
+            {company.emailLabel}: {company.email}
+          </a>
+        </div>
         <div>
           <h3 className="mb-4 text-xs tracking-[0.16em] text-gold uppercase">{footer.customerService}</h3>
           {footer.customerServiceLinks.map((link) => (
@@ -28,21 +50,29 @@ export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
             </a>
           ))}
         </div>
-        <div>
+        <div className="min-w-0 sm:col-span-2 lg:col-span-1">
           <h3 className="mb-4 text-xs tracking-[0.16em] text-gold uppercase">{footer.map}</h3>
+          <div className="overflow-hidden border border-ivory/15">
+            <iframe
+              title={footer.address}
+              src={MAP_EMBED_SRC}
+              className="h-52 w-full"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
           <a
-            href="https://maps.google.com/?q=Ho+Chi+Minh+City"
+            href={MAP_HREF}
             target="_blank"
             rel="noreferrer"
-            className="relative block min-h-40 bg-burgundy bg-[url('https://images.unsplash.com/photo-1524661131558-74138d4680ea?auto=format&fit=crop&w=800&q=60')] bg-cover bg-center"
+            className="mt-2 block text-xs leading-relaxed text-ivory/70 hover:text-ivory"
           >
-            <span className="absolute inset-x-3 bottom-3 bg-burgundy-deep/80 px-2.5 py-2 text-xs">
-              {footer.address}
-            </span>
+            {footer.address}
           </a>
         </div>
       </div>
-      <p className="mx-auto max-w-6xl border-t border-ivory/20 pt-4 text-xs text-ivory/70">
+      <p className="mx-auto max-w-7xl border-t border-ivory/20 pt-4 text-xs text-ivory/70">
         {footer.copy}
       </p>
     </footer>
