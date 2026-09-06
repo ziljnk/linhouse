@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Search, ShoppingBag, User } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { Dictionary, Locale } from "@/app/[lang]/dictionaries"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -37,10 +37,10 @@ type MegaColumn = Dictionary["nav"]["homeColumns"][number]
 
 function MegaColumns({
   columns,
-  lang,
+  locale,
 }: {
   columns: MegaColumn[]
-  lang: Locale
+  locale: Locale
 }) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-wrap gap-x-20 gap-y-10 px-8 py-10">
@@ -58,7 +58,7 @@ function MegaColumns({
                       href={
                         link.href.startsWith("#")
                           ? link.href
-                          : `/${lang}${link.href}`
+                          : `/${locale}${link.href}`
                       }
                     />
                   }
@@ -76,11 +76,11 @@ function MegaColumns({
 }
 
 export function SiteHeader({
-  lang,
+  locale,
   nav,
   brand,
 }: {
-  lang: Locale
+  locale: Locale
   nav: Dictionary["nav"]
   brand: Dictionary["brand"]
 }) {
@@ -106,7 +106,7 @@ export function SiteHeader({
             <Link href="#footer" className="hover:text-burgundy">
               {nav.top.contact}
             </Link>
-            <Link href={`/${lang}`} className="hover:text-burgundy">
+            <Link href={`/${locale}`} className="hover:text-burgundy">
               {nav.top.reviews}
             </Link>
             <Link href="#footer" className="hover:text-burgundy">
@@ -119,7 +119,7 @@ export function SiteHeader({
               {nav.top.services}
             </Link>
           </nav>
-          <LanguageSwitcher lang={lang} />
+          <LanguageSwitcher locale={locale} />
         </div>
       </div>
 
@@ -129,7 +129,7 @@ export function SiteHeader({
           collapsed ? "max-h-0 py-0 opacity-0" : "max-h-48 px-6 py-5 opacity-100"
         )}
       >
-        <Link href={`/${lang}`} className="inline-flex flex-col items-center gap-1">
+        <Link href={`/${locale}`} className="inline-flex flex-col items-center gap-1">
           <span className="grid size-10 place-items-center rounded-full border border-burgundy font-[family-name:var(--font-heading)] text-lg tracking-[0.08em] text-burgundy-deep">
             LH
           </span>
@@ -185,7 +185,7 @@ export function SiteHeader({
             <NavigationMenuItem>
               <NavigationMenuTrigger className={triggerClass}>{nav.home}</NavigationMenuTrigger>
               <NavigationMenuContent className="w-full p-0">
-                <MegaColumns columns={nav.homeColumns} lang={lang} />
+                <MegaColumns columns={nav.homeColumns} locale={locale} />
               </NavigationMenuContent>
             </NavigationMenuItem>
 
@@ -194,21 +194,21 @@ export function SiteHeader({
                 {nav.collection}
               </NavigationMenuTrigger>
               <NavigationMenuContent className="w-full p-0">
-                <MegaColumns columns={nav.collectionColumns} lang={lang} />
+                <MegaColumns columns={nav.collectionColumns} locale={locale} />
               </NavigationMenuContent>
             </NavigationMenuItem>
 
             <NavigationMenuItem>
               <NavigationMenuTrigger className={triggerClass}>{nav.bridal}</NavigationMenuTrigger>
               <NavigationMenuContent className="w-full p-0">
-                <MegaColumns columns={nav.bridalColumns} lang={lang} />
+                <MegaColumns columns={nav.bridalColumns} locale={locale} />
               </NavigationMenuContent>
             </NavigationMenuItem>
 
             <NavigationMenuItem>
               <NavigationMenuTrigger className={triggerClass}>{nav.aodai}</NavigationMenuTrigger>
               <NavigationMenuContent className="w-full p-0">
-                <MegaColumns columns={nav.aodaiColumns} lang={lang} />
+                <MegaColumns columns={nav.aodaiColumns} locale={locale} />
               </NavigationMenuContent>
             </NavigationMenuItem>
 
@@ -219,7 +219,7 @@ export function SiteHeader({
               <NavigationMenuContent className="w-full p-0">
                 <MegaColumns
                   columns={[{ title: nav.services, links: nav.serviceItems }]}
-                  lang={lang}
+                  locale={locale}
                 />
               </NavigationMenuContent>
             </NavigationMenuItem>
@@ -260,16 +260,16 @@ function LanguageLabel({
   )
 }
 
-function LanguageSwitcher({ lang }: { lang: Locale }) {
+function LanguageSwitcher({ locale }: { locale: Locale }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  function onLanguageChange(nextLang: string | null) {
-    if (!nextLang || nextLang === lang) return
+  function onLocaleChange(nextLocale: string | null) {
+    if (!nextLocale || nextLocale === locale) return
 
     const segments = pathname.split("/")
     if (segments[1] === "en" || segments[1] === "vi") {
-      segments[1] = nextLang
+      segments[1] = nextLocale
     }
 
     const hash = window.location.hash
@@ -278,8 +278,8 @@ function LanguageSwitcher({ lang }: { lang: Locale }) {
 
   return (
     <Select
-      value={lang}
-      onValueChange={onLanguageChange}
+      value={locale}
+      onValueChange={onLocaleChange}
       items={languages.map((language) => ({
         value: language.value,
         label: <LanguageLabel flag={language.flag} label={language.label} />,

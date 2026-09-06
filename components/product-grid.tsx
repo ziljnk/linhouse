@@ -1,5 +1,5 @@
 import Image from "next/image"
-import type { Dictionary } from "@/app/[lang]/dictionaries"
+import type { Dictionary } from "@/app/[locale]/dictionaries"
 
 export function ProductGrid({
   products,

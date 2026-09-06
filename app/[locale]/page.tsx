@@ -2,12 +2,12 @@ import Image from "next/image"
 import { notFound } from "next/navigation"
 import { getDictionary, hasLocale } from "./dictionaries"
 
-export default async function Page({ params }: PageProps<"/[lang]">) {
-  const { lang } = await params
+export default async function Page({ params }: PageProps<"/[locale]">) {
+  const { locale } = await params
 
-  if (!hasLocale(lang)) notFound()
+  if (!hasLocale(locale)) notFound()
 
-  const dict = await getDictionary(lang)
+  const dict = await getDictionary(locale)
 
   return (
     <main className="bg-ivory">

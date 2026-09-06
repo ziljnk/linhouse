@@ -4,12 +4,12 @@ import { findCategoryLabel, getDictionary, hasLocale } from "../../dictionaries"
 
 export default async function CatalogPage({
   params,
-}: PageProps<"/[lang]/catalog/[slug]">) {
-  const { lang, slug } = await params
+}: PageProps<"/[locale]/catalog/[slug]">) {
+  const { locale, slug } = await params
 
-  if (!hasLocale(lang)) notFound()
+  if (!hasLocale(locale)) notFound()
 
-  const dict = await getDictionary(lang)
+  const dict = await getDictionary(locale)
   const title = findCategoryLabel(dict, slug)
 
   return (

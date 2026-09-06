@@ -1,4 +1,4 @@
-import type { Dictionary } from "@/app/[lang]/dictionaries"
+import type { Dictionary } from "@/app/[locale]/dictionaries"
 
 export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
   return (
