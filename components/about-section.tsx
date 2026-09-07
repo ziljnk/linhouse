@@ -1,5 +1,6 @@
 import Image from "next/image"
 import type { Dictionary } from "@/app/[locale]/dictionaries"
+import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 
 const PORTRAIT_IMAGE =
   "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1200&q=80"
@@ -10,7 +11,7 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
   return (
     <section id="about" className="bg-ivory px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-28">
       <div className="mx-auto grid max-w-7xl items-center gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.88fr)_minmax(0,0.7fr)] lg:gap-12 xl:gap-16">
-        <div className="flex flex-col items-center justify-center px-2 text-center sm:col-span-2 lg:col-span-1 lg:px-6 xl:px-10">
+        <ScrollReveal variant="fadeRight" className="flex flex-col items-center justify-center px-2 text-center sm:col-span-2 lg:col-span-1 lg:px-6 xl:px-10">
           <p className="text-[11px] font-medium tracking-[0.28em] text-gold uppercase">
             {copy.label}
           </p>
@@ -27,9 +28,9 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
           >
             {copy.cta}
           </a>
-        </div>
+        </ScrollReveal>
 
-        <div className="relative aspect-2/3 min-h-72 overflow-hidden">
+        <ScrollReveal variant="scale" delay={0.12} className="relative aspect-2/3 min-h-72 overflow-hidden">
           <Image
             src={PORTRAIT_IMAGE}
             alt={copy.portraitAlt}
@@ -37,9 +38,9 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 32vw"
             className="object-cover object-center grayscale"
           />
-        </div>
+        </ScrollReveal>
 
-        <div className="relative aspect-4/5 min-h-56 overflow-hidden sm:aspect-2/3 lg:aspect-4/5">
+        <ScrollReveal variant="scale" delay={0.22} className="relative aspect-4/5 min-h-56 overflow-hidden sm:aspect-2/3 lg:aspect-4/5">
           <Image
             src={FLORAL_IMAGE}
             alt={copy.floralAlt}
@@ -47,7 +48,7 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 26vw"
             className="object-cover object-center"
           />
-        </div>
+        </ScrollReveal>
       </div>
     </section>
   )

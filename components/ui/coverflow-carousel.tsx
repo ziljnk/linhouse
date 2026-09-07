@@ -279,6 +279,7 @@ export function CoverflowCarousel({
       const card = cardRefs.current[0];
       if (!card) return;
       widthRef.current = card.offsetWidth;
+      frame.style.setProperty("--cf-card-h", `${card.offsetHeight}px`);
       paint();
     };
 
@@ -338,7 +339,7 @@ export function CoverflowCarousel({
           <div
             className="relative select-none"
             style={{
-              height: "var(--cf-card)",
+              height: "var(--cf-card-h, var(--cf-card))",
               transformStyle: "preserve-3d",
             }}
           >
@@ -358,7 +359,7 @@ export function CoverflowCarousel({
                   autoplayDelay && pauseOnHover ? resumeAutoplay : undefined
                 }
                 className={cn(
-                  "absolute left-1/2 top-0 aspect-square overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform",
+                  "absolute left-1/2 top-0 aspect-3/4 overflow-hidden rounded-2xl bg-muted shadow-xl will-change-transform",
                   cardClassName,
                 )}
                 style={{ width: "var(--cf-card)" }}

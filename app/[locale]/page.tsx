@@ -15,7 +15,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
   const dict = await getDictionary(locale)
 
   return (
-    <main className="bg-ivory">
+    <main className="overflow-x-clip bg-ivory">
       <HeroSection locale={locale} copy={dict.home} />
       <CollectionSection locale={locale} copy={dict.home.collection} />
       <FeaturedProducts

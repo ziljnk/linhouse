@@ -16,6 +16,8 @@
     "search": "Search",
     "account": "Account",
     "bag": "Bag",
+    "menu": "Open menu",
+    "closeMenu": "Close menu",
     "top": {
       "contact": "Contact",
       "reviews": "Reviews",
@@ -134,8 +136,20 @@
     ]
   },
   "brand": {
-    "name": "LINHouse",
-    "tagline": "Bridal atelier"
+    "name": "LINHouse"
+  },
+  "booking": {
+    "title": "Book An Appointment",
+    "subtitle": "Experience premium service from your very first appointment",
+    "fullName": "Full name",
+    "phone": "Phone number",
+    "email": "Email",
+    "selectStore": "Select store",
+    "date": "Appointment date",
+    "message": "Your message",
+    "submit": "Send now",
+    "close": "Close",
+    "imageAlt": "Bridal fitting at LINHouse"
   },
   "home": {
     "headline": "LINHouse Bigsize Bridal",

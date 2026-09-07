@@ -22,6 +22,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "LINHouse",
   description: "Atelier váy cưới LINHouse",
+  icons: {
+    icon: [
+      { url: "/icons/favicon.ico", sizes: "any" },
+      { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: {
+      url: "/icons/apple-touch-icon.png",
+      sizes: "180x180",
+      type: "image/png",
+    },
+  },
+  manifest: "/icons/site.webmanifest",
 }
 
 export default async function LocaleLayout({
@@ -47,7 +60,13 @@ export default async function LocaleLayout({
     >
       <body className="min-h-full flex flex-col">
         <TooltipProvider>
-          <SiteHeader locale={locale} nav={dict.nav} brand={dict.brand} />
+          <SiteHeader
+            locale={locale}
+            nav={dict.nav}
+            brand={dict.brand}
+            booking={dict.booking}
+            storeAddress={dict.footer.company.address}
+          />
           {children}
           <SiteFooter footer={dict.footer} />
           <SocialFloat

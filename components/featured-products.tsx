@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import type { Dictionary } from "@/app/[locale]/dictionaries"
+import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { ProductGrid } from "@/components/product-grid"
 
 const PAGE_SIZE = 8
@@ -33,13 +34,18 @@ export function FeaturedProducts({
   }
 
   return (
-    <section id="featured" className="scroll-mt-24 bg-ivory px-6 py-16 sm:px-10 sm:py-20 lg:py-24">
-      <h2 className="mx-auto mb-10 max-w-6xl text-center font-heading text-3xl font-medium tracking-[0.16em] text-burgundy-deep uppercase sm:mb-14 sm:text-4xl">
-        {title}
-      </h2>
+    <section id="featured" className="scroll-mt-24 bg-ivory px-4 py-16 sm:px-10 sm:py-20 lg:py-24">
+      <ScrollReveal>
+        <h2 className="mx-auto mb-10 max-w-6xl text-center font-heading text-3xl font-medium tracking-[0.16em] text-burgundy-deep uppercase sm:mb-14 sm:text-4xl">
+          {title}
+        </h2>
+      </ScrollReveal>
       <ProductGrid products={shown} contactLabel={contactLabel} columns={4} />
       {hasMore || canShowLess ? (
-        <div className="mt-10 flex flex-wrap justify-center gap-3 sm:mt-14">
+        <ScrollReveal
+          delay={0.08}
+          className="mt-10 flex flex-wrap justify-center gap-3 sm:mt-14"
+        >
           {hasMore ? (
             <button
               type="button"
@@ -54,7 +60,7 @@ export function FeaturedProducts({
               {showLess}
             </button>
           ) : null}
-        </div>
+        </ScrollReveal>
       ) : null}
     </section>
   )

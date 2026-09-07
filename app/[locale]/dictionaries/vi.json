@@ -16,6 +16,8 @@
     "search": "Tìm kiếm",
     "account": "Tài khoản",
     "bag": "Giỏ hàng",
+    "menu": "Mở menu",
+    "closeMenu": "Đóng menu",
     "top": {
       "contact": "Liên hệ",
       "reviews": "Đánh giá",
@@ -134,8 +136,20 @@
     ]
   },
   "brand": {
-    "name": "LINHouse",
-    "tagline": "Atelier váy cưới"
+    "name": "LINHouse"
+  },
+  "booking": {
+    "title": "Đặt lịch hẹn",
+    "subtitle": "Trải nghiệm dịch vụ cao cấp ngay từ buổi hẹn đầu tiên",
+    "fullName": "Họ và tên",
+    "phone": "Số điện thoại",
+    "email": "Email",
+    "selectStore": "Chọn cửa hàng",
+    "date": "Ngày hẹn",
+    "message": "Lời nhắn của bạn",
+    "submit": "Gửi ngay",
+    "close": "Đóng",
+    "imageAlt": "Buổi thử váy tại LINHouse"
   },
   "home": {
     "headline": "LINHouse Bigsize Bridal",
