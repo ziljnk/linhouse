@@ -30,3 +30,7 @@ export function findCategoryLabel(dict: Dictionary, slug: string) {
 
   return slug
 }
+
+export function findBlogPost(dict: Dictionary, slug: string) {
+  return dict.home.blog.posts.find((post) => post.slug === slug)
+}

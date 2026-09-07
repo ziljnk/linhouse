@@ -1,5 +1,10 @@
-import Image from "next/image"
 import { notFound } from "next/navigation"
+import { AboutSection } from "@/components/about-section"
+import { BlogSection } from "@/components/blog-section"
+import { CollectionSection } from "@/components/collection-section"
+import { FeaturedProducts } from "@/components/featured-products"
+import { HeroSection } from "@/components/hero-section"
+import { TestimonialSection } from "@/components/testimonial-section"
 import { getDictionary, hasLocale } from "./dictionaries"
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
@@ -11,22 +16,18 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
 
   return (
     <main className="bg-ivory">
-      <section className="relative min-h-[80vh]">
-        <Image
-          src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1800&q=80"
-          alt=""
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/20" />
-        <div className="absolute inset-x-0 bottom-16 text-center text-white">
-          <p className="font-[family-name:var(--font-heading)] text-4xl tracking-[0.2em] uppercase">
-            {dict.home.headline}
-          </p>
-          <p className="mt-3 text-sm tracking-[0.16em] uppercase">{dict.home.subhead}</p>
-        </div>
-      </section>
+      <HeroSection locale={locale} copy={dict.home} />
+      <CollectionSection locale={locale} copy={dict.home.collection} />
+      <FeaturedProducts
+        products={dict.catalog}
+        title={dict.home.featured.title}
+        loadMore={dict.home.featured.loadMore}
+        showLess={dict.home.featured.showLess}
+        contactLabel={dict.products.contact}
+      />
+      <AboutSection copy={dict.home.about} />
+      <TestimonialSection copy={dict.home.testimonials} />
+      <BlogSection locale={locale} copy={dict.home.blog} />
     </main>
   )
 }

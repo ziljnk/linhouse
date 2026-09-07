@@ -1,23 +1,17 @@
 import type { Metadata } from "next"
-import { Cormorant_Garamond, Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Montserrat } from "next/font/google"
 import { notFound } from "next/navigation"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
+import { SocialFloat } from "@/components/social-float"
 import { cn } from "@/lib/utils"
 import { getDictionary, hasLocale } from "./dictionaries"
 import "../globals.css"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
-const inter = Inter({ subsets: ["latin", "vietnamese"], variable: "--font-sans" })
-
-const heading = Cormorant_Garamond({
+const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600"],
-  variable: "--font-cormorant",
-})
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: "--font-montserrat",
 })
 
 const geistMono = Geist_Mono({
@@ -46,17 +40,22 @@ export default async function LocaleLayout({
       className={cn(
         "h-full",
         "antialiased",
-        geistSans.variable,
+        montserrat.variable,
         geistMono.variable,
-        heading.variable,
-        "font-sans",
-        inter.variable
+        "font-sans"
       )}
     >
       <body className="min-h-full flex flex-col">
-        <SiteHeader locale={locale} nav={dict.nav} brand={dict.brand} />
-        {children}
-        <SiteFooter footer={dict.footer} />
+        <TooltipProvider>
+          <SiteHeader locale={locale} nav={dict.nav} brand={dict.brand} />
+          {children}
+          <SiteFooter footer={dict.footer} />
+          <SocialFloat
+            social={dict.social}
+            email={dict.footer.company.email}
+            phone={dict.footer.company.phone}
+          />
+        </TooltipProvider>
       </body>
     </html>
   )

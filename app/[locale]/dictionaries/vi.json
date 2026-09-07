@@ -138,8 +138,180 @@
     "tagline": "Atelier váy cưới"
   },
   "home": {
-    "headline": "Atelier váy cưới",
-    "subhead": "Thiết kế may đo cho ngày lễ của bạn."
+    "headline": "LINHouse Bigsize Bridal",
+    "subhead": "Áo Cưới Big Size | Váy Cưới BigSize",
+    "description": "Luôn update xu hướng váy cưới, chụp hình, trang điểm và truyền cảm hứng đến khách hàng, LIN HOUSE ngày càng khẳng định vị thế của mình trong lòng những cặp đôi yêu thích cái đẹp và luôn mong mình có hình ảnh chỉnh chu, sang trọng nhất trong ngày trọng đại của mình.",
+    "cta": "Khám phá ngay",
+    "imageAlt": "Cô dâu LINHouse",
+    "collection": {
+      "title": "Bộ sưu tập",
+      "items": [
+        {
+          "name": "Spring 2026",
+          "href": "/catalog/spring-2026",
+          "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Xuân 2026"
+        },
+        {
+          "name": "Atelier Noir",
+          "href": "/catalog/atelier-noir",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Atelier Noir"
+        },
+        {
+          "name": "Garden Muse",
+          "href": "/catalog/garden-muse",
+          "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Garden Muse"
+        },
+        {
+          "name": "Bloom",
+          "href": "/catalog/bloom",
+          "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Bloom"
+        },
+        {
+          "name": "Opera",
+          "href": "/catalog/opera",
+          "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Opera"
+        },
+        {
+          "name": "Silk Route",
+          "href": "/catalog/silk-route",
+          "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới Silk Route"
+        },
+        {
+          "name": "After Party",
+          "href": "/catalog/after-party",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bộ sưu tập váy cưới After Party"
+        }
+      ]
+    },
+    "featured": {
+      "title": "Sản phẩm nổi bật",
+      "loadMore": "Xem thêm",
+      "showLess": "Thu gọn"
+    },
+    "testimonials": {
+      "label": "Câu chuyện cô dâu",
+      "title": "Lời yêu thương từ những cô dâu của LINHOUSE",
+      "items": [
+        {
+          "name": "Lan Anh",
+          "quote": "Lần đầu tôi cảm thấy mình là chính mình trong một chiếc váy được may cho dáng người của tôi, không phải size mẫu.",
+          "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Lan Anh trong váy cưới LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Camille" },
+            { "label": "Năm", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Minh Thu",
+          "quote": "Buổi fitting rất thong thả, và chiếc váy chuyển động cùng tôi suốt cả đêm.",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Minh Thu trong váy tiệc ngắn LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Luna Mini" },
+            { "label": "Năm", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Hà My",
+          "quote": "Mỗi chi tiết đều được chăm chút. Khách mời cứ hỏi mãi váy do ai làm.",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Hà My trong thiết kế couture LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Noir" },
+            { "label": "Năm", "value": "2024" }
+          ]
+        },
+        {
+          "name": "Phương Linh",
+          "quote": "Đủ thoải mái để nhảy, đủ thanh lịch cho lễ đường. Sự cân bằng đó rất hiếm.",
+          "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Phương Linh trong váy cưới vườn LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Muse" },
+            { "label": "Năm", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Ngọc Anh",
+          "quote": "LINHouse coi bigsize là điểm bắt đầu, không phải phần thêm vào sau.",
+          "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Ngọc Anh trong váy ball gown lấp lánh LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Celeste" },
+            { "label": "Năm", "value": "2026" }
+          ]
+        },
+        {
+          "name": "Thanh Hà",
+          "quote": "Từ bản phác đầu tiên đến mũi chỉ cuối, tôi luôn cảm thấy được chăm sóc trọn vẹn.",
+          "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Thanh Hà trong ngày cưới với LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Aria" },
+            { "label": "Năm", "value": "2024" }
+          ]
+        },
+        {
+          "name": "Diệu Linh",
+          "quote": "Lụa ôm rất mềm, tôi quên mình đang mặc váy cưới cho đến khi xem ảnh.",
+          "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Diệu Linh trong váy cưới lụa LINHouse",
+          "meta": [
+            { "label": "Váy", "value": "Bloom" },
+            { "label": "Năm", "value": "2026" }
+          ]
+        },
+        {
+          "name": "Quỳnh Chi",
+          "quote": "Họ lắng nghe trước. Chiếc váy trông giống tôi, không giống một xu hướng.",
+          "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Quỳnh Chi cùng người thương sau lễ cưới",
+          "meta": [
+            { "label": "Váy", "value": "Vow" },
+            { "label": "Năm", "value": "2025" }
+          ]
+        }
+      ]
+    },
+    "about": {
+      "label": "Về chúng tôi",
+      "headline": "Chúng tôi tin vào một cuộc cách mạng váy cưới",
+      "body": "Chúng tôi không nghĩ váy cưới phải khó chịu hay bị đóng khung. Bạn không cần phải đánh mất chính mình. Những thiết kế của LINHouse tôn dáng, khác biệt và trên hết là thoải mái — để bạn nổi bật trong thế giới bridal và được chúc mừng vì là chính bạn.",
+      "cta": "Tìm hiểu thêm",
+      "portraitAlt": "Cô dâu mặc váy LINHouse",
+      "floralAlt": "Hoa cưới"
+    },
+    "blog": {
+      "title": "Kinh nghiệm cưới",
+      "readMore": "Xem thêm",
+      "back": "Quay lại kinh nghiệm cưới",
+      "posts": [
+        {
+          "slug": "short-midi-wedding-dresses-2026",
+          "title": "Top 32 váy cưới ngắn & midi 2026: Kỷ nguyên mới của phong cách cô dâu",
+          "date": "28 Thg 1, 2026",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
+          "imageAlt": "Cô dâu mặc váy cưới ngắn với họa tiết ren",
+          "excerpt": "Đuôi váy midi và những thiết kế mini đang định hình lại lối đi lễ đường. Khám phá những dáng váy cô dâu LINHouse lựa chọn cho lễ cưới, tiệc và after-party mùa này."
+        },
+        {
+          "slug": "wedding-dress-trends-2026",
+          "title": "Top 9 xu hướng váy cưới 2026: Những thiết kế nổi bật cho ngày trọng đại",
+          "date": "7 Thg 1, 2026",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1200&q=80",
+          "imageAlt": "Cô dâu trong thiết kế váy cưới couture",
+          "excerpt": "Từ corset điêu khắc đến cột lụa mềm, đây là những hướng đi bridal 2026 chúng tôi thấy trong các buổi fitting tại LINHouse."
+        }
+      ]
+    }
   },
   "catalog": [
     {
@@ -177,6 +349,34 @@
     {
       "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
       "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.4 — Elise — Strapless Mikado Ballgown",
+      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.6 — Odette — Off-Shoulder Lace Gown",
+      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.10 — Ivory — Classic Satin A-Line",
+      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.1 — Solenne — Sparkling Mermaid Dress",
+      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.15 — Fleur — Tulle Garden A-Line",
+      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.13 — Camille Mini — Reception Party Dress",
+      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.16 — Aurora — Long Sleeve Lace Gown",
+      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80"
     }
   ],
   "footer": {
@@ -208,5 +408,15 @@
     "map": "Google Map",
     "address": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     "copy": "© 2026 LINHouse"
+  },
+  "social": {
+    "label": "Liên hệ",
+    "gmail": "Gmail",
+    "zalo": "Zalo",
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "phone": "Gọi điện",
+    "facebookUrl": "https://www.facebook.com/linhousebigsize",
+    "instagramUrl": "https://www.instagram.com/linhouse.bridal"
   }
 }

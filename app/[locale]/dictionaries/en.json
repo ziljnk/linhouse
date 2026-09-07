@@ -138,8 +138,180 @@
     "tagline": "Bridal atelier"
   },
   "home": {
-    "headline": "Bridal atelier",
-    "subhead": "Bespoke gowns for your wedding day."
+    "headline": "LINHouse Bigsize Bridal",
+    "subhead": "Plus-size wedding gowns | Plus-size bridal dresses",
+    "description": "Always updating wedding gown trends, photography, makeup, and inspiration for our clients, LIN HOUSE continues to earn its place with couples who love beauty and want to look their most polished and elegant on their wedding day.",
+    "cta": "Discover now",
+    "imageAlt": "LINHouse bride",
+    "collection": {
+      "title": "Collection",
+      "items": [
+        {
+          "name": "Spring 2026",
+          "href": "/catalog/spring-2026",
+          "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Spring 2026 bridal collection"
+        },
+        {
+          "name": "Atelier Noir",
+          "href": "/catalog/atelier-noir",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Atelier Noir bridal collection"
+        },
+        {
+          "name": "Garden Muse",
+          "href": "/catalog/garden-muse",
+          "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Garden Muse bridal collection"
+        },
+        {
+          "name": "Bloom",
+          "href": "/catalog/bloom",
+          "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Bloom bridal collection"
+        },
+        {
+          "name": "Opera",
+          "href": "/catalog/opera",
+          "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Opera bridal collection"
+        },
+        {
+          "name": "Silk Route",
+          "href": "/catalog/silk-route",
+          "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "Silk Route bridal collection"
+        },
+        {
+          "name": "After Party",
+          "href": "/catalog/after-party",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
+          "imageAlt": "After Party bridal collection"
+        }
+      ]
+    },
+    "featured": {
+      "title": "Featured products",
+      "loadMore": "Load more",
+      "showLess": "Show less"
+    },
+    "testimonials": {
+      "label": "Bride stories",
+      "title": "From Our Brides with Love",
+      "items": [
+        {
+          "name": "Lan Anh",
+          "quote": "I finally felt like myself in a gown made for my body, not a sample size.",
+          "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Lan Anh in her LINHouse wedding gown",
+          "meta": [
+            { "label": "Gown", "value": "Camille" },
+            { "label": "Year", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Minh Thu",
+          "quote": "The fitting was unhurried, and the dress moved with me all night.",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Minh Thu in a short LINHouse reception dress",
+          "meta": [
+            { "label": "Gown", "value": "Luna Mini" },
+            { "label": "Year", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Hà My",
+          "quote": "Every detail felt considered. Guests kept asking who made the dress.",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Hà My walking in a LINHouse couture gown",
+          "meta": [
+            { "label": "Gown", "value": "Noir" },
+            { "label": "Year", "value": "2024" }
+          ]
+        },
+        {
+          "name": "Phương Linh",
+          "quote": "Comfortable enough to dance, elegant enough for the ceremony. That balance is rare.",
+          "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Phương Linh in a garden wedding gown",
+          "meta": [
+            { "label": "Gown", "value": "Muse" },
+            { "label": "Year", "value": "2025" }
+          ]
+        },
+        {
+          "name": "Ngọc Anh",
+          "quote": "LINHouse treated plus-size as the starting point, not an afterthought.",
+          "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Ngọc Anh in a sparkling LINHouse ball gown",
+          "meta": [
+            { "label": "Gown", "value": "Celeste" },
+            { "label": "Year", "value": "2026" }
+          ]
+        },
+        {
+          "name": "Thanh Hà",
+          "quote": "From the first sketch to the last stitch, I felt completely looked after.",
+          "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Thanh Hà on her wedding day in LINHouse",
+          "meta": [
+            { "label": "Gown", "value": "Aria" },
+            { "label": "Year", "value": "2024" }
+          ]
+        },
+        {
+          "name": "Diệu Linh",
+          "quote": "The silk sat so softly I forgot I was wearing a wedding dress until I saw the photos.",
+          "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Diệu Linh in a silk LINHouse bridal dress",
+          "meta": [
+            { "label": "Gown", "value": "Bloom" },
+            { "label": "Year", "value": "2026" }
+          ]
+        },
+        {
+          "name": "Quỳnh Chi",
+          "quote": "They listened first. The gown looks like me, not like a trend.",
+          "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80",
+          "imageAlt": "Quỳnh Chi with her partner after the ceremony",
+          "meta": [
+            { "label": "Gown", "value": "Vow" },
+            { "label": "Year", "value": "2025" }
+          ]
+        }
+      ]
+    },
+    "about": {
+      "label": "About us",
+      "headline": "We Believe In A Bridal Revolution",
+      "body": "We don’t think bridal should be uncomfortable or kept in a box. We don’t think you should be pressured into not feeling like yourself. Our dresses are unusual, figure flattering and above all comfortable. They are made to stand out in the bridal world and to make your guests salute you for being you.",
+      "cta": "More about us",
+      "portraitAlt": "Bride wearing a LINHouse gown",
+      "floralAlt": "Bridal floral arrangement"
+    },
+    "blog": {
+      "title": "Wedding Tips",
+      "readMore": "Read more",
+      "back": "Back to wedding tips",
+      "posts": [
+        {
+          "slug": "short-midi-wedding-dresses-2026",
+          "title": "Top 32 Short & Midi Wedding Dresses 2026: The New Era of Bridal Style",
+          "date": "Jan 28, 2026",
+          "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
+          "imageAlt": "Bride in a short wedding dress with lace details",
+          "excerpt": "Midi hemlines and playful minis are reshaping the aisle. Discover the silhouettes our brides are choosing for ceremonies, receptions, and after-parties this season."
+        },
+        {
+          "slug": "wedding-dress-trends-2026",
+          "title": "Top 9 Wedding Dress Trends 2026: Stunning Styles for Your Big Day",
+          "date": "Jan 7, 2026",
+          "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=1200&q=80",
+          "imageAlt": "Bride walking in a couture wedding gown",
+          "excerpt": "From sculptural corsets to fluid silk columns, these are the 2026 bridal directions we are seeing in fittings at LINHouse."
+        }
+      ]
+    }
   },
   "catalog": [
     {
@@ -177,6 +349,34 @@
     {
       "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
       "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.4 — Elise — Strapless Mikado Ballgown",
+      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.6 — Odette — Off-Shoulder Lace Gown",
+      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.10 — Ivory — Classic Satin A-Line",
+      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.1 — Solenne — Sparkling Mermaid Dress",
+      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.15 — Fleur — Tulle Garden A-Line",
+      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.13 — Camille Mini — Reception Party Dress",
+      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80"
+    },
+    {
+      "name": "No.16 — Aurora — Long Sleeve Lace Gown",
+      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80"
     }
   ],
   "footer": {
@@ -208,5 +408,15 @@
     "map": "Google Map",
     "address": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
     "copy": "© 2026 LINHouse"
+  },
+  "social": {
+    "label": "Contact",
+    "gmail": "Gmail",
+    "zalo": "Zalo",
+    "instagram": "Instagram",
+    "facebook": "Facebook",
+    "phone": "Call",
+    "facebookUrl": "https://www.facebook.com/linhousebigsize",
+    "instagramUrl": "https://www.instagram.com/linhouse.bridal"
   }
 }

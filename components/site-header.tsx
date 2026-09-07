@@ -106,7 +106,7 @@ export function SiteHeader({
             <Link href="#footer" className="hover:text-burgundy">
               {nav.top.contact}
             </Link>
-            <Link href={`/${locale}`} className="hover:text-burgundy">
+            <Link href={`/${locale}#reviews`} className="hover:text-burgundy">
               {nav.top.reviews}
             </Link>
             <Link href="#footer" className="hover:text-burgundy">
