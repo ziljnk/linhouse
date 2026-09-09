@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import type { Dictionary } from "@/app/[locale]/dictionaries"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { ProductGrid } from "@/components/product-grid"
 
@@ -12,12 +12,14 @@ const buttonClass =
 
 export function FeaturedProducts({
   products,
+  locale,
   title,
   loadMore,
   showLess,
   contactLabel,
 }: {
   products: Dictionary["catalog"]
+  locale: Locale
   title: string
   loadMore: string
   showLess: string
@@ -40,7 +42,12 @@ export function FeaturedProducts({
           {title}
         </h2>
       </ScrollReveal>
-      <ProductGrid products={shown} contactLabel={contactLabel} columns={4} />
+      <ProductGrid
+        products={shown}
+        locale={locale}
+        contactLabel={contactLabel}
+        columns={4}
+      />
       {hasMore || canShowLess ? (
         <ScrollReveal
           delay={0.08}

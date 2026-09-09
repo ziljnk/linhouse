@@ -6,6 +6,10 @@ import {
   ScrollRevealItem,
 } from "@/components/motion-primitives/scroll-reveal"
 
+const HERO_IMAGE = "/hero/bridal.webp"
+const HERO_BLUR =
+  "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAAAQBACdASoYAAwAPu1krU2ppaSiMAgBMB2JZwDG9Gk7UWtVyzvfkqDOAAD+/jJCc+6TDFH0jnoE+AkjgQAy0t/bgMrjINnh1Xb6Ok+be5gcY0G4kWBp4dK3iDhXCIZ+QvtJEAYoAAA="
+
 export function HeroSection({
   locale,
   copy,
@@ -16,12 +20,14 @@ export function HeroSection({
   return (
     <section className="relative isolate min-h-128 overflow-hidden bg-ivory sm:min-h-144 lg:min-h-[min(68vh,42rem)]">
       <Image
-        src="/hero/bridal.png"
+        src={HERO_IMAGE}
         alt={copy.imageAlt}
         fill
         priority
-        quality={90}
+        quality={80}
         sizes="100vw"
+        placeholder="blur"
+        blurDataURL={HERO_BLUR}
         className="object-cover object-[80%_center] lg:object-top"
       />
       <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-ivory from-12% via-ivory/70 via-42% to-transparent to-72% lg:hidden" />

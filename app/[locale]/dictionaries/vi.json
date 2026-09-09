@@ -162,42 +162,49 @@
       "items": [
         {
           "name": "Spring 2026",
+          "subtitle": "Bắt đầu từ ánh sáng và độ phồng. Dáng váy mới cho một mùa bridal mới.",
           "href": "/catalog/spring-2026",
           "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Xuân 2026"
         },
         {
           "name": "Atelier Noir",
+          "subtitle": "Couture từ ivory và midnight. Đường nét điêu khắc, kịch tính trầm.",
           "href": "/catalog/atelier-noir",
           "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Atelier Noir"
         },
         {
           "name": "Garden Muse",
+          "subtitle": "Lấy cảm hứng từ lễ cưới ngoài trời. Dáng A mềm, chuyển động theo gió vườn.",
           "href": "/catalog/garden-muse",
           "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Garden Muse"
         },
         {
           "name": "Bloom",
+          "subtitle": "Một ý niệm hoa, cắt từ lụa. Lãng mạn trong từng tay dài và nếp chảy.",
           "href": "/catalog/bloom",
           "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Bloom"
         },
         {
           "name": "Opera",
+          "subtitle": "Cho lối đi như một sân khấu. Kim tuyến, tỷ lệ, khí chất.",
           "href": "/catalog/opera",
           "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Opera"
         },
         {
           "name": "Silk Route",
+          "subtitle": "Một hành trình lụa chậm rãi. Tinh tế, không vội, đủ để đi xa.",
           "href": "/catalog/silk-route",
           "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới Silk Route"
         },
         {
           "name": "After Party",
+          "subtitle": "Khi lễ đường khép lại, đêm mới bắt đầu. Váy mini và 2-in-1 để nhảy đến sáng.",
           "href": "/catalog/after-party",
           "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bộ sưu tập váy cưới After Party"
@@ -296,12 +303,31 @@
       ]
     },
     "about": {
-      "label": "Về chúng tôi",
-      "headline": "Chúng tôi tin vào một cuộc cách mạng váy cưới",
-      "body": "Chúng tôi không nghĩ váy cưới phải khó chịu hay bị đóng khung. Bạn không cần phải đánh mất chính mình. Những thiết kế của LINHouse tôn dáng, khác biệt và trên hết là thoải mái — để bạn nổi bật trong thế giới bridal và được chúc mừng vì là chính bạn.",
-      "cta": "Tìm hiểu thêm",
-      "portraitAlt": "Cô dâu mặc váy LINHouse",
-      "floralAlt": "Hoa cưới"
+      "label": "Đặt hàng từ nước ngoài",
+      "headline": "Bốn bước, tất cả qua tin nhắn",
+      "body": "Dành riêng cho cô dâu không thể đến atelier — mọi thứ diễn ra qua WhatsApp, Zalo hoặc Messenger, bằng chữ viết và hình ảnh, để không gì bị sót trong một cuộc gọi.",
+      "steps": [
+        {
+          "number": "01",
+          "title": "Gửi số đo của bạn",
+          "body": "Chúng tôi gửi hướng dẫn tự đo đơn giản kèm ảnh mẫu — không cần đến thợ may."
+        },
+        {
+          "number": "02",
+          "title": "Tư vấn qua chat",
+          "body": "Chúng tôi xác nhận dáng váy, chất liệu, độ phủ và mọi thay đổi tùy chỉnh qua WhatsApp hoặc Messenger — tin nhắn và hình ảnh, theo nhịp của bạn."
+        },
+        {
+          "number": "03",
+          "title": "May thủ công",
+          "body": "Váy được cắt và may tại atelier của chúng tôi ở TP. Hồ Chí Minh, với ảnh tiến độ trong suốt quá trình."
+        },
+        {
+          "number": "04",
+          "title": "Giao hàng toàn cầu",
+          "body": "Đóng gói, bảo hiểm và theo dõi đến tận cửa, giấy tờ hải quan do chúng tôi lo liệu."
+        }
+      ]
     },
     "blog": {
       "title": "Kinh nghiệm cưới",
@@ -330,69 +356,162 @@
   "catalog": [
     {
       "name": "No.3 — Fern — VLTX-811 Luxury Ivory Ballgown Dress",
-      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026", "bloom"],
+      "silhouette": "ball-gown",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.7 — Celeste — VLTX-204 Sparkling Ball Gown",
-      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80",
+      "collections": ["opera", "spring-2026"],
+      "silhouette": "ball-gown",
+      "neckline": "strapless",
+      "fabric": "sparkling"
     },
     {
       "name": "No.12 — Camille — 2-in-1 Convertible Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party", "opera"],
+      "silhouette": "2-in-1",
+      "neckline": "off-the-shoulder",
+      "fabric": "satin"
     },
     {
       "name": "No.5 — Luna — Mini Reception Dress",
-      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party"],
+      "silhouette": "mini-dress",
+      "neckline": "sweetheart",
+      "fabric": "lace"
     },
     {
       "name": "No.9 — Aria — Lace A-Line Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "v-neck",
+      "fabric": "lace"
     },
     {
       "name": "No.2 — Noir — Satin Off-The-Shoulder Gown",
-      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir"],
+      "silhouette": "a-line",
+      "neckline": "off-the-shoulder",
+      "fabric": "satin"
     },
     {
       "name": "No.14 — Muse — Organza Garden Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "sweetheart",
+      "fabric": "organza"
     },
     {
       "name": "No.8 — Vow — Sweetheart Tulle Ballgown",
-      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80",
+      "collections": ["bloom", "opera"],
+      "silhouette": "ball-gown",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
-      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80",
+      "collections": ["bloom", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "long-sleeve",
+      "fabric": "satin"
     },
     {
       "name": "No.4 — Elise — Strapless Mikado Ballgown",
-      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026"],
+      "silhouette": "ball-gown",
+      "neckline": "strapless",
+      "fabric": "satin"
     },
     {
       "name": "No.6 — Odette — Off-Shoulder Lace Gown",
-      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir", "garden-muse"],
+      "silhouette": "a-line",
+      "neckline": "off-the-shoulder",
+      "fabric": "lace"
     },
     {
       "name": "No.10 — Ivory — Classic Satin A-Line",
-      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "strapless",
+      "fabric": "satin"
     },
     {
       "name": "No.1 — Solenne — Sparkling Mermaid Dress",
-      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir", "opera"],
+      "silhouette": "ball-gown",
+      "neckline": "v-neck",
+      "fabric": "sparkling"
     },
     {
       "name": "No.15 — Fleur — Tulle Garden A-Line",
-      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.13 — Camille Mini — Reception Party Dress",
-      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party"],
+      "silhouette": "mini-dress",
+      "neckline": "off-the-shoulder",
+      "fabric": "tulle"
     },
     {
       "name": "No.16 — Aurora — Long Sleeve Lace Gown",
-      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80",
+      "collections": ["silk-route", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "long-sleeve",
+      "fabric": "lace"
     }
   ],
+  "catalogPage": {
+    "filters": "Bộ lọc",
+    "clear": "Xóa bộ lọc",
+    "results": "mẫu váy",
+    "empty": "Không có mẫu váy phù hợp với bộ lọc."
+  },
+  "productPage": {
+    "related": "Sản phẩm liên quan",
+    "youMayAlsoLike": "Sản phẩm bạn có thể thích",
+    "silhouette": "Dáng váy",
+    "neckline": "Kiểu cổ",
+    "fabric": "Chất liệu",
+    "collection": "Bộ sưu tập",
+    "book": "Đặt lịch thử váy",
+    "contact": "Liên hệ tư vấn",
+    "details": "Chi tiết sản phẩm",
+    "careTitle": "Bảo quản",
+    "care": "Bảo quản váy trong túi vải thoáng khí, tránh nắng trực tiếp và ẩm. Chỉ giặt khô chuyên nghiệp — không giặt máy, không ủi hơi tại nhà, không treo phần thân váy từ phần ngực áo.",
+    "shippingTitle": "Vận chuyển & thử váy",
+    "shipping": "Mỗi chiếc váy được cắt và may tại atelier của chúng tôi ở TP. Hồ Chí Minh. Ảnh tiến độ được gửi trong suốt quá trình, sau đó đóng gói, bảo hiểm và theo dõi đến tận cửa, giấy tờ hải quan do chúng tôi lo liệu.",
+    "madeToMeasureTitle": "May đo theo số liệu",
+    "madeToMeasure": "Gửi số đo theo hướng dẫn kèm ảnh mẫu — không cần đến thợ may. Chúng tôi xác nhận dáng váy, độ phủ và mọi thay đổi tùy chỉnh qua WhatsApp, Zalo hoặc Messenger trước khi cắt vải.",
+    "lead": "{name} là thiết kế {silhouette} với {neckline}, may từ {fabric}. Được tạo tại atelier LINHouse cho cô dâu muốn một chiếc váy may theo dáng mình, không phải size mẫu.",
+    "body": "Từng đường may được tính cho chuyển động, độ phủ và khí chất — từ buổi fitting đầu đến mũi chỉ cuối. Váy được hoàn thiện thủ công để giữ form suốt lễ đường, buổi chụp hình và những giờ tiếp theo.",
+    "prevImage": "Ảnh trước",
+    "nextImage": "Ảnh tiếp",
+    "home": "Trang chủ",
+    "thumbnail": "Xem ảnh {n}"
+  },
   "footer": {
     "company": {
       "title": "Thông tin công ty",

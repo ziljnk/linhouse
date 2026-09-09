@@ -20,6 +20,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
       <CollectionSection locale={locale} copy={dict.home.collection} />
       <FeaturedProducts
         products={dict.catalog}
+        locale={locale}
         title={dict.home.featured.title}
         loadMore={dict.home.featured.loadMore}
         showLess={dict.home.featured.showLess}

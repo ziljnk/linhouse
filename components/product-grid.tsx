@@ -1,27 +1,34 @@
 import Image from "next/image"
-import type { Dictionary } from "@/app/[locale]/dictionaries"
+import Link from "next/link"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
+import { parseProductName, productHref } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 
 export function ProductGrid({
   products,
+  locale,
   contactLabel,
   columns = 3,
+  className,
 }: {
   products: Dictionary["catalog"]
+  locale: Locale
   contactLabel: string
   columns?: 3 | 4
+  className?: string
 }) {
   return (
     <div
       className={cn(
         "mx-auto grid max-w-6xl grid-cols-2 gap-3 sm:gap-4",
-        columns === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+        columns === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
+        className
       )}
     >
       {products.map((product, index) => {
-        const [code, ...rest] = product.name.split(" — ")
-        const title = rest.join(" — ") || product.name
+        const { code, title } = parseProductName(product.name)
+        const href = productHref(locale, product)
 
         return (
           <ScrollReveal
@@ -31,7 +38,7 @@ export function ProductGrid({
             duration={0.7}
           >
             <article className="flex h-full flex-col bg-ivory">
-              <div className="relative">
+              <Link href={href} className="relative block">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -42,7 +49,7 @@ export function ProductGrid({
                 <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center font-heading text-[10px] tracking-[0.2em] text-ivory uppercase drop-shadow sm:bottom-4 sm:text-[13px] sm:tracking-[0.28em]">
                   LINHouse
                 </span>
-              </div>
+              </Link>
               <div className="px-2 pt-3 pb-5 text-center uppercase sm:px-4 sm:pt-5 sm:pb-7">
                 {title ? (
                   <p className="mb-1 text-[10px] tracking-[0.12em] text-gold sm:text-[11px] sm:tracking-[0.16em]">
@@ -50,7 +57,9 @@ export function ProductGrid({
                   </p>
                 ) : null}
                 <h3 className="text-[11px] font-normal tracking-[0.06em] leading-relaxed text-charcoal sm:text-xs sm:tracking-[0.08em]">
-                  {title || code}
+                  <Link href={href} className="hover:text-burgundy">
+                    {title || code}
+                  </Link>
                 </h3>
                 <a
                   href="#footer"

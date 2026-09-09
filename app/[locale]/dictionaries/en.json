@@ -162,42 +162,49 @@
       "items": [
         {
           "name": "Spring 2026",
+          "subtitle": "Built on light and volume. Fresh silhouettes for a new bridal season.",
           "href": "/catalog/spring-2026",
           "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Spring 2026 bridal collection"
         },
         {
           "name": "Atelier Noir",
+          "subtitle": "Couture in ivory and midnight. Sculpted lines, quiet drama.",
           "href": "/catalog/atelier-noir",
           "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Atelier Noir bridal collection"
         },
         {
           "name": "Garden Muse",
+          "subtitle": "Inspired by outdoor vows and garden light. Soft A-lines that move with the air.",
           "href": "/catalog/garden-muse",
           "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Garden Muse bridal collection"
         },
         {
           "name": "Bloom",
+          "subtitle": "A floral idea, cut in silk. Romance in every sleeve and drape.",
           "href": "/catalog/bloom",
           "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Bloom bridal collection"
         },
         {
           "name": "Opera",
+          "subtitle": "For the aisle that feels like a stage. Sparkle, scale, presence.",
           "href": "/catalog/opera",
           "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Opera bridal collection"
         },
         {
           "name": "Silk Route",
+          "subtitle": "A quieter path through fluid silk. Refined, unhurried, made to travel.",
           "href": "/catalog/silk-route",
           "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "Silk Route bridal collection"
         },
         {
           "name": "After Party",
+          "subtitle": "When the ceremony ends, the night begins. Minis and 2-in-1 gowns built to dance.",
           "href": "/catalog/after-party",
           "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=900&q=80",
           "imageAlt": "After Party bridal collection"
@@ -296,12 +303,31 @@
       ]
     },
     "about": {
-      "label": "About us",
-      "headline": "We Believe In A Bridal Revolution",
-      "body": "We don’t think bridal should be uncomfortable or kept in a box. We don’t think you should be pressured into not feeling like yourself. Our dresses are unusual, figure flattering and above all comfortable. They are made to stand out in the bridal world and to make your guests salute you for being you.",
-      "cta": "More about us",
-      "portraitAlt": "Bride wearing a LINHouse gown",
-      "floralAlt": "Bridal floral arrangement"
+      "label": "Ordering from abroad",
+      "headline": "Four steps, all handled over chat",
+      "body": "Built specifically for brides who can't walk into the atelier — everything runs through WhatsApp, Zalo or Messenger, in writing, with photos, so nothing gets lost in a phone call.",
+      "steps": [
+        {
+          "number": "01",
+          "title": "Send your measurements",
+          "body": "We send a simple self-measurement guide with photo examples — no tailor visit needed."
+        },
+        {
+          "number": "02",
+          "title": "Chat consultation",
+          "body": "We confirm silhouette, fabric, coverage and any custom changes over WhatsApp or Messenger — text and photos, at your own pace."
+        },
+        {
+          "number": "03",
+          "title": "We tailor by hand",
+          "body": "Your gown is cut and sewn in our Ho Chi Minh City atelier, with progress photos along the way."
+        },
+        {
+          "number": "04",
+          "title": "Worldwide shipping",
+          "body": "Packed, insured and tracked to your door, with customs paperwork handled on our end."
+        }
+      ]
     },
     "blog": {
       "title": "Wedding Tips",
@@ -330,69 +356,162 @@
   "catalog": [
     {
       "name": "No.3 — Fern — VLTX-811 Luxury Ivory Ballgown Dress",
-      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026", "bloom"],
+      "silhouette": "ball-gown",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.7 — Celeste — VLTX-204 Sparkling Ball Gown",
-      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=800&q=80",
+      "collections": ["opera", "spring-2026"],
+      "silhouette": "ball-gown",
+      "neckline": "strapless",
+      "fabric": "sparkling"
     },
     {
       "name": "No.12 — Camille — 2-in-1 Convertible Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party", "opera"],
+      "silhouette": "2-in-1",
+      "neckline": "off-the-shoulder",
+      "fabric": "satin"
     },
     {
       "name": "No.5 — Luna — Mini Reception Dress",
-      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party"],
+      "silhouette": "mini-dress",
+      "neckline": "sweetheart",
+      "fabric": "lace"
     },
     {
       "name": "No.9 — Aria — Lace A-Line Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "v-neck",
+      "fabric": "lace"
     },
     {
       "name": "No.2 — Noir — Satin Off-The-Shoulder Gown",
-      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir"],
+      "silhouette": "a-line",
+      "neckline": "off-the-shoulder",
+      "fabric": "satin"
     },
     {
       "name": "No.14 — Muse — Organza Garden Wedding Dress",
-      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "sweetheart",
+      "fabric": "organza"
     },
     {
       "name": "No.8 — Vow — Sweetheart Tulle Ballgown",
-      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=800&q=80",
+      "collections": ["bloom", "opera"],
+      "silhouette": "ball-gown",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.11 — Bloom — Silk Long Sleeve Bridal Dress",
-      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=800&q=80",
+      "collections": ["bloom", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "long-sleeve",
+      "fabric": "satin"
     },
     {
       "name": "No.4 — Elise — Strapless Mikado Ballgown",
-      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026"],
+      "silhouette": "ball-gown",
+      "neckline": "strapless",
+      "fabric": "satin"
     },
     {
       "name": "No.6 — Odette — Off-Shoulder Lace Gown",
-      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1460978812857-470ed1c77af0?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir", "garden-muse"],
+      "silhouette": "a-line",
+      "neckline": "off-the-shoulder",
+      "fabric": "lace"
     },
     {
       "name": "No.10 — Ivory — Classic Satin A-Line",
-      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80",
+      "collections": ["spring-2026", "silk-route"],
+      "silhouette": "a-line",
+      "neckline": "strapless",
+      "fabric": "satin"
     },
     {
       "name": "No.1 — Solenne — Sparkling Mermaid Dress",
-      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1502635385003-ee1e6e1d5b1c?auto=format&fit=crop&w=800&q=80",
+      "collections": ["atelier-noir", "opera"],
+      "silhouette": "ball-gown",
+      "neckline": "v-neck",
+      "fabric": "sparkling"
     },
     {
       "name": "No.15 — Fleur — Tulle Garden A-Line",
-      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=800&q=80",
+      "collections": ["garden-muse", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "sweetheart",
+      "fabric": "tulle"
     },
     {
       "name": "No.13 — Camille Mini — Reception Party Dress",
-      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1502720705749-871143f0e671?auto=format&fit=crop&w=800&q=80",
+      "collections": ["after-party"],
+      "silhouette": "mini-dress",
+      "neckline": "off-the-shoulder",
+      "fabric": "tulle"
     },
     {
       "name": "No.16 — Aurora — Long Sleeve Lace Gown",
-      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80"
+      "image": "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?auto=format&fit=crop&w=800&q=80",
+      "collections": ["silk-route", "bloom"],
+      "silhouette": "a-line",
+      "neckline": "long-sleeve",
+      "fabric": "lace"
     }
   ],
+  "catalogPage": {
+    "filters": "Filter",
+    "clear": "Clear all",
+    "results": "gowns",
+    "empty": "No gowns match these filters."
+  },
+  "productPage": {
+    "related": "Related products",
+    "youMayAlsoLike": "You may also like",
+    "silhouette": "Silhouette",
+    "neckline": "Neckline",
+    "fabric": "Fabric",
+    "collection": "Collection",
+    "book": "Book a fitting",
+    "contact": "Enquire",
+    "details": "Details",
+    "careTitle": "Care",
+    "care": "Store the gown in a breathable garment bag, away from direct sunlight and moisture. Professional cleaning only — never machine wash, steam at home, or hang the skirt from the bodice.",
+    "shippingTitle": "Shipping & fittings",
+    "shipping": "Each gown is cut and sewn at our Ho Chi Minh City atelier. We send progress photos through the making, then pack, insure, and track the finished dress to your door, with customs paperwork handled by us.",
+    "madeToMeasureTitle": "Made to measure",
+    "madeToMeasure": "Share your measurements with a simple photo guide — no local tailor required. We confirm silhouette, coverage, and every alteration over WhatsApp, Zalo, or Messenger before a single cut is made.",
+    "lead": "{name} is a {silhouette} design with a {neckline}, cut from {fabric}. Made at the LINHouse atelier for the bride who wants a gown built around her, not a sample size.",
+    "body": "Every seam is considered for movement, coverage, and presence — from the first fitting through the last stitch. The gown is finished by hand so it holds its line through the ceremony, the portraits, and the hours that follow.",
+    "prevImage": "Previous image",
+    "nextImage": "Next image",
+    "home": "Home",
+    "thumbnail": "View image {n}"
+  },
   "footer": {
     "company": {
       "title": "Company",
