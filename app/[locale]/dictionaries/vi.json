@@ -9,6 +9,7 @@
     "bookPlaceholder": "Để lại SĐT",
     "bookSubmit": "Đặt lịch hẹn",
     "home": "Trang chủ",
+    "newIn": "Khám phá",
     "collection": "Collection",
     "bridal": "Váy cưới Bridal",
     "aodai": "Áo dài",
@@ -487,7 +488,8 @@
     "filters": "Bộ lọc",
     "clear": "Xóa bộ lọc",
     "results": "mẫu váy",
-    "empty": "Không có mẫu váy phù hợp với bộ lọc."
+    "empty": "Không có mẫu váy phù hợp với bộ lọc.",
+    "otherCollections": "Bộ sưu tập khác"
   },
   "productPage": {
     "related": "Sản phẩm liên quan",

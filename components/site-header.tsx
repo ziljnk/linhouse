@@ -55,12 +55,16 @@ type MegaColumn = Dictionary["nav"]["homeColumns"][number]
 
 function navSections(nav: Dictionary["nav"]) {
   return [
-    { title: nav.home, columns: nav.homeColumns },
+    { title: nav.newIn, columns: nav.homeColumns },
     { title: nav.collection, columns: nav.collectionColumns },
     { title: nav.bridal, columns: nav.bridalColumns },
     { title: nav.aodai, columns: nav.aodaiColumns },
     { title: nav.services, columns: [{ title: nav.services, links: nav.serviceItems }] },
   ]
+}
+
+function isHomePath(pathname: string, locale: Locale) {
+  return pathname === `/${locale}` || pathname === `/${locale}/`
 }
 
 function MegaColumns({
@@ -135,6 +139,8 @@ function MobileNav({
   onBook: () => void
 }) {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const homeActive = isHomePath(pathname, locale)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -189,6 +195,23 @@ function MobileNav({
               {nav.bookSubmit}
             </button>
           </div>
+
+          <nav className="border-b px-4">
+            <SheetClose
+              nativeButton={false}
+              render={
+                <Link
+                  href={`/${locale}`}
+                  className={cn(
+                    "block rounded-none py-3.5 text-[12.5px] font-medium tracking-[0.14em] uppercase hover:text-burgundy",
+                    homeActive ? "text-burgundy" : "text-charcoal"
+                  )}
+                />
+              }
+            >
+              {nav.home}
+            </SheetClose>
+          </nav>
 
           <Accordion className="px-4">
             {navSections(nav).map((section) => (
@@ -274,9 +297,11 @@ export function SiteHeader({
   booking: Dictionary["booking"]
   storeAddress: string
 }) {
+  const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [bookingOpen, setBookingOpen] = useState(false)
   const collapsedRef = useRef(false)
+  const homeActive = isHomePath(pathname, locale)
 
   useEffect(() => {
     let frame = 0
@@ -433,6 +458,17 @@ export function SiteHeader({
           </button>
           <NavigationMenu fullWidth>
             <NavigationMenuList className="flex-wrap">
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  render={<Link href={`/${locale}`} />}
+                  className={cn(
+                    triggerClass,
+                    homeActive && "border-burgundy text-burgundy"
+                  )}
+                >
+                  {nav.home}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
               {navSections(nav).map((section) => (
                 <NavigationMenuItem key={section.title}>
                   <NavigationMenuTrigger className={triggerClass}>

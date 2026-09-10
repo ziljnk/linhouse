@@ -20,6 +20,80 @@ export function findCollection(dict: Dictionary, slug: string) {
   return dict.home.collection.items.find((item) => item.href === `/catalog/${slug}`)
 }
 
+const GALLERY_HEIGHTS = [400, 250, 600, 350, 500, 280, 450, 320, 540]
+
+const LOOKBOOK_POOL = [
+  "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1510070009289-b5bc34383727?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1550005809-91ad75fb315f?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1445431928240-2771ba27f0ce?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1509927083803-4bed4726557a?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1591604466107-ec97de577aff?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1515932799417-2456d6ba80d9?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1545239705-1564e58b9e4a?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1529634597493-8c9638abdbee?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1478146896981-b80fe407b86d?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1519223484940-8ea749b2e8eb?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1522673141818-6b7c0e6c0e6e?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1583939412120-5c5c80e00dc1?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1520855144806-7bdd4c0c4c8e?auto=format&fit=crop&w=900&q=80",
+  "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=900&q=80",
+]
+
+export type CollectionGalleryItem = {
+  id: string
+  img: string
+  url: string
+  height: number
+  alt: string
+}
+
+export function collectionGallery(
+  collection: CollectionItem,
+  catalog: Dictionary["catalog"],
+  minCount = 32
+): CollectionGalleryItem[] {
+  const slug = collection.href.replace("/catalog/", "")
+  const seen = new Set<string>()
+  const items: { src: string; alt: string }[] = []
+
+  const add = (src: string, alt: string) => {
+    if (seen.has(src)) return
+    seen.add(src)
+    items.push({ src, alt })
+  }
+
+  add(collection.image, collection.imageAlt)
+
+  for (const product of catalog) {
+    if (product.collections.includes(slug)) {
+      add(product.image, product.name)
+    }
+  }
+
+  for (const product of catalog) {
+    add(product.image, collection.imageAlt)
+  }
+
+  const offset = slug.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  for (let i = 0; i < LOOKBOOK_POOL.length && items.length < minCount; i++) {
+    add(LOOKBOOK_POOL[(offset + i) % LOOKBOOK_POOL.length], collection.imageAlt)
+  }
+
+  return items.map((item, index) => ({
+    id: `${slug}-${index}`,
+    img: item.src,
+    url: "",
+    alt: item.alt,
+    height: GALLERY_HEIGHTS[index % GALLERY_HEIGHTS.length],
+  }))
+}
+
 export function catalogFilterGroups(dict: Dictionary): CatalogFilterGroup[] {
   return CATALOG_FILTER_KEYS.map((key, index) => {
     const column = dict.nav.bridalColumns[index]

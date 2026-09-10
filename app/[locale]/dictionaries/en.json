@@ -9,6 +9,7 @@
     "bookPlaceholder": "Phone number",
     "bookSubmit": "Book now",
     "home": "Home",
+    "newIn": "Discover",
     "collection": "Collection",
     "bridal": "Bridal gowns",
     "aodai": "Ao dai",
@@ -487,7 +488,8 @@
     "filters": "Filter",
     "clear": "Clear all",
     "results": "gowns",
-    "empty": "No gowns match these filters."
+    "empty": "No gowns match these filters.",
+    "otherCollections": "Other collections"
   },
   "productPage": {
     "related": "Related products",
