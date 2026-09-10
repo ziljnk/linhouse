@@ -63,10 +63,6 @@ function navSections(nav: Dictionary["nav"]) {
   ]
 }
 
-function isHomePath(pathname: string, locale: Locale) {
-  return pathname === `/${locale}` || pathname === `/${locale}/`
-}
-
 function MegaColumns({
   columns,
   locale,
@@ -139,8 +135,6 @@ function MobileNav({
   onBook: () => void
 }) {
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
-  const homeActive = isHomePath(pathname, locale)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -202,10 +196,7 @@ function MobileNav({
               render={
                 <Link
                   href={`/${locale}`}
-                  className={cn(
-                    "block rounded-none py-3.5 text-[12.5px] font-medium tracking-[0.14em] uppercase hover:text-burgundy",
-                    homeActive ? "text-burgundy" : "text-charcoal"
-                  )}
+                  className="block rounded-none py-3.5 text-[12.5px] font-medium tracking-[0.14em] text-charcoal uppercase hover:text-burgundy"
                 />
               }
             >
@@ -297,11 +288,9 @@ export function SiteHeader({
   booking: Dictionary["booking"]
   storeAddress: string
 }) {
-  const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [bookingOpen, setBookingOpen] = useState(false)
   const collapsedRef = useRef(false)
-  const homeActive = isHomePath(pathname, locale)
 
   useEffect(() => {
     let frame = 0
@@ -461,10 +450,7 @@ export function SiteHeader({
               <NavigationMenuItem>
                 <NavigationMenuLink
                   render={<Link href={`/${locale}`} />}
-                  className={cn(
-                    triggerClass,
-                    homeActive && "border-burgundy text-burgundy"
-                  )}
+                  className={triggerClass}
                 >
                   {nav.home}
                 </NavigationMenuLink>
