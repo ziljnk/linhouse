@@ -1,0 +1,27 @@
+{
+  "contact": {
+    "hotline": "0902 678 114",
+    "email": "info@linhouse.com.vn",
+    "zalo": "0902678114"
+  },
+  "address": {
+    "vi": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
+    "en": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
+    "mapQuery": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Hồ Chí Minh"
+  },
+  "business": {
+    "brandName": "LINHouse",
+    "legalName": "",
+    "taxCode": "",
+    "representative": "",
+    "licenseNumber": "",
+    "workingHours": {
+      "vi": "",
+      "en": ""
+    }
+  },
+  "social": {
+    "facebookUrl": "https://www.facebook.com/linhousebigsize",
+    "instagramUrl": "https://www.instagram.com/linhouse.bridal"
+  }
+}

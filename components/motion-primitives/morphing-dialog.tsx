@@ -210,7 +210,10 @@ function MorphingDialogContent({
     }
   }, [isOpen, triggerRef]);
 
-  const handleClickOutside = useCallback(() => {
+  const handleClickOutside = useCallback((event: MouseEvent | TouchEvent) => {
+    if ((event.target as Element | null)?.closest('[data-morphing-dialog-control]')) {
+      return;
+    }
     setIsOpen(false);
   }, [setIsOpen]);
 
@@ -415,6 +418,7 @@ function MorphingDialogClose({
       onClick={handleClose}
       type='button'
       aria-label='Close dialog'
+      data-morphing-dialog-control
       key={`dialog-close-${uniqueId}`}
       className={cn('absolute top-6 right-6', className)}
       initial='initial'
@@ -437,4 +441,5 @@ export {
   MorphingDialogSubtitle,
   MorphingDialogDescription,
   MorphingDialogImage,
+  useMorphingDialog,
 };

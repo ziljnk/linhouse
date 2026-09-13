@@ -60,7 +60,11 @@ export default async function CatalogPage({
     return (
       <main className="overflow-x-clip bg-ivory">
         <CollectionHero collection={collection} />
-        <CollectionGallery items={collectionGallery(collection, dict.catalog)} />
+        <CollectionGallery
+          items={collectionGallery(collection, dict.catalog)}
+          prevLabel={dict.catalogPage.prevImage}
+          nextLabel={dict.catalogPage.nextImage}
+        />
         {otherCollections.length > 0 ? (
           <CollectionSection
             locale={locale}

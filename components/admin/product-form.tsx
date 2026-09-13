@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import { Languages } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,11 +23,22 @@ import {
   ComboboxList,
   ComboboxValue,
 } from "@/components/ui/combobox"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import {
-  ProductImageUploader,
-  type ProductImage,
-} from "@/components/admin/product-image-uploader"
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
+  ImageUploader,
+  type UploadedImage,
+} from "@/components/admin/image-uploader"
 import { cn } from "@/lib/utils"
 
 const SILHOUETTE_OPTIONS = [
@@ -111,23 +123,61 @@ function CharacterCount({
   )
 }
 
-export function ProductForm() {
-  const [name, setName] = useState("")
-  const [code, setCode] = useState("")
-  const [description, setDescription] = useState("")
-  const [silhouette, setSilhouette] = useState("")
-  const [neckline, setNeckline] = useState("")
-  const [fabric, setFabric] = useState("")
-  const [collections, setCollections] = useState<string[]>([])
-  const [tags, setTags] = useState<string[]>([])
-  const [images, setImages] = useState<ProductImage[]>([])
-  const [slug, setSlug] = useState("")
-  const [slugTouched, setSlugTouched] = useState(false)
-  const [seoTitle, setSeoTitle] = useState("")
-  const [seoDescription, setSeoDescription] = useState("")
-  const [seoKeywords, setSeoKeywords] = useState("")
+export type ProductFormValues = {
+  name?: string
+  code?: string
+  description?: string
+  descriptionVi?: string
+  descriptionEn?: string
+  silhouette?: string
+  neckline?: string
+  fabric?: string
+  collections?: string[]
+  tags?: string[]
+  slug?: string
+  seoTitle?: string
+  seoDescription?: string
+  seoKeywords?: string
+}
+
+export function ProductForm({
+  defaultValues,
+}: {
+  defaultValues?: ProductFormValues
+} = {}) {
+  const [name, setName] = useState(defaultValues?.name ?? "")
+  const [code, setCode] = useState(defaultValues?.code ?? "")
+  const [descriptionVi, setDescriptionVi] = useState(
+    defaultValues?.descriptionVi ?? defaultValues?.description ?? ""
+  )
+  const [descriptionEn, setDescriptionEn] = useState(
+    defaultValues?.descriptionEn ?? ""
+  )
+  const [silhouette, setSilhouette] = useState(defaultValues?.silhouette ?? "")
+  const [neckline, setNeckline] = useState(defaultValues?.neckline ?? "")
+  const [fabric, setFabric] = useState(defaultValues?.fabric ?? "")
+  const [collections, setCollections] = useState<string[]>(
+    defaultValues?.collections ?? []
+  )
+  const [tags, setTags] = useState<string[]>(defaultValues?.tags ?? [])
+  const [images, setImages] = useState<UploadedImage[]>([])
+  const [slug, setSlug] = useState(defaultValues?.slug ?? "")
+  const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
+  const [seoTitle, setSeoTitle] = useState(defaultValues?.seoTitle ?? "")
+  const [seoDescription, setSeoDescription] = useState(
+    defaultValues?.seoDescription ?? ""
+  )
+  const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
   const [formError, setFormError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [descriptionTab, setDescriptionTab] = useState<"vi" | "en">("vi")
+
+  const handleTranslateToEnglish = () => {
+    if (!descriptionVi.trim()) return
+    // Hook AI translation API here, then:
+    // setDescriptionEn(result)
+    // setDescriptionTab("en")
+  }
 
   const toggleCollection = (value: string) => {
     setCollections((current) =>
@@ -269,15 +319,64 @@ export function ProductForm() {
           </div>
 
           <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="product-description">Mô tả</Label>
-            <Textarea
-              id="product-description"
-              name="description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="Mô tả ngắn về chất liệu, dáng váy và chi tiết thiết kế."
-              rows={4}
-            />
+            <Label>Mô tả</Label>
+            <Tabs
+              value={descriptionTab}
+              onValueChange={(value) => {
+                if (value === "vi" || value === "en") {
+                  setDescriptionTab(value)
+                }
+              }}
+              className="gap-3"
+            >
+              <TabsList>
+                <TabsTrigger value="vi">Tiếng Việt</TabsTrigger>
+                <TabsTrigger value="en">Tiếng Anh</TabsTrigger>
+              </TabsList>
+              <TabsContent value="vi">
+                <div className="relative">
+                  <Textarea
+                    id="product-description-vi"
+                    name="descriptionVi"
+                    value={descriptionVi}
+                    onChange={(event) => setDescriptionVi(event.target.value)}
+                    placeholder="Mô tả ngắn về chất liệu, dáng váy và chi tiết thiết kế."
+                    rows={5}
+                    className="pr-10"
+                  />
+                  <Tooltip>
+                    <TooltipTrigger
+                      delay={0}
+                      closeDelay={0}
+                      aria-label="Dịch sang tiếng Anh"
+                      render={
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="icon-xs"
+                          aria-disabled={!descriptionVi.trim()}
+                          className="absolute top-2 right-2 shadow-sm aria-disabled:opacity-50"
+                        />
+                      }
+                      onClick={handleTranslateToEnglish}
+                    >
+                      <Languages />
+                    </TooltipTrigger>
+                    <TooltipContent>Dịch sang tiếng Anh</TooltipContent>
+                  </Tooltip>
+                </div>
+              </TabsContent>
+              <TabsContent value="en">
+                <Textarea
+                  id="product-description-en"
+                  name="descriptionEn"
+                  value={descriptionEn}
+                  onChange={(event) => setDescriptionEn(event.target.value)}
+                  placeholder="Short description of fabric, silhouette, and design details."
+                  rows={5}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <fieldset className="flex flex-col gap-2 sm:col-span-2">
@@ -350,7 +449,7 @@ export function ProductForm() {
             Tải nhiều ảnh cùng lúc, rồi kéo thả để xếp thứ tự trưng bày.
           </p>
         </div>
-        <ProductImageUploader images={images} onChange={setImages} />
+        <ImageUploader images={images} onChange={setImages} />
       </section>
 
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">

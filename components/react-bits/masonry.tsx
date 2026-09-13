@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Maximize2, XIcon } from 'lucide-react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Maximize2, XIcon } from 'lucide-react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { motion } from 'motion/react';
 import {
   MorphingDialog,
   MorphingDialogClose,
@@ -11,6 +12,7 @@ import {
   MorphingDialogContent,
   MorphingDialogImage,
   MorphingDialogTrigger,
+  useMorphingDialog,
 } from '@/components/motion-primitives/morphing-dialog';
 
 if (typeof window !== 'undefined') {
@@ -59,12 +61,124 @@ interface Item {
   alt?: string;
 }
 
+const lightboxControlVariants = {
+  initial: { opacity: 0 },
+  animate: {
+    opacity: 1,
+    transition: { delay: 0.3, duration: 0.1 },
+  },
+  exit: { opacity: 0, transition: { duration: 0 } },
+};
+
+const navButtonClass =
+  'fixed top-1/2 z-10 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-500';
+
+function MasonryLightbox({
+  items,
+  startIndex,
+  prevLabel,
+  nextLabel,
+}: {
+  items: Item[];
+  startIndex: number;
+  prevLabel: string;
+  nextLabel: string;
+}) {
+  const { isOpen } = useMorphingDialog();
+  const [viewIndex, setViewIndex] = useState(startIndex);
+  const viewed = items[viewIndex] ?? items[startIndex];
+
+  useEffect(() => {
+    if (isOpen) setViewIndex(startIndex);
+  }, [isOpen, startIndex]);
+
+  const go = useCallback(
+    (direction: -1 | 1) => {
+      setViewIndex((current) => (current + direction + items.length) % items.length);
+    },
+    [items.length]
+  );
+
+  useEffect(() => {
+    if (!isOpen || items.length < 2) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        go(-1);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        go(1);
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [go, isOpen, items.length]);
+
+  return (
+    <MorphingDialogContainer>
+      <MorphingDialogContent className="relative">
+        <MorphingDialogImage
+          src={viewed.img}
+          alt={viewed.alt ?? ''}
+          className="h-auto w-full max-w-[90vw] object-cover lg:h-[90vh]"
+        />
+      </MorphingDialogContent>
+      {items.length > 1 ? (
+        <>
+          <motion.button
+            type="button"
+            data-morphing-dialog-control
+            aria-label={prevLabel}
+            onClick={() => go(-1)}
+            className={`${navButtonClass} left-4 sm:left-6`}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={lightboxControlVariants}
+          >
+            <ChevronLeft className="size-5" />
+          </motion.button>
+          <motion.button
+            type="button"
+            data-morphing-dialog-control
+            aria-label={nextLabel}
+            onClick={() => go(1)}
+            className={`${navButtonClass} right-4 sm:right-6`}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={lightboxControlVariants}
+          >
+            <ChevronRight className="size-5" />
+          </motion.button>
+        </>
+      ) : null}
+      <MorphingDialogClose
+        className="fixed top-6 right-6 h-fit w-fit rounded-full bg-white p-1"
+        variants={lightboxControlVariants}
+      >
+        <XIcon className="h-5 w-5 text-zinc-500" />
+      </MorphingDialogClose>
+    </MorphingDialogContainer>
+  );
+}
+
 function MasonryPhoto({
   item,
+  items,
+  index,
   loading,
+  prevLabel,
+  nextLabel,
 }: {
   item: Item;
+  items: Item[];
+  index: number;
   loading: 'lazy' | 'eager';
+  prevLabel: string;
+  nextLabel: string;
 }) {
   const alt = item.alt ?? '';
 
@@ -84,28 +198,12 @@ function MasonryPhoto({
             className="block h-full w-full object-cover"
           />
         </MorphingDialogTrigger>
-        <MorphingDialogContainer>
-          <MorphingDialogContent className="relative">
-            <MorphingDialogImage
-              src={item.img}
-              alt={alt}
-              className="h-auto w-full max-w-[90vw] object-cover lg:h-[90vh]"
-            />
-          </MorphingDialogContent>
-          <MorphingDialogClose
-            className="fixed top-6 right-6 h-fit w-fit rounded-full bg-white p-1"
-            variants={{
-              initial: { opacity: 0 },
-              animate: {
-                opacity: 1,
-                transition: { delay: 0.3, duration: 0.1 },
-              },
-              exit: { opacity: 0, transition: { duration: 0 } },
-            }}
-          >
-            <XIcon className="h-5 w-5 text-zinc-500" />
-          </MorphingDialogClose>
-        </MorphingDialogContainer>
+        <MasonryLightbox
+          items={items}
+          startIndex={index}
+          prevLabel={prevLabel}
+          nextLabel={nextLabel}
+        />
       </MorphingDialog>
       <div
         aria-hidden
@@ -136,6 +234,8 @@ interface MasonryProps {
   hoverScale?: number;
   blurToFocus?: boolean;
   colorShiftOnHover?: boolean;
+  prevLabel?: string;
+  nextLabel?: string;
 }
 
 const Masonry: React.FC<MasonryProps> = ({
@@ -145,7 +245,9 @@ const Masonry: React.FC<MasonryProps> = ({
   scaleOnHover = true,
   hoverScale = 0.95,
   blurToFocus = true,
-  colorShiftOnHover = false
+  colorShiftOnHover = false,
+  prevLabel = 'Previous image',
+  nextLabel = 'Next image'
 }) => {
   const columns = useMedia(
     ['(min-width:1024px)', '(min-width:768px)'],
@@ -303,7 +405,11 @@ const Masonry: React.FC<MasonryProps> = ({
             >
               <MasonryPhoto
                 item={item}
+                items={items}
+                index={index}
                 loading={index < eagerCount ? 'eager' : 'lazy'}
+                prevLabel={prevLabel}
+                nextLabel={nextLabel}
               />
               {colorShiftOnHover && (
                 <div className="color-overlay pointer-events-none absolute inset-0 bg-linear-to-tr from-pink-500/50 to-sky-500/50 opacity-0" />

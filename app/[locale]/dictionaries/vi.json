@@ -489,7 +489,9 @@
     "clear": "Xóa bộ lọc",
     "results": "mẫu váy",
     "empty": "Không có mẫu váy phù hợp với bộ lọc.",
-    "otherCollections": "Bộ sưu tập khác"
+    "otherCollections": "Bộ sưu tập khác",
+    "prevImage": "Ảnh trước",
+    "nextImage": "Ảnh tiếp"
   },
   "productPage": {
     "related": "Sản phẩm liên quan",
@@ -522,7 +524,17 @@
       "phoneLabel": "Hotline",
       "phone": "0902 678 114",
       "emailLabel": "Email",
-      "email": "info@linhouse.com.vn"
+      "email": "info@linhouse.com.vn",
+      "legalName": "",
+      "legalNameLabel": "Tên doanh nghiệp",
+      "taxCode": "",
+      "taxCodeLabel": "Mã số thuế",
+      "representative": "",
+      "representativeLabel": "Người đại diện",
+      "licenseNumber": "",
+      "licenseNumberLabel": "Giấy phép kinh doanh",
+      "workingHours": "",
+      "workingHoursLabel": "Giờ làm việc"
     },
     "customerService": "Dịch vụ khách hàng",
     "customerServiceLinks": [
@@ -541,6 +553,7 @@
     "legal": "Điều khoản - Chính sách",
     "legalLinks": ["Điều khoản sử dụng", "Chính sách bảo mật"],
     "map": "Google Map",
+    "mapQuery": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Hồ Chí Minh",
     "address": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     "copy": "© 2026 LINHouse"
   },
@@ -551,6 +564,7 @@
     "instagram": "Instagram",
     "facebook": "Facebook",
     "phone": "Gọi điện",
+    "zaloPhone": "0902678114",
     "facebookUrl": "https://www.facebook.com/linhousebigsize",
     "instagramUrl": "https://www.instagram.com/linhouse.bridal"
   }

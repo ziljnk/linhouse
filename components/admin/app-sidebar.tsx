@@ -5,9 +5,11 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   CalendarDays,
+  Images,
   LayoutDashboard,
   Library,
   Newspaper,
+  Settings,
   Shirt,
 } from "lucide-react"
 import {
@@ -28,9 +30,14 @@ import {
 const navItems = [
   { title: "Tổng quan", href: "/admin", icon: LayoutDashboard },
   { title: "Sản phẩm", href: "/admin/products", icon: Shirt },
+  { title: "Bộ sưu tập", href: "/admin/collections", icon: Images },
   { title: "Danh mục", href: "/admin/catalog", icon: Library },
   { title: "Blog", href: "/admin/blog", icon: Newspaper },
   { title: "Đặt lịch", href: "/admin/bookings", icon: CalendarDays },
+]
+
+const systemItems = [
+  { title: "Cài đặt chung", href: "/admin/settings", icon: Settings },
 ]
 
 function isActivePath(pathname: string, href: string) {
@@ -76,6 +83,26 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                  <SidebarMenuButton
+                    isActive={isActivePath(pathname, item.href)}
+                    tooltip={item.title}
+                    render={<Link href={item.href} />}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Hệ thống</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {systemItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     isActive={isActivePath(pathname, item.href)}

@@ -489,7 +489,9 @@
     "clear": "Clear all",
     "results": "gowns",
     "empty": "No gowns match these filters.",
-    "otherCollections": "Other collections"
+    "otherCollections": "Other collections",
+    "prevImage": "Previous image",
+    "nextImage": "Next image"
   },
   "productPage": {
     "related": "Related products",
@@ -522,7 +524,17 @@
       "phoneLabel": "Hotline",
       "phone": "0902 678 114",
       "emailLabel": "Email",
-      "email": "info@linhouse.com.vn"
+      "email": "info@linhouse.com.vn",
+      "legalName": "",
+      "legalNameLabel": "Legal name",
+      "taxCode": "",
+      "taxCodeLabel": "Tax code",
+      "representative": "",
+      "representativeLabel": "Representative",
+      "licenseNumber": "",
+      "licenseNumberLabel": "Business license",
+      "workingHours": "",
+      "workingHoursLabel": "Hours"
     },
     "customerService": "Customer service",
     "customerServiceLinks": [
@@ -541,6 +553,7 @@
     "legal": "Terms & policies",
     "legalLinks": ["Terms of use", "Privacy policy"],
     "map": "Google Map",
+    "mapQuery": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
     "address": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
     "copy": "© 2026 LINHouse"
   },
@@ -551,6 +564,7 @@
     "instagram": "Instagram",
     "facebook": "Facebook",
     "phone": "Call",
+    "zaloPhone": "0902678114",
     "facebookUrl": "https://www.facebook.com/linhousebigsize",
     "instagramUrl": "https://www.instagram.com/linhouse.bridal"
   }

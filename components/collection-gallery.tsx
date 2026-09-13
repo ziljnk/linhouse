@@ -5,8 +5,12 @@ import type { CollectionGalleryItem } from "@/lib/catalog"
 
 export function CollectionGallery({
   items,
+  prevLabel,
+  nextLabel,
 }: {
   items: CollectionGalleryItem[]
+  prevLabel: string
+  nextLabel: string
 }) {
   return (
     <section className="mx-auto max-w-7xl px-6 py-12 sm:px-10 sm:py-16 lg:px-16">
@@ -20,6 +24,8 @@ export function CollectionGallery({
         hoverScale={0.95}
         blurToFocus
         colorShiftOnHover={false}
+        prevLabel={prevLabel}
+        nextLabel={nextLabel}
       />
     </section>
   )

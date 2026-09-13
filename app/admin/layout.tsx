@@ -1,11 +1,5 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Montserrat } from "next/font/google"
-import { AppSidebar } from "@/components/admin/app-sidebar"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import "../globals.css"
@@ -62,17 +56,7 @@ export default function AdminLayout({
       )}
     >
       <body className="min-h-full">
-        <TooltipProvider>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-                <SidebarTrigger />
-              </header>
-              {children}
-            </SidebarInset>
-          </SidebarProvider>
-        </TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   )
