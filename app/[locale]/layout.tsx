@@ -8,7 +8,7 @@ import { AnalyticsTracker } from "@/components/analytics/analytics-tracker"
 import { cn } from "@/lib/utils"
 import { getDictionary, hasLocale } from "./dictionaries"
 import "../globals.css"
-import { TooltipProvider } from "@/components/ui/tooltip"
+// import { TooltipProvider } from "@/components/ui/tooltip"
 import {
   getStorefront,
   getStorefrontContact,
@@ -77,7 +77,7 @@ export default async function LocaleLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <TooltipProvider>
+        {/* <TooltipProvider> */}
           <SiteHeader
             locale={locale}
             nav={nav}
@@ -94,7 +94,7 @@ export default async function LocaleLayout({
             phone={contact.footer.company.phone}
             zalo={contact.social.zaloPhone}
           />
-        </TooltipProvider>
+        {/* </TooltipProvider> */}
       </body>
     </html>
   )
