@@ -72,8 +72,13 @@ export async function searchStorefrontAction(input: {
   const requestHeaders = await headers()
   if (!allowSearch(clientIp(requestHeaders))) return []
 
-  return searchStorefront({
-    locale: input.locale,
-    query,
-  })
+  try {
+    return await searchStorefront({
+      locale: input.locale,
+      query,
+    })
+  } catch (error) {
+    console.error("searchStorefrontAction failed", error)
+    return []
+  }
 }

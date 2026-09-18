@@ -97,10 +97,16 @@ export function HeaderSearch({
     setLoading(true)
     const timer = window.setTimeout(async () => {
       const id = ++requestId.current
-      const next = await searchStorefrontAction({ locale, query: q })
-      if (id !== requestId.current) return
-      setResults(next)
-      setLoading(false)
+      try {
+        const next = await searchStorefrontAction({ locale, query: q })
+        if (id !== requestId.current) return
+        setResults(next)
+      } catch {
+        if (id !== requestId.current) return
+        setResults([])
+      } finally {
+        if (id === requestId.current) setLoading(false)
+      }
     }, 250)
 
     return () => window.clearTimeout(timer)

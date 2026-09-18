@@ -306,7 +306,7 @@ export async function listAdminProducts(
     .select()
     .from(product)
     .where(where)
-    .orderBy(asc(product.sortOrder), asc(product.sortNumber), asc(product.name))
+    .orderBy(desc(product.createdAt), desc(product.updatedAt))
     .limit(meta.pageSize)
     .offset(meta.offset)
 
@@ -474,7 +474,7 @@ export async function listAdminCollections(
     .select()
     .from(collection)
     .where(where)
-    .orderBy(asc(collection.sortOrder), asc(collection.slug))
+    .orderBy(desc(collection.createdAt), desc(collection.updatedAt))
     .limit(meta.pageSize)
     .offset(meta.offset)
 
@@ -613,7 +613,7 @@ export async function listAdminBlogPosts(
     .from(blogPost)
     .innerJoin(blogCategory, eq(blogPost.categoryId, blogCategory.id))
     .where(where)
-    .orderBy(desc(blogPost.updatedAt))
+    .orderBy(desc(blogPost.createdAt), desc(blogPost.updatedAt))
     .limit(meta.pageSize)
     .offset(meta.offset)
 
@@ -720,7 +720,7 @@ export async function listAdminTestimonials(
     .select()
     .from(testimonial)
     .where(where)
-    .orderBy(asc(testimonial.sortOrder), asc(testimonial.name))
+    .orderBy(desc(testimonial.createdAt), desc(testimonial.updatedAt))
     .limit(meta.pageSize)
     .offset(meta.offset)
 
