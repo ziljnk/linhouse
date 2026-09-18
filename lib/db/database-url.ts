@@ -8,7 +8,9 @@ export function assertDatabaseUrl(connectionString: string) {
   try {
     url = new URL(connectionString)
   } catch {
-    throw new Error("DATABASE_URL is invalid")
+    throw new Error(
+      "DATABASE_URL is invalid. Use mysql://USER:PASSWORD@HOST:3306/DATABASE"
+    )
   }
 
   if (url.protocol !== "mysql:" && url.protocol !== "mysql2:") {

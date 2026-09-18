@@ -1,14 +1,16 @@
 import { drizzle } from "drizzle-orm/mysql2"
 import mysql from "mysql2/promise"
 import { assertDatabaseUrl } from "./database-url"
+import { encodeMysqlUrl } from "./mysql-url.mjs"
 import * as schema from "./schema"
 
-const connectionString = process.env.DATABASE_URL
+const rawConnectionString = process.env.DATABASE_URL
 
-if (!connectionString) {
+if (!rawConnectionString) {
   throw new Error("DATABASE_URL is missing")
 }
 
+const connectionString = encodeMysqlUrl(rawConnectionString)
 assertDatabaseUrl(connectionString)
 
 const globalForDb = globalThis as unknown as {

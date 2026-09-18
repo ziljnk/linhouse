@@ -2,26 +2,26 @@ import { join } from "node:path"
 import { drizzle } from "drizzle-orm/mysql2"
 import { migrate } from "drizzle-orm/mysql2/migrator"
 import mysql from "mysql2/promise"
+import { encodeMysqlUrl } from "../lib/db/mysql-url.mjs"
 import { loadLocalEnv } from "./load-local-env.mjs"
 
 loadLocalEnv()
 
-const connectionString = process.env.DATABASE_URL
-if (!connectionString) {
+const rawConnectionString = process.env.DATABASE_URL
+if (!rawConnectionString) {
   console.error("DATABASE_URL is missing")
   process.exit(1)
 }
 
-let parsed
+let connectionString
 try {
-  parsed = new URL(connectionString)
-} catch {
-  console.error("DATABASE_URL is invalid")
-  process.exit(1)
-}
-
-if (parsed.protocol !== "mysql:" && parsed.protocol !== "mysql2:") {
-  console.error("DATABASE_URL must be a mysql connection string")
+  connectionString = encodeMysqlUrl(rawConnectionString)
+} catch (error) {
+  console.error(
+    error instanceof Error
+      ? error.message
+      : "DATABASE_URL is invalid. Use mysql://USER:PASSWORD@HOST:3306/DATABASE"
+  )
   process.exit(1)
 }
 
