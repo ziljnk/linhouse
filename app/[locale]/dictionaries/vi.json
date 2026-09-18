@@ -1,7 +1,7 @@
 {
   "products": {
     "cart": "Thêm vào giỏ hàng",
-    "contact": "Contact"
+    "contact": "Liên hệ"
   },
   "nav": {
     "book": "Đặt lịch hẹn",
@@ -15,6 +15,16 @@
     "aodai": "Áo dài",
     "services": "Các dịch vụ của chúng tôi",
     "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm sản phẩm, collection và bài viết",
+    "searchHint": "Nhập để tìm sản phẩm, collection và bài viết đã đăng",
+    "searchMinLength": "Nhập ít nhất 2 ký tự để tìm kiếm",
+    "searchEmpty": "Không tìm thấy kết quả",
+    "searchProducts": "Sản phẩm",
+    "searchCollections": "Collection",
+    "searchBlog": "Bài viết",
+    "wishlist": "Yêu thích",
+    "wishlistEmpty": "Chưa có mẫu váy yêu thích.",
+    "removeWishlist": "Bỏ",
     "account": "Tài khoản",
     "bag": "Giỏ hàng",
     "menu": "Mở menu",
@@ -118,7 +128,12 @@
         "links": [
           { "label": "Trắng", "href": "/catalog/ao-dai-white" },
           { "label": "Đỏ", "href": "/catalog/ao-dai-red" },
-          { "label": "Vàng", "href": "/catalog/ao-dai-yellow" }
+          { "label": "Vàng", "href": "/catalog/ao-dai-yellow" },
+          { "label": "Hồng", "href": "/catalog/ao-dai-pink" },
+          { "label": "Ivory", "href": "/catalog/ao-dai-ivory" },
+          { "label": "Xanh", "href": "/catalog/ao-dai-blue" },
+          { "label": "Gold", "href": "/catalog/ao-dai-gold" },
+          { "label": "Đen", "href": "/catalog/ao-dai-black" }
         ]
       },
       {
@@ -126,7 +141,19 @@
         "links": [
           { "label": "Lụa", "href": "/catalog/ao-dai-silk" },
           { "label": "Ren", "href": "/catalog/ao-dai-lace" },
-          { "label": "Lưới", "href": "/catalog/ao-dai-mesh" }
+          { "label": "Lưới", "href": "/catalog/ao-dai-mesh" },
+          { "label": "Gấm", "href": "/catalog/ao-dai-brocade" },
+          { "label": "Nhung", "href": "/catalog/ao-dai-velvet" },
+          { "label": "Organza", "href": "/catalog/ao-dai-organza" }
+        ]
+      },
+      {
+        "title": "Kiểu dáng",
+        "links": [
+          { "label": "Truyền thống", "href": "/catalog/ao-dai-traditional" },
+          { "label": "Cách tân", "href": "/catalog/ao-dai-modern" },
+          { "label": "Cưới hỏi", "href": "/catalog/ao-dai-wedding" },
+          { "label": "Dáng suông", "href": "/catalog/ao-dai-column" }
         ]
       }
     ],
@@ -146,9 +173,12 @@
     "phone": "Số điện thoại",
     "email": "Email",
     "selectStore": "Chọn cửa hàng",
-    "date": "Ngày hẹn",
+    "date": "Ngày và giờ hẹn",
     "message": "Lời nhắn của bạn",
     "submit": "Gửi ngay",
+    "sending": "Đang gửi...",
+    "success": "Đã nhận lịch hẹn. Chúng tôi sẽ liên hệ lại sớm.",
+    "error": "Không gửi được. Vui lòng thử lại.",
     "close": "Đóng",
     "imageAlt": "Buổi thử váy tại LINHouse"
   },
@@ -332,7 +362,10 @@
     },
     "blog": {
       "title": "Kinh nghiệm cưới",
+      "description": "Gợi ý dáng váy, kinh nghiệm cưới và ghi chú từ atelier LINHouse.",
       "readMore": "Xem thêm",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có bài viết nào.",
       "back": "Quay lại kinh nghiệm cưới",
       "posts": [
         {
@@ -489,6 +522,7 @@
     "clear": "Xóa bộ lọc",
     "results": "mẫu váy",
     "empty": "Không có mẫu váy phù hợp với bộ lọc.",
+    "loadMore": "Xem thêm",
     "otherCollections": "Bộ sưu tập khác",
     "prevImage": "Ảnh trước",
     "nextImage": "Ảnh tiếp"
@@ -500,8 +534,9 @@
     "neckline": "Kiểu cổ",
     "fabric": "Chất liệu",
     "collection": "Bộ sưu tập",
-    "book": "Đặt lịch thử váy",
-    "contact": "Liên hệ tư vấn",
+    "book": "Liên hệ tư vấn",
+    "addToWishlist": "Yêu thích",
+    "removeFromWishlist": "Bỏ yêu thích",
     "details": "Chi tiết sản phẩm",
     "careTitle": "Bảo quản",
     "care": "Bảo quản váy trong túi vải thoáng khí, tránh nắng trực tiếp và ẩm. Chỉ giặt khô chuyên nghiệp — không giặt máy, không ủi hơi tại nhà, không treo phần thân váy từ phần ngực áo.",
@@ -510,6 +545,7 @@
     "madeToMeasureTitle": "May đo theo số liệu",
     "madeToMeasure": "Gửi số đo theo hướng dẫn kèm ảnh mẫu — không cần đến thợ may. Chúng tôi xác nhận dáng váy, độ phủ và mọi thay đổi tùy chỉnh qua WhatsApp, Zalo hoặc Messenger trước khi cắt vải.",
     "lead": "{name} là thiết kế {silhouette} với {neckline}, may từ {fabric}. Được tạo tại atelier LINHouse cho cô dâu muốn một chiếc váy may theo dáng mình, không phải size mẫu.",
+    "leadAoDai": "{name} là thiết kế áo dài{details}. Được tạo tại atelier LINHouse cho cô dâu muốn trang phục may theo dáng mình, không phải size mẫu.",
     "body": "Từng đường may được tính cho chuyển động, độ phủ và khí chất — từ buổi fitting đầu đến mũi chỉ cuối. Váy được hoàn thiện thủ công để giữ form suốt lễ đường, buổi chụp hình và những giờ tiếp theo.",
     "prevImage": "Ảnh trước",
     "nextImage": "Ảnh tiếp",

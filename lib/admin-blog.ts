@@ -1,6 +1,13 @@
-export const BLOG_STATUSES = ["published", "scheduled", "draft"] as const
+import {
+  CONTENT_LIST_FILTER_LABELS,
+  CONTENT_LIST_FILTERS,
+  formatPublishedAt,
+  type ContentListFilter,
+} from "@/lib/content-status"
 
-export type BlogStatus = (typeof BLOG_STATUSES)[number]
+export const BLOG_STATUSES = CONTENT_LIST_FILTERS
+
+export type BlogStatus = ContentListFilter
 
 export type AdminBlogListItem = {
   id: string
@@ -9,14 +16,10 @@ export type AdminBlogListItem = {
   thumbnail: string
   category: string
   status: BlogStatus
-  scheduledAt: string | null
+  publishedAt: string | null
 }
 
-export const BLOG_STATUS_LABELS: Record<BlogStatus, string> = {
-  published: "Đã đăng",
-  scheduled: "Đã lên lịch",
-  draft: "Draft",
-}
+export const BLOG_STATUS_LABELS = CONTENT_LIST_FILTER_LABELS
 
 export const BLOG_CATEGORIES = [
   { value: "Xu hướng", label: "Xu hướng" },
@@ -56,7 +59,7 @@ const EXTRA_POSTS: AdminBlogListItem[] = [
       "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=1200&q=80",
     category: "Phụ kiện",
     status: "scheduled",
-    scheduledAt: "2026-09-18T02:00:00.000Z",
+    publishedAt: "2026-09-18T02:00:00.000Z",
   },
   {
     id: "fitting-day-checklist",
@@ -66,7 +69,7 @@ const EXTRA_POSTS: AdminBlogListItem[] = [
       "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     category: "Kinh nghiệm",
     status: "draft",
-    scheduledAt: null,
+    publishedAt: null,
   },
   {
     id: "behind-atelier-linhouse",
@@ -76,7 +79,7 @@ const EXTRA_POSTS: AdminBlogListItem[] = [
       "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1200&q=80",
     category: "Behind the scenes",
     status: "published",
-    scheduledAt: null,
+    publishedAt: null,
   },
   {
     id: "garden-wedding-lookbook",
@@ -86,7 +89,7 @@ const EXTRA_POSTS: AdminBlogListItem[] = [
       "https://images.unsplash.com/photo-1606800052052-a08af7148866?auto=format&fit=crop&w=1200&q=80",
     category: "Xu hướng",
     status: "scheduled",
-    scheduledAt: "2026-09-24T04:30:00.000Z",
+    publishedAt: "2026-09-24T04:30:00.000Z",
   },
   {
     id: "ao-dai-cuoi-hien-dai",
@@ -96,7 +99,7 @@ const EXTRA_POSTS: AdminBlogListItem[] = [
       "https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?auto=format&fit=crop&w=1200&q=80",
     category: "Kinh nghiệm",
     status: "draft",
-    scheduledAt: null,
+    publishedAt: null,
   },
 ]
 
@@ -108,7 +111,7 @@ export function toAdminBlogListItems(posts: SourceBlogPost[]): AdminBlogListItem
     thumbnail: post.image,
     category: SITE_POST_CATEGORIES[post.slug] ?? "Xu hướng",
     status: "published" as const,
-    scheduledAt: null,
+    publishedAt: null,
   }))
 
   const existingSlugs = new Set(fromSite.map((post) => post.slug))
@@ -126,10 +129,4 @@ export function findAdminBlogPost(
   return posts.find((post) => post.slug === slug)
 }
 
-export function formatScheduledAt(iso: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(iso))
-}
+export { formatPublishedAt as formatScheduledAt }

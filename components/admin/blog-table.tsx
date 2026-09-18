@@ -1,8 +1,17 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { deleteBlogPostAction } from "@/app/admin/(dashboard)/blog/actions"
+import { AdminFilterSelect } from "@/components/admin/admin-filter-select"
+import { AdminPagination } from "@/components/admin/admin-pagination"
+import {
+  useAdminListParams,
+  useAdminSearchQuery,
+} from "@/components/admin/use-admin-list-params"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -23,13 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -64,104 +66,50 @@ const STATUS_FILTER_OPTIONS = [
   })),
 ]
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-}
-
-function FilterSelect({
-  id,
-  value,
-  onValueChange,
-  items,
-  "aria-label": ariaLabel,
-}: {
-  id: string
-  value: string
-  onValueChange: (value: string) => void
-  items: { value: string; label: string }[]
-  "aria-label": string
-}) {
-  return (
-    <Select
-      id={id}
-      value={value}
-      onValueChange={(next) => onValueChange(next ?? "all")}
-      items={items}
-    >
-      <SelectTrigger className="w-full sm:w-44" aria-label={ariaLabel}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value} label={item.label}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-}
-
 export function BlogTable({
-  posts: initialPosts,
+  posts,
+  page,
+  pageCount,
+  total,
+  pageSize,
+  query,
+  status,
+  category,
+  categoryOptions,
 }: {
   posts: AdminBlogListItem[]
+  page: number
+  pageCount: number
+  total: number
+  pageSize: number
+  query: string
+  status: string
+  category: string
+  categoryOptions: { value: string; label: string }[]
 }) {
-  const [posts, setPosts] = useState(initialPosts)
+  const router = useRouter()
+  const { setParam, clearParams } = useAdminListParams()
+  const search = useAdminSearchQuery(query)
   const [deletePost, setDeletePost] = useState<AdminBlogListItem | null>(null)
-  const [query, setQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [categoryFilter, setCategoryFilter] = useState("all")
-
-  const categoryOptions = useMemo(() => {
-    const values = [...new Set(posts.map((post) => post.category))].sort((a, b) =>
-      a.localeCompare(b, "vi")
-    )
-    return [
-      { value: "all", label: "Tất cả danh mục" },
-      ...values.map((value) => ({ value, label: value })),
-    ]
-  }, [posts])
-
-  const filteredPosts = useMemo(() => {
-    const needle = normalize(query.trim())
-
-    return posts.filter((post) => {
-      if (statusFilter !== "all" && post.status !== statusFilter) return false
-      if (categoryFilter !== "all" && post.category !== categoryFilter) {
-        return false
-      }
-      if (!needle) return true
-
-      const haystack = [
-        post.title,
-        post.category,
-        BLOG_STATUS_LABELS[post.status],
-      ].join(" ")
-
-      return normalize(haystack).includes(needle)
-    })
-  }, [posts, query, statusFilter, categoryFilter])
-
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
   const hasActiveFilters =
-    query.trim() !== "" || statusFilter !== "all" || categoryFilter !== "all"
+    query !== "" || status !== "all" || category !== "all"
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deletePost) return
-    const id = deletePost.id
-    setPosts((current) => current.filter((post) => post.id !== id))
+    setPending(true)
+    setDeleteError(null)
+    const result = await deleteBlogPostAction(deletePost.id)
+    setPending(false)
+    if (!result.ok) {
+      setDeleteError(result.error)
+      toastError(result.error)
+      return
+    }
+    toastSuccess("Đã xóa bài viết.")
     setDeletePost(null)
-  }
-
-  const resetFilters = () => {
-    setQuery("")
-    setStatusFilter("all")
-    setCategoryFilter("all")
+    router.refresh()
   }
 
   return (
@@ -171,43 +119,48 @@ export function BlogTable({
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              value={search.value}
+              onChange={(event) => search.onChange(event.target.value)}
+              onFocus={search.onFocus}
+              onBlur={search.onBlur}
               placeholder="Tìm tiêu đề, danh mục..."
               aria-label="Tìm bài viết"
               className="pl-8"
             />
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            <FilterSelect
+            <AdminFilterSelect
               id="filter-blog-category"
               aria-label="Lọc danh mục"
-              value={categoryFilter}
-              onValueChange={setCategoryFilter}
-              items={categoryOptions}
+              value={category}
+              onValueChange={(value) => setParam("category", value)}
+              items={[
+                { value: "all", label: "Tất cả danh mục" },
+                ...categoryOptions,
+              ]}
             />
-            <FilterSelect
+            <AdminFilterSelect
               id="filter-blog-status"
               aria-label="Lọc trạng thái"
-              value={statusFilter}
-              onValueChange={setStatusFilter}
+              value={status}
+              onValueChange={(value) => setParam("status", value)}
               items={STATUS_FILTER_OPTIONS}
             />
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            {filteredPosts.length === posts.length
-              ? `${posts.length} bài viết`
-              : `${filteredPosts.length} / ${posts.length} bài viết`}
-          </p>
-          {hasActiveFilters ? (
-            <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
+        {hasActiveFilters ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => clearParams(["q", "status", "category"])}
+            >
               Xóa bộ lọc
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
@@ -224,26 +177,28 @@ export function BlogTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredPosts.length === 0 ? (
+            {posts.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  {posts.length === 0
-                    ? "Chưa có bài viết nào."
-                    : "Không tìm thấy bài viết phù hợp."}
+                  {hasActiveFilters
+                    ? "Không tìm thấy bài viết phù hợp."
+                    : "Chưa có bài viết nào."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredPosts.map((post) => (
+              posts.map((post) => (
                 <TableRow key={post.id}>
                   <TableCell>
                     <div className="relative h-14 w-20 overflow-hidden rounded-md bg-muted">
-                      <Image
-                        src={post.thumbnail}
-                        alt={post.title}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
+                      {post.thumbnail ? (
+                        <Image
+                          src={post.thumbnail}
+                          alt={post.title}
+                          fill
+                          sizes="80px"
+                          className="object-cover"
+                        />
+                      ) : null}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal">
@@ -255,9 +210,9 @@ export function BlogTable({
                       <Badge variant={STATUS_BADGE_VARIANT[post.status]}>
                         {BLOG_STATUS_LABELS[post.status]}
                       </Badge>
-                      {post.status === "scheduled" && post.scheduledAt ? (
+                      {post.status === "scheduled" && post.publishedAt ? (
                         <span className="text-xs text-muted-foreground tabular-nums">
-                          {formatScheduledAt(post.scheduledAt)}
+                          {formatScheduledAt(post.publishedAt)}
                         </span>
                       ) : null}
                     </div>
@@ -309,6 +264,14 @@ export function BlogTable({
         </Table>
       </div>
 
+      <AdminPagination
+        page={page}
+        pageCount={pageCount}
+        total={total}
+        pageSize={pageSize}
+        noun="bài viết"
+      />
+
       <AlertDialog
         open={deletePost !== null}
         onOpenChange={(open) => {
@@ -319,14 +282,23 @@ export function BlogTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa bài viết?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn sắp xóa “{deletePost?.title}”. Thao tác này chỉ áp dụng trên
-              trang quản trị, chưa lưu lên máy chủ.
+              Bạn sắp xóa “{deletePost?.title}”. Thao tác này không hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Xóa
+            <AlertDialogAction
+              variant="destructive"
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void confirmDelete()
+              }}
+            >
+              {pending ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

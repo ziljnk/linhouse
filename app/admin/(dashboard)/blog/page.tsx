@@ -2,16 +2,38 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { BlogTable } from "@/components/admin/blog-table"
 import { Button } from "@/components/ui/button"
-import { getDictionary } from "@/app/[locale]/dictionaries"
-import { toAdminBlogListItems } from "@/lib/admin-blog"
+import {
+  parseAdminFilter,
+  parseAdminPage,
+  parseAdminQuery,
+} from "@/lib/admin-pagination"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import {
+  listAdminBlogCategories,
+  listAdminBlogPosts,
+} from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Blog",
 }
 
-export default async function AdminBlogPage() {
-  const dict = await getDictionary("vi")
-  const posts = toAdminBlogListItems(dict.home.blog.posts)
+export default async function AdminBlogPage({
+  searchParams,
+}: PageProps<"/admin/blog">) {
+  await requireUsableAdminSession()
+  const params = await searchParams
+  const q = parseAdminQuery(params.q)
+  const status = parseAdminFilter(params.status)
+  const category = parseAdminFilter(params.category)
+  const [result, categories] = await Promise.all([
+    listAdminBlogPosts({
+      q,
+      page: parseAdminPage(params.page),
+      status,
+      category,
+    }),
+    listAdminBlogCategories(),
+  ])
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
@@ -27,7 +49,20 @@ export default async function AdminBlogPage() {
           Tạo bài viết
         </Button>
       </div>
-      <BlogTable posts={posts} />
+      <BlogTable
+        posts={result.items}
+        page={result.page}
+        pageCount={result.pageCount}
+        total={result.total}
+        pageSize={result.pageSize}
+        query={q}
+        status={status || "all"}
+        category={category || "all"}
+        categoryOptions={categories.map((item) => ({
+          value: item.slug,
+          label: item.label,
+        }))}
+      />
     </div>
   )
 }

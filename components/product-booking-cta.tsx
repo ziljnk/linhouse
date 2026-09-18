@@ -1,16 +1,18 @@
 "use client"
 
 import { useState } from "react"
-import type { Dictionary } from "@/app/[locale]/dictionaries"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { BookAppointmentDialog } from "@/components/book-appointment-dialog"
 
 export function ProductBookingCta({
   label,
+  locale,
   brand,
   booking,
   storeAddress,
 }: {
   label: string
+  locale: Locale
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
@@ -29,6 +31,7 @@ export function ProductBookingCta({
       <BookAppointmentDialog
         open={open}
         onOpenChange={setOpen}
+        locale={locale}
         brand={brand}
         booking={booking}
         storeAddress={storeAddress}

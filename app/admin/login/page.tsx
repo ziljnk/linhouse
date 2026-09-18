@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
 import Image from "next/image"
+import { redirect } from "next/navigation"
 import { AdminLoginForm } from "@/components/admin/login-form"
+import { ClearStaleAdminSession } from "@/components/admin/clear-stale-admin-session"
 import {
   Card,
   CardContent,
@@ -8,12 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getAdminSession, needsPasswordChange } from "@/lib/admin-session"
 
 export const metadata: Metadata = {
   title: "Đăng nhập",
 }
 
-export default function AdminLoginPage() {
+export default async function AdminLoginPage() {
+  const session = await getAdminSession()
+  if (session) {
+    redirect(
+      needsPasswordChange(session.user)
+        ? "/admin/change-password"
+        : "/admin"
+    )
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="relative hidden overflow-hidden bg-burgundy-deep lg:block">
@@ -71,6 +83,7 @@ export default function AdminLoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <ClearStaleAdminSession />
             <AdminLoginForm />
           </CardContent>
         </Card>

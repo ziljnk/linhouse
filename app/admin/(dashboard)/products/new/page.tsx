@@ -1,11 +1,22 @@
 import { AdminBackButton } from "@/components/admin/back-button"
 import { ProductForm } from "@/components/admin/product-form"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import {
+  listAdminAttributeGroups,
+  listAdminCollectionOptions,
+} from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Tạo sản phẩm",
 }
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  await requireUsableAdminSession()
+  const [groups, collections] = await Promise.all([
+    listAdminAttributeGroups(),
+    listAdminCollectionOptions(),
+  ])
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6">
       <div>
@@ -17,7 +28,7 @@ export default function NewProductPage() {
           Thêm thông tin, ảnh và SEO cho sản phẩm.
         </p>
       </div>
-      <ProductForm />
+      <ProductForm groups={groups} collections={collections} />
     </div>
   )
 }

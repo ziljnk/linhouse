@@ -5,33 +5,73 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { zaloHref } from "@/lib/site-settings"
 
 const iconButtonClass =
-  "flex size-11 items-center justify-center rounded-xl border border-charcoal/15 bg-ivory/90 text-charcoal shadow-lg backdrop-blur-xl"
+  "flex size-12 items-center justify-center rounded-xl border border-charcoal/15 bg-ivory/90 text-charcoal shadow-lg backdrop-blur-xl"
 
 function SocialIcon({ src }: { src: string }) {
-  return <Image src={src} alt="" width={20} height={20} className="size-5" />
+  return <Image src={src} alt="" width={20} height={20} className="size-8" />
 }
 
 export function SocialFloat({
   social,
   email,
   phone,
+  zalo,
 }: {
   social: Dictionary["social"]
   email: string
   phone: string
+  zalo?: string
 }) {
-  const phoneHref = `tel:${phone.replaceAll(" ", "")}`
-  const zaloHref = `https://zalo.me/${phone.replaceAll(" ", "")}`
+  const phoneHref = phone ? `tel:${phone.replaceAll(" ", "")}` : ""
+  const zaloLink = zaloHref(zalo || social.zaloPhone, phone)
 
   const links = [
-    { key: "gmail", href: `mailto:${email}`, label: social.gmail, icon: "/socials/gmail.svg" },
-    { key: "zalo", href: zaloHref, label: social.zalo, icon: "/socials/zalo.svg" },
-    { key: "instagram", href: social.instagramUrl, label: social.instagram, icon: "/socials/instagram.svg" },
-    { key: "facebook", href: social.facebookUrl, label: social.facebook, icon: "/socials/facebook.svg" },
-    { key: "phone", href: phoneHref, label: social.phone, icon: "/socials/phone.svg" },
-  ]
+    email
+      ? {
+          key: "gmail",
+          href: `mailto:${email}`,
+          label: social.gmail,
+          icon: "/socials/gmail.svg",
+        }
+      : null,
+    zaloLink
+      ? {
+          key: "zalo",
+          href: zaloLink,
+          label: social.zalo,
+          icon: "/socials/zalo.svg",
+        }
+      : null,
+    social.instagramUrl
+      ? {
+          key: "instagram",
+          href: social.instagramUrl,
+          label: social.instagram,
+          icon: "/socials/instagram.svg",
+        }
+      : null,
+    social.facebookUrl
+      ? {
+          key: "facebook",
+          href: social.facebookUrl,
+          label: social.facebook,
+          icon: "/socials/facebook.svg",
+        }
+      : null,
+    phoneHref
+      ? {
+          key: "phone",
+          href: phoneHref,
+          label: social.phone,
+          icon: "/socials/phone.svg",
+        }
+      : null,
+  ].filter((link) => link !== null)
+
+  if (links.length === 0) return null
 
   return (
     <nav

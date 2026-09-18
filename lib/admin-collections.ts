@@ -1,8 +1,14 @@
 import type { CatalogProduct, CollectionItem } from "@/lib/catalog"
+import {
+  CONTENT_LIST_FILTER_LABELS,
+  CONTENT_LIST_FILTERS,
+  formatPublishedAt,
+  type ContentListFilter,
+} from "@/lib/content-status"
 
-export const COLLECTION_STATUSES = ["published", "scheduled", "draft"] as const
+export const COLLECTION_STATUSES = CONTENT_LIST_FILTERS
 
-export type CollectionStatus = (typeof COLLECTION_STATUSES)[number]
+export type CollectionStatus = ContentListFilter
 
 export type AdminCollectionListItem = {
   id: string
@@ -13,14 +19,10 @@ export type AdminCollectionListItem = {
   imageAlt: string
   productCount: number
   status: CollectionStatus
-  scheduledAt: string | null
+  publishedAt: string | null
 }
 
-export const COLLECTION_STATUS_LABELS: Record<CollectionStatus, string> = {
-  published: "Đã đăng",
-  scheduled: "Đã lên lịch",
-  draft: "Draft",
-}
+export const COLLECTION_STATUS_LABELS = CONTENT_LIST_FILTER_LABELS
 
 export function slugify(value: string) {
   return value
@@ -55,7 +57,7 @@ export function toAdminCollectionListItems(
         product.collections.includes(slug)
       ).length,
       status: "published",
-      scheduledAt: null,
+      publishedAt: null,
     }
   })
 }
@@ -67,10 +69,4 @@ export function findAdminCollection(
   return collections.find((collection) => collection.slug === slug)
 }
 
-export function formatScheduledAt(iso: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(iso))
-}
+export { formatPublishedAt as formatScheduledAt }

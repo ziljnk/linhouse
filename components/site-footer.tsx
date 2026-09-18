@@ -1,13 +1,10 @@
 import type { Dictionary } from "@/app/[locale]/dictionaries"
-
-const MAP_QUERY =
-  "45+Nguy%E1%BB%85n+Tr%E1%BB%8Dng+Tuy%E1%BB%83n,+Ph%C6%B0%E1%BB%9Dng+15,+Ph%C3%BA+Nhu%E1%BA%ADn,+Tp.+H%E1%BB%93+Ch%C3%AD+Minh"
-const MAP_HREF = `https://www.google.com/maps?q=${MAP_QUERY}`
-const MAP_EMBED_SRC = `https://maps.google.com/maps?q=${MAP_QUERY}&z=16&output=embed`
+import { googleMapsUrls } from "@/lib/site-settings"
 
 export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
   const { company } = footer
   const phoneHref = `tel:${company.phone.replaceAll(" ", "")}`
+  const map = googleMapsUrls(footer.mapQuery || footer.address)
 
   return (
     <footer id="footer" className="bg-burgundy-deep px-10 pt-12 pb-8 text-ivory">
@@ -55,7 +52,7 @@ export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
           <div className="overflow-hidden border border-ivory/15">
             <iframe
               title={footer.address}
-              src={MAP_EMBED_SRC}
+              src={map.embedSrc}
               className="h-52 w-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -63,7 +60,7 @@ export function SiteFooter({ footer }: { footer: Dictionary["footer"] }) {
             />
           </div>
           <a
-            href={MAP_HREF}
+            href={map.href}
             target="_blank"
             rel="noreferrer"
             className="mt-2 block text-xs leading-relaxed text-ivory/70 hover:text-ivory"

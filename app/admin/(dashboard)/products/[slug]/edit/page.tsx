@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation"
 import { AdminBackButton } from "@/components/admin/back-button"
 import { ProductForm } from "@/components/admin/product-form"
-import { findProduct, parseProductName, productSlug } from "@/lib/catalog"
-import { getDictionary } from "@/app/[locale]/dictionaries"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import {
+  getAdminProduct,
+  listAdminAttributeGroups,
+  listAdminCollectionOptions,
+} from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Sửa sản phẩm",
@@ -12,12 +16,14 @@ export default async function EditProductPage({
   params,
 }: PageProps<"/admin/products/[slug]/edit">) {
   const { slug } = await params
-  const dict = await getDictionary("vi")
-  const product = findProduct(dict.catalog, slug)
+  await requireUsableAdminSession()
+  const [product, groups, collections] = await Promise.all([
+    getAdminProduct(slug),
+    listAdminAttributeGroups(),
+    listAdminCollectionOptions(),
+  ])
 
   if (!product) notFound()
-
-  const { shortName, code } = parseProductName(product.name)
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6">
@@ -29,14 +35,27 @@ export default async function EditProductPage({
         <p className="mt-1 ps-11 text-sm text-muted-foreground">{product.name}</p>
       </div>
       <ProductForm
+        groups={groups}
+        collections={collections}
         defaultValues={{
-          name: shortName,
-          code,
-          slug: productSlug(product),
-          silhouette: product.silhouette,
-          neckline: product.neckline,
-          fabric: product.fabric,
-          collections: product.collections,
+          id: product.id,
+          name: product.name,
+          code: product.code,
+          slug: product.slug,
+          descriptionVi: product.description.vi,
+          descriptionEn: product.description.en,
+          attributeIds: product.attributeIds,
+          collectionIds: product.collectionIds,
+          tags: product.tags,
+          priceVnd: product.priceVnd,
+          priceDisplay: product.priceDisplay,
+          kind: product.kind,
+          imageUrls: product.imageUrls,
+          status: product.status,
+          publishedAt: product.publishedAt,
+          seoTitle: product.seoTitle,
+          seoDescription: product.seoDescription,
+          seoKeywords: product.seoKeywords,
         }}
       />
     </div>

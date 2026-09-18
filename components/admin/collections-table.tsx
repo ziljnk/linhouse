@@ -1,8 +1,17 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { deleteCollectionAction } from "@/app/admin/(dashboard)/collections/actions"
+import { AdminFilterSelect } from "@/components/admin/admin-filter-select"
+import { AdminPagination } from "@/components/admin/admin-pagination"
+import {
+  useAdminListParams,
+  useAdminSearchQuery,
+} from "@/components/admin/use-admin-list-params"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -23,13 +32,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -64,94 +66,46 @@ const STATUS_FILTER_OPTIONS = [
   })),
 ]
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-}
-
-function FilterSelect({
-  id,
-  value,
-  onValueChange,
-  items,
-  "aria-label": ariaLabel,
-}: {
-  id: string
-  value: string
-  onValueChange: (value: string) => void
-  items: { value: string; label: string }[]
-  "aria-label": string
-}) {
-  return (
-    <Select
-      id={id}
-      value={value}
-      onValueChange={(next) => onValueChange(next ?? "all")}
-      items={items}
-    >
-      <SelectTrigger className="w-full sm:w-44" aria-label={ariaLabel}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value} label={item.label}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-}
-
 export function CollectionsTable({
-  collections: initialCollections,
+  collections,
+  page,
+  pageCount,
+  total,
+  pageSize,
+  query,
+  status,
 }: {
   collections: AdminCollectionListItem[]
+  page: number
+  pageCount: number
+  total: number
+  pageSize: number
+  query: string
+  status: string
 }) {
-  const [collections, setCollections] = useState(initialCollections)
+  const router = useRouter()
+  const { setParam, clearParams } = useAdminListParams()
+  const search = useAdminSearchQuery(query)
   const [deleteCollection, setDeleteCollection] =
     useState<AdminCollectionListItem | null>(null)
-  const [query, setQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+  const hasActiveFilters = query !== "" || status !== "all"
 
-  const filteredCollections = useMemo(() => {
-    const needle = normalize(query.trim())
-
-    return collections.filter((collection) => {
-      if (statusFilter !== "all" && collection.status !== statusFilter) {
-        return false
-      }
-      if (!needle) return true
-
-      const haystack = [
-        collection.name,
-        collection.subtitle,
-        collection.slug,
-        COLLECTION_STATUS_LABELS[collection.status],
-      ].join(" ")
-
-      return normalize(haystack).includes(needle)
-    })
-  }, [collections, query, statusFilter])
-
-  const hasActiveFilters = query.trim() !== "" || statusFilter !== "all"
-
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteCollection) return
-    const id = deleteCollection.id
-    setCollections((current) =>
-      current.filter((collection) => collection.id !== id)
-    )
+    setPending(true)
+    setDeleteError(null)
+    const result = await deleteCollectionAction(deleteCollection.id)
+    setPending(false)
+    if (!result.ok) {
+      setDeleteError(result.error)
+      toastError(result.error)
+      return
+    }
+    toastSuccess("Đã xóa bộ sưu tập.")
     setDeleteCollection(null)
-  }
-
-  const resetFilters = () => {
-    setQuery("")
-    setStatusFilter("all")
+    router.refresh()
   }
 
   return (
@@ -161,34 +115,36 @@ export function CollectionsTable({
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              value={search.value}
+              onChange={(event) => search.onChange(event.target.value)}
+              onFocus={search.onFocus}
+              onBlur={search.onBlur}
               placeholder="Tìm tên, mô tả, đường dẫn..."
               aria-label="Tìm bộ sưu tập"
               className="pl-8"
             />
           </div>
-          <FilterSelect
+          <AdminFilterSelect
             id="filter-collection-status"
             aria-label="Lọc trạng thái"
-            value={statusFilter}
-            onValueChange={setStatusFilter}
+            value={status}
+            onValueChange={(value) => setParam("status", value)}
             items={STATUS_FILTER_OPTIONS}
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm text-muted-foreground">
-            {filteredCollections.length === collections.length
-              ? `${collections.length} bộ sưu tập`
-              : `${filteredCollections.length} / ${collections.length} bộ sưu tập`}
-          </p>
-          {hasActiveFilters ? (
-            <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
+        {hasActiveFilters ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => clearParams(["q", "status"])}
+            >
               Xóa bộ lọc
             </Button>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
@@ -205,26 +161,28 @@ export function CollectionsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCollections.length === 0 ? (
+            {collections.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                  {collections.length === 0
-                    ? "Chưa có bộ sưu tập nào."
-                    : "Không tìm thấy bộ sưu tập phù hợp."}
+                  {hasActiveFilters
+                    ? "Không tìm thấy bộ sưu tập phù hợp."
+                    : "Chưa có bộ sưu tập nào."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredCollections.map((collection) => (
+              collections.map((collection) => (
                 <TableRow key={collection.id}>
                   <TableCell>
                     <div className="relative h-14 w-11 overflow-hidden rounded-md bg-muted">
-                      <Image
-                        src={collection.image}
-                        alt={collection.imageAlt}
-                        fill
-                        sizes="44px"
-                        className="object-cover"
-                      />
+                      {collection.image ? (
+                        <Image
+                          src={collection.image}
+                          alt={collection.imageAlt}
+                          fill
+                          sizes="44px"
+                          className="object-cover"
+                        />
+                      ) : null}
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal">
@@ -244,9 +202,9 @@ export function CollectionsTable({
                         {COLLECTION_STATUS_LABELS[collection.status]}
                       </Badge>
                       {collection.status === "scheduled" &&
-                      collection.scheduledAt ? (
+                      collection.publishedAt ? (
                         <span className="text-xs text-muted-foreground tabular-nums">
-                          {formatScheduledAt(collection.scheduledAt)}
+                          {formatScheduledAt(collection.publishedAt)}
                         </span>
                       ) : null}
                     </div>
@@ -300,6 +258,14 @@ export function CollectionsTable({
         </Table>
       </div>
 
+      <AdminPagination
+        page={page}
+        pageCount={pageCount}
+        total={total}
+        pageSize={pageSize}
+        noun="bộ sưu tập"
+      />
+
       <AlertDialog
         open={deleteCollection !== null}
         onOpenChange={(open) => {
@@ -310,14 +276,24 @@ export function CollectionsTable({
           <AlertDialogHeader>
             <AlertDialogTitle>Xóa bộ sưu tập?</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn sắp xóa “{deleteCollection?.name}”. Thao tác này chỉ áp dụng
-              trên trang quản trị, chưa lưu lên máy chủ.
+              Bạn sắp xóa “{deleteCollection?.name}”. Không xóa được bộ sưu tập
+              đang gắn sản phẩm.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Xóa
+            <AlertDialogAction
+              variant="destructive"
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void confirmDelete()
+              }}
+            >
+              {pending ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

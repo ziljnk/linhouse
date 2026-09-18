@@ -1,16 +1,23 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ProductDetail } from "@/components/product-detail"
-import { findProduct, parseProductName, productSlugs } from "@/lib/catalog"
+import { findProduct, parseProductName } from "@/lib/catalog"
+import {
+  getStorefront,
+  getStorefrontContact,
+  getStorefrontProductSlugs,
+} from "@/lib/storefront"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
 export async function generateStaticParams() {
-  const dict = await getDictionary("en")
-  const slugs = productSlugs(dict.catalog)
-
-  return (["en", "vi"] as const).flatMap((locale) =>
-    slugs.map((slug) => ({ locale, slug }))
-  )
+  try {
+    const slugs = await getStorefrontProductSlugs()
+    return (["en", "vi"] as const).flatMap((locale) =>
+      slugs.map((slug) => ({ locale, slug }))
+    )
+  } catch {
+    return []
+  }
 }
 
 export async function generateMetadata({
@@ -20,14 +27,15 @@ export async function generateMetadata({
   if (!hasLocale(locale)) return {}
 
   const dict = await getDictionary(locale)
-  const product = findProduct(dict.catalog, slug)
+  const storefront = await getStorefront(locale, dict)
+  const product = findProduct(storefront.products, slug)
   if (!product) return {}
 
   const { shortName, title } = parseProductName(product.name)
 
   return {
-    title: `${shortName} | LINHouse`,
-    description: title,
+    title: `${product.seoTitle || shortName} | LINHouse`,
+    description: product.seoDescription || title,
   }
 }
 
@@ -39,7 +47,11 @@ export default async function ProductPage({
   if (!hasLocale(locale)) notFound()
 
   const dict = await getDictionary(locale)
-  const product = findProduct(dict.catalog, slug)
+  const [storefront, contact] = await Promise.all([
+    getStorefront(locale, dict),
+    getStorefrontContact(locale, dict),
+  ])
+  const product = findProduct(storefront.products, slug)
 
   if (!product) notFound()
 
@@ -48,8 +60,14 @@ export default async function ProductPage({
       <ProductDetail
         locale={locale}
         product={product}
-        catalog={dict.catalog}
-        dict={dict}
+        catalog={storefront.products}
+        collections={storefront.collections}
+        groups={storefront.filterGroups}
+        dict={{
+          ...dict,
+          productPage: storefront.productPage,
+          footer: contact.footer,
+        }}
       />
     </main>
   )

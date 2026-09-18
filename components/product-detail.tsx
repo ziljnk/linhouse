@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ProductBookingCta } from "@/components/product-booking-cta"
+import { ProductFavoriteCta } from "@/components/product-favorite-cta"
 import { ProductGallery } from "@/components/product-gallery"
 import { ProductGrid } from "@/components/product-grid"
 import {
@@ -8,9 +9,13 @@ import {
   collectionLabel,
   parseProductName,
   productGallery,
+  productSlug,
+  productSpecRows,
   recommendedProducts,
   relatedProducts,
+  type CatalogFilterGroup,
   type CatalogProduct,
+  type CollectionItem,
 } from "@/lib/catalog"
 
 function interpolate(
@@ -56,11 +61,15 @@ export function ProductDetail({
   locale,
   product,
   catalog,
+  collections: collectionItems,
+  groups,
   dict,
 }: {
   locale: Locale
   product: CatalogProduct
-  catalog: Dictionary["catalog"]
+  catalog: CatalogProduct[]
+  collections: CollectionItem[]
+  groups: CatalogFilterGroup[]
   dict: Dictionary
 }) {
   const copy = dict.productPage
@@ -68,20 +77,29 @@ export function ProductDetail({
   const images = productGallery(product, catalog)
   const related = relatedProducts(catalog, product)
   const recommended = recommendedProducts(catalog, product, related)
-  const silhouette = catalogOptionLabel(dict, "silhouette", product.silhouette)
-  const neckline = catalogOptionLabel(dict, "neckline", product.neckline)
-  const fabric = catalogOptionLabel(dict, "fabric", product.fabric)
+  const specs = productSpecRows(product, groups)
+  const silhouette = catalogOptionLabel(groups, "silhouette", product.silhouette)
+  const neckline = catalogOptionLabel(groups, "neckline", product.neckline)
+  const fabric = catalogOptionLabel(groups, "fabric", product.fabric)
   const collections = product.collections.map((slug) => ({
     slug,
-    label: collectionLabel(dict, slug),
+    label: collectionLabel(collectionItems, slug),
   }))
   const primaryCollection = collections[0]
-
-  const specs = [
-    { label: copy.silhouette, value: silhouette },
-    { label: copy.neckline, value: neckline },
-    { label: copy.fabric, value: fabric },
-  ]
+  const specSummary = specs.map((spec) => spec.value).join(". ")
+  const lead =
+    product.description ||
+    (product.kind === "ao-dai"
+      ? interpolate(copy.leadAoDai, {
+          name: shortName,
+          details: specSummary ? ` ${specSummary}` : "",
+        })
+      : interpolate(copy.lead, {
+          name: shortName,
+          silhouette,
+          neckline,
+          fabric,
+        }))
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
@@ -127,16 +145,13 @@ export function ProductDetail({
           </p>
 
           <p className="mt-8 text-sm leading-relaxed font-light text-charcoal/80">
-            {interpolate(copy.lead, {
-              name: shortName,
-              silhouette,
-              neckline,
-              fabric,
-            })}
+            {lead}
           </p>
-          <p className="mt-4 text-sm leading-relaxed font-light text-charcoal/80">
-            {copy.body}
-          </p>
+          {product.description ? null : (
+            <p className="mt-4 text-sm leading-relaxed font-light text-charcoal/80">
+              {copy.body}
+            </p>
+          )}
 
           <dl className="mt-10 divide-y divide-charcoal/10 border-y border-charcoal/10">
             {specs.map((spec) => (
@@ -175,16 +190,18 @@ export function ProductDetail({
           <div className="mt-8 flex flex-wrap gap-3">
             <ProductBookingCta
               label={copy.book}
+              locale={locale}
               brand={dict.brand}
               booking={dict.booking}
               storeAddress={dict.footer.company.address}
             />
-            <a
-              href="#footer"
-              className="inline-flex h-12 items-center justify-center border border-charcoal/80 px-8 text-[11px] tracking-[0.2em] text-charcoal uppercase transition-colors hover:bg-charcoal hover:text-ivory"
-            >
-              {copy.contact}
-            </a>
+            <ProductFavoriteCta
+              slug={productSlug(product)}
+              name={product.name}
+              image={product.image}
+              addLabel={copy.addToWishlist}
+              removeLabel={copy.removeFromWishlist}
+            />
           </div>
 
           <section className="mt-12">
@@ -192,7 +209,7 @@ export function ProductDetail({
               {copy.details}
             </h2>
             <p className="mt-3 text-sm leading-relaxed font-light text-charcoal/75">
-              {title}. {silhouette}. {neckline}. {fabric}.
+              {[title, specSummary].filter(Boolean).join(". ")}.
             </p>
           </section>
 

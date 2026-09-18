@@ -1,3 +1,6 @@
+import { sanitizePlainText } from "@/lib/sanitize-content"
+import { sanitizeExternalUrl } from "@/lib/sanitize-url"
+
 export type LocaleCode = "vi" | "en"
 
 export type LocalizedText = Record<LocaleCode, string>
@@ -6,6 +9,7 @@ export type SiteSettings = {
   contact: {
     hotline: string
     email: string
+    notificationEmail: string
     zalo: string
   }
   address: {
@@ -31,6 +35,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   contact: {
     hotline: "0902 678 114",
     email: "info@linhouse.com.vn",
+    notificationEmail: "",
     zalo: "0902678114",
   },
   address: {
@@ -89,6 +94,10 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
     contact: {
       hotline: asString(contact.hotline, defaults.contact.hotline),
       email: asString(contact.email, defaults.contact.email),
+      notificationEmail: asString(
+        contact.notificationEmail,
+        defaults.contact.notificationEmail
+      ),
       zalo: asString(contact.zalo, defaults.contact.zalo),
     },
     address: {
@@ -121,7 +130,7 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
 }
 
 function trim(value: string) {
-  return value.trim()
+  return sanitizePlainText(value)
 }
 
 function isHttpUrl(value: string) {
@@ -142,13 +151,19 @@ export type SiteSettingsResult =
 export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
   const hotline = trim(input.contact.hotline)
   const addressVi = trim(input.address.vi)
-  const zalo = trim(input.contact.zalo) || hotline.replaceAll(" ", "")
+  const zaloInput = trim(input.contact.zalo)
+  const zalo = zaloInput
+    ? zaloInput.startsWith("http://") || zaloInput.startsWith("https://")
+      ? (sanitizeExternalUrl(zaloInput) ?? "")
+      : zaloInput
+    : hotline.replaceAll(" ", "")
   const mapQuery = trim(input.address.mapQuery) || addressVi
 
   return {
     contact: {
       hotline,
       email: trim(input.contact.email),
+      notificationEmail: trim(input.contact.notificationEmail),
       zalo,
     },
     address: {
@@ -168,8 +183,8 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
       },
     },
     social: {
-      facebookUrl: trim(input.social.facebookUrl),
-      instagramUrl: trim(input.social.instagramUrl),
+      facebookUrl: sanitizeExternalUrl(input.social.facebookUrl) ?? "",
+      instagramUrl: sanitizeExternalUrl(input.social.instagramUrl) ?? "",
     },
   }
 }
@@ -193,8 +208,22 @@ export function validateSiteSettings(input: SiteSettings): SiteSettingsResult {
     return { ok: false, error: "Email không hợp lệ." }
   }
 
+  if (
+    data.contact.notificationEmail &&
+    !EMAIL_PATTERN.test(data.contact.notificationEmail)
+  ) {
+    return { ok: false, error: "Email nhận thông báo đặt lịch không hợp lệ." }
+  }
+
   if (!data.address.vi) {
     return { ok: false, error: "Vui lòng nhập địa chỉ tiếng Việt." }
+  }
+
+  if (
+    trim(input.contact.zalo).startsWith("http") &&
+    !isHttpUrl(data.contact.zalo)
+  ) {
+    return { ok: false, error: "Link Zalo không hợp lệ." }
   }
 
   if (data.social.facebookUrl && !isHttpUrl(data.social.facebookUrl)) {
@@ -206,6 +235,14 @@ export function validateSiteSettings(input: SiteSettings): SiteSettingsResult {
   }
 
   return { ok: true, data }
+}
+
+export function isValidEmail(value: string) {
+  return EMAIL_PATTERN.test(value)
+}
+
+export function bookingNotificationEmail(settings: SiteSettings) {
+  return settings.contact.notificationEmail || settings.contact.email
 }
 
 export function localizedValue(
@@ -225,7 +262,11 @@ export function googleMapsUrls(query: string) {
 
 export function zaloHref(zalo: string, hotline: string) {
   const value = (zalo || hotline).trim()
-  if (!value) return "#"
-  if (value.startsWith("http://") || value.startsWith("https://")) return value
-  return `https://zalo.me/${value.replaceAll(" ", "")}`
+  if (!value) return ""
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return sanitizeExternalUrl(value) ?? ""
+  }
+  const phone = value.replaceAll(" ", "")
+  if (!phone) return ""
+  return `https://zalo.me/${phone}`
 }

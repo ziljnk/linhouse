@@ -11,6 +11,7 @@ import {
   validateSiteSettings,
   type SiteSettings,
 } from "@/lib/site-settings"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
 
 function SettingsSection({
   title,
@@ -59,31 +60,30 @@ export function SettingsForm({
 }) {
   const router = useRouter()
   const [values, setValues] = useState(defaultValues)
-  const [formError, setFormError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSaved(false)
 
     const result = validateSiteSettings(values)
     if (!result.ok) {
-      setFormError(result.error)
+      toastError(result.error)
       return
     }
 
-    setFormError(null)
     setValues(result.data)
 
     startTransition(async () => {
       const response = await saveSiteSettingsAction(result.data)
       if (!response.ok) {
-        setFormError(response.error)
+        toastError(response.error)
         return
       }
 
-      setSaved(true)
+      toastSuccess(
+        "Đã lưu cài đặt.",
+        "Thông tin mới sẽ hiện trên website."
+      )
       router.refresh()
     })
   }
@@ -92,10 +92,14 @@ export function SettingsForm({
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
       <SettingsSection
         title="Liên hệ"
-        description="Hotline, email và Zalo dùng cho footer và nút liên hệ nổi."
+        description="Hotline, email, Zalo, Facebook và Instagram dùng cho footer và thanh liên hệ nổi bên phải."
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="settings-hotline" label="Hotline" hint="Hiện cùng nhãn Hotline trên website.">
+          <Field
+            id="settings-hotline"
+            label="Hotline"
+            hint="Hiện trên footer và nút gọi điện."
+          >
             <Input
               id="settings-hotline"
               name="hotline"
@@ -112,7 +116,11 @@ export function SettingsForm({
             />
           </Field>
 
-          <Field id="settings-email" label="Email">
+          <Field
+            id="settings-email"
+            label="Email"
+            hint="Hiện trên footer và nút Gmail."
+          >
             <Input
               id="settings-email"
               name="email"
@@ -145,6 +153,76 @@ export function SettingsForm({
                 }))
               }
               placeholder="0902678114"
+            />
+          </Field>
+
+          <Field
+            id="settings-facebook"
+            label="Facebook"
+            hint="Nút Facebook trên thanh liên hệ nổi. Để trống để ẩn nút."
+          >
+            <Input
+              id="settings-facebook"
+              name="facebookUrl"
+              type="url"
+              value={values.social.facebookUrl}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  social: { ...current.social, facebookUrl: event.target.value },
+                }))
+              }
+              placeholder="https://www.facebook.com/linhousebigsize"
+            />
+          </Field>
+
+          <Field
+            id="settings-instagram"
+            label="Instagram"
+            hint="Nút Instagram trên thanh liên hệ nổi. Để trống để ẩn nút."
+          >
+            <Input
+              id="settings-instagram"
+              name="instagramUrl"
+              type="url"
+              value={values.social.instagramUrl}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  social: { ...current.social, instagramUrl: event.target.value },
+                }))
+              }
+              placeholder="https://www.instagram.com/linhouse.bridal"
+            />
+          </Field>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Cài đặt thông báo"
+        description="Email nhận thông báo khi khách gửi form đặt lịch trên website."
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field
+            id="settings-notification-email"
+            label="Email nhận thông báo đặt lịch"
+            hint="Để trống sẽ dùng email liên hệ trong mục Liên hệ."
+          >
+            <Input
+              id="settings-notification-email"
+              name="notificationEmail"
+              type="email"
+              value={values.contact.notificationEmail}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  contact: {
+                    ...current.contact,
+                    notificationEmail: event.target.value,
+                  },
+                }))
+              }
+              placeholder="admin@linhouse.com.vn"
             />
           </Field>
         </div>
@@ -352,57 +430,6 @@ export function SettingsForm({
           </Field>
         </div>
       </SettingsSection>
-
-      <SettingsSection
-        title="Mạng xã hội"
-        description="Đường dẫn Facebook và Instagram trên thanh liên hệ nổi."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="settings-facebook" label="Facebook">
-            <Input
-              id="settings-facebook"
-              name="facebookUrl"
-              type="url"
-              value={values.social.facebookUrl}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  social: { ...current.social, facebookUrl: event.target.value },
-                }))
-              }
-              placeholder="https://www.facebook.com/linhousebigsize"
-            />
-          </Field>
-
-          <Field id="settings-instagram" label="Instagram">
-            <Input
-              id="settings-instagram"
-              name="instagramUrl"
-              type="url"
-              value={values.social.instagramUrl}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  social: { ...current.social, instagramUrl: event.target.value },
-                }))
-              }
-              placeholder="https://www.instagram.com/linhouse.bridal"
-            />
-          </Field>
-        </div>
-      </SettingsSection>
-
-      {formError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {formError}
-        </p>
-      ) : null}
-
-      {saved ? (
-        <p role="status" className="text-sm text-foreground">
-          Đã lưu cài đặt. Thông tin mới sẽ hiện trên website.
-        </p>
-      ) : null}
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={isPending}>

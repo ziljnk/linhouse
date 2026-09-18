@@ -1,11 +1,8 @@
 import { notFound } from "next/navigation"
 import { AdminBackButton } from "@/components/admin/back-button"
 import { CollectionForm } from "@/components/admin/collection-form"
-import { getDictionary } from "@/app/[locale]/dictionaries"
-import {
-  findAdminCollection,
-  toAdminCollectionListItems,
-} from "@/lib/admin-collections"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import { getAdminCollection } from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Sửa bộ sưu tập",
@@ -15,11 +12,8 @@ export default async function EditCollectionPage({
   params,
 }: PageProps<"/admin/collections/[slug]/edit">) {
   const { slug } = await params
-  const dict = await getDictionary("vi")
-  const collection = findAdminCollection(
-    toAdminCollectionListItems(dict.home.collection.items, dict.catalog),
-    slug
-  )
+  await requireUsableAdminSession()
+  const collection = await getAdminCollection(slug)
 
   if (!collection) notFound()
 
@@ -33,15 +27,27 @@ export default async function EditCollectionPage({
           </h1>
         </div>
         <p className="mt-1 ps-11 text-sm text-muted-foreground">
-          {collection.name}
+          {collection.name.vi}
         </p>
       </div>
       <CollectionForm
         defaultValues={{
-          name: collection.name,
-          subtitle: collection.subtitle,
+          id: collection.id,
+          nameVi: collection.name.vi,
+          nameEn: collection.name.en,
+          subtitleVi: collection.subtitle.vi,
+          subtitleEn: collection.subtitle.en,
+          imageAltVi: collection.imageAlt.vi,
+          imageAltEn: collection.imageAlt.en,
           slug: collection.slug,
-          coverUrl: collection.image,
+          year: collection.year,
+          status: collection.status,
+          publishedAt: collection.publishedAt,
+          coverUrl: collection.coverUrl,
+          galleryUrls: collection.galleryUrls,
+          seoTitle: collection.seoTitle,
+          seoDescription: collection.seoDescription,
+          seoKeywords: collection.seoKeywords,
         }}
       />
     </div>

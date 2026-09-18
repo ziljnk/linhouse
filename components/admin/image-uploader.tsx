@@ -22,11 +22,15 @@ import {
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toastError } from "@/lib/admin-toast"
+import {
+  ACCEPTED_IMAGE_TYPES,
+  MAX_IMAGE_FILE_SIZE,
+  validateImageFile,
+} from "@/lib/image-file"
 import { cn } from "@/lib/utils"
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024
 const DEFAULT_MAX_FILES = 24
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]
 
 export type UploadedImage = {
   id: string
@@ -44,11 +48,8 @@ type ImageUploaderProps = {
   maxFiles?: number
   aspect?: "portrait" | "landscape"
   sortHint?: string
+  sizeHint?: string
   showCoverBadge?: boolean
-}
-
-function isAcceptedImage(file: File) {
-  return ACCEPTED_TYPES.includes(file.type) || file.type.startsWith("image/")
 }
 
 function formatFileSize(bytes: number) {
@@ -98,6 +99,7 @@ export function ImageUploader({
   maxFiles = DEFAULT_MAX_FILES,
   aspect = "portrait",
   sortHint = "Kéo thả để sắp xếp lại. Ảnh đầu tiên sẽ là ảnh bìa.",
+  sizeHint,
   showCoverBadge = true,
 }: ImageUploaderProps) {
   const inputId = useId()
@@ -127,7 +129,7 @@ export function ImageUploader({
   )
 
   const addFiles = useCallback(
-    (fileList: FileList | File[]) => {
+    async (fileList: FileList | File[]) => {
       const incoming = Array.from(fileList)
       if (incoming.length === 0) return
 
@@ -136,12 +138,12 @@ export function ImageUploader({
       let tooLarge = 0
 
       for (const file of incoming) {
-        if (!isAcceptedImage(file)) {
-          invalidType += 1
-          continue
-        }
-        if (file.size > MAX_FILE_SIZE) {
-          tooLarge += 1
+        const validation = await validateImageFile(file, {
+          maxSize: MAX_IMAGE_FILE_SIZE,
+        })
+        if (!validation.ok) {
+          if (validation.reason === "size") tooLarge += 1
+          else invalidType += 1
           continue
         }
         accepted.push(file)
@@ -178,11 +180,11 @@ export function ImageUploader({
         if (overflow && !single) {
           parts.push(`chỉ còn chỗ cho ${remaining} ảnh`)
         }
-        setError(
-          single
-            ? `${parts.join(". ")}.`
-            : `Một số tệp bị bỏ qua: ${parts.join(", ")}.`
-        )
+        const message = single
+          ? `${parts.join(". ")}.`
+          : `Một số tệp bị bỏ qua: ${parts.join(", ")}.`
+        setError(message)
+        toastError(message)
       } else {
         setError(null)
       }
@@ -276,11 +278,17 @@ export function ImageUploader({
       <input
         id={inputId}
         type="file"
-        accept={ACCEPTED_TYPES.join(",")}
+        accept={ACCEPTED_IMAGE_TYPES.join(",")}
         multiple={!single}
         className="sr-only"
         onChange={handleInputChange}
       />
+
+      {sizeHint ? (
+        <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+          {sizeHint}
+        </p>
+      ) : null}
 
       {single && current ? (
         <SingleImagePreview
@@ -387,7 +395,6 @@ function Dropzone({
       onDrop={onDrop}
       className={cn(
         "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors",
-        compact && "max-w-md",
         isDraggingFiles
           ? "border-primary bg-primary/5"
           : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/60"
@@ -405,8 +412,8 @@ function Dropzone({
         </span>
         <span className="block text-xs text-muted-foreground">
           {compact
-            ? "JPG, PNG, WEBP, GIF — tối đa 10MB."
-            : `JPG, PNG, WEBP, GIF — tối đa ${maxFiles} ảnh, mỗi ảnh 10MB.`}
+            ? "JPG, PNG, WEBP, GIF, AVIF — tối đa 10MB."
+            : `JPG, PNG, WEBP, GIF, AVIF — tối đa ${maxFiles} ảnh, mỗi ảnh 10MB.`}
         </span>
       </span>
     </label>
@@ -425,7 +432,7 @@ function SingleImagePreview({
   onRemove: () => void
 }) {
   return (
-    <div className="relative max-w-md overflow-hidden rounded-xl border border-border bg-muted">
+    <div className="relative overflow-hidden rounded-xl border border-border bg-muted">
       {/* Preview uses object URLs; next/image cannot optimize local blobs */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Menu, Search, ShoppingBag, User, X } from "lucide-react"
+import { Menu, X } from "lucide-react"
+import { HeaderSearch } from "@/components/header-search"
+import { HeaderWishlist } from "@/components/header-wishlist"
 import { cn } from "@/lib/utils"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import {
@@ -55,12 +57,16 @@ type MegaColumn = Dictionary["nav"]["homeColumns"][number]
 
 function navSections(nav: Dictionary["nav"]) {
   return [
-    { title: nav.newIn, columns: nav.homeColumns },
+    // { title: nav.newIn, columns: nav.homeColumns },
     { title: nav.collection, columns: nav.collectionColumns },
     { title: nav.bridal, columns: nav.bridalColumns },
     { title: nav.aodai, columns: nav.aodaiColumns },
     { title: nav.services, columns: [{ title: nav.services, links: nav.serviceItems }] },
   ]
+}
+
+function isFeaturedNavLink(href: string) {
+  return href === "/catalog/all-gowns" || href === "/catalog/all-ao-dai"
 }
 
 function MegaColumns({
@@ -90,7 +96,10 @@ function MegaColumns({
                       }
                     />
                   }
-                  className={megaLinkClass}
+                  className={cn(
+                    megaLinkClass,
+                    isFeaturedNavLink(link.href) && "font-bold text-primary"
+                  )}
                 >
                   {link.label}
                 </NavigationMenuLink>
@@ -103,18 +112,17 @@ function MegaColumns({
   )
 }
 
-function HeaderIcons({ nav }: { nav: Dictionary["nav"] }) {
+function HeaderIcons({
+  locale,
+  nav,
+}: {
+  locale: Locale
+  nav: Dictionary["nav"]
+}) {
   return (
     <div className="flex items-center justify-end gap-1 sm:gap-3">
-      <button type="button" className={iconButtonClass} aria-label={nav.search}>
-        <Search className="size-4" />
-      </button>
-      <button type="button" className={iconButtonClass} aria-label={nav.account}>
-        <User className="size-4" />
-      </button>
-      <button type="button" className={iconButtonClass} aria-label={nav.bag}>
-        <ShoppingBag className="size-4" />
-      </button>
+      <HeaderSearch locale={locale} nav={nav} />
+      <HeaderWishlist locale={locale} nav={nav} />
     </div>
   )
 }
@@ -227,7 +235,11 @@ function MobileNav({
                                 render={
                                   <Link
                                     href={navHref(locale, link.href)}
-                                    className="block py-1.5 text-sm text-charcoal hover:text-burgundy"
+                                    className={cn(
+                                      "block py-1.5 text-sm text-charcoal hover:text-burgundy",
+                                      isFeaturedNavLink(link.href) &&
+                                        "font-bold text-primary"
+                                    )}
                                   />
                                 }
                               >
@@ -415,7 +427,7 @@ export function SiteHeader({
             />
           </Link>
         </div>
-        <HeaderIcons nav={nav} />
+        <HeaderIcons locale={locale} nav={nav} />
       </div>
 
       <div className="relative hidden grid-cols-[1fr_auto_1fr] items-center px-6 lg:grid">
@@ -469,12 +481,13 @@ export function SiteHeader({
           </NavigationMenu>
         </div>
 
-        <HeaderIcons nav={nav} />
+        <HeaderIcons locale={locale} nav={nav} />
       </div>
     </header>
     <BookAppointmentDialog
       open={bookingOpen}
       onOpenChange={setBookingOpen}
+      locale={locale}
       brand={brand}
       booking={booking}
       storeAddress={storeAddress}

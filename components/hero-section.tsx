@@ -1,6 +1,6 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import type { Locale } from "@/app/[locale]/dictionaries"
 import {
   ScrollRevealGroup,
   ScrollRevealItem,
@@ -15,19 +15,28 @@ export function HeroSection({
   copy,
 }: {
   locale: Locale
-  copy: Dictionary["home"]
+  copy: {
+    headline: string
+    subhead: string
+    description: string
+    cta: string
+    imageAlt: string
+    imageUrl: string
+  }
 }) {
+  const imageSrc = copy.imageUrl || HERO_IMAGE
+  const isDefaultHero = imageSrc === HERO_IMAGE
   return (
     <section className="relative isolate min-h-128 overflow-hidden bg-ivory sm:min-h-144 lg:min-h-[min(68vh,42rem)]">
       <Image
-        src={HERO_IMAGE}
+        src={imageSrc}
         alt={copy.imageAlt}
         fill
         priority
         quality={80}
         sizes="100vw"
-        placeholder="blur"
-        blurDataURL={HERO_BLUR}
+        placeholder={isDefaultHero ? "blur" : "empty"}
+        blurDataURL={isDefaultHero ? HERO_BLUR : undefined}
         className="object-cover object-[80%_center] lg:object-top"
       />
       <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-ivory from-12% via-ivory/70 via-42% to-transparent to-72% lg:hidden" />

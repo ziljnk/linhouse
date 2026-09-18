@@ -2,16 +2,18 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import {
-  CalendarDays,
   Images,
   LayoutDashboard,
   Library,
+  LogOut,
   Newspaper,
+  Quote,
   Settings,
   Shirt,
 } from "lucide-react"
+import { authClient } from "@/lib/auth-client"
 import {
   Sidebar,
   SidebarContent,
@@ -32,8 +34,8 @@ const navItems = [
   { title: "Sản phẩm", href: "/admin/products", icon: Shirt },
   { title: "Bộ sưu tập", href: "/admin/collections", icon: Images },
   { title: "Danh mục", href: "/admin/catalog", icon: Library },
+  { title: "Câu chuyện cô dâu", href: "/admin/testimonials", icon: Quote },
   { title: "Blog", href: "/admin/blog", icon: Newspaper },
-  { title: "Đặt lịch", href: "/admin/bookings", icon: CalendarDays },
 ]
 
 const systemItems = [
@@ -47,6 +49,7 @@ function isActivePath(pathname: string, href: string) {
 
 export function AppSidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <Sidebar collapsible="icon">
@@ -126,6 +129,19 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton tooltip="Xem website" render={<Link href="/vi" />}>
               <span>Xem website</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Đăng xuất"
+              onClick={async () => {
+                await authClient.signOut()
+                router.push("/admin/login")
+                router.refresh()
+              }}
+            >
+              <LogOut />
+              <span>Đăng xuất</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

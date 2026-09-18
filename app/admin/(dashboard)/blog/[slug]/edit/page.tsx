@@ -1,8 +1,11 @@
 import { notFound } from "next/navigation"
 import { AdminBackButton } from "@/components/admin/back-button"
 import { BlogForm } from "@/components/admin/blog-form"
-import { getDictionary } from "@/app/[locale]/dictionaries"
-import { findAdminBlogPost, toAdminBlogListItems } from "@/lib/admin-blog"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import {
+  getAdminBlogPost,
+  listAdminBlogCategories,
+} from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Sửa bài viết",
@@ -12,8 +15,11 @@ export default async function EditBlogPage({
   params,
 }: PageProps<"/admin/blog/[slug]/edit">) {
   const { slug } = await params
-  const dict = await getDictionary("vi")
-  const post = findAdminBlogPost(toAdminBlogListItems(dict.home.blog.posts), slug)
+  await requireUsableAdminSession()
+  const [post, categories] = await Promise.all([
+    getAdminBlogPost(slug),
+    listAdminBlogCategories(),
+  ])
 
   if (!post) notFound()
 
@@ -24,14 +30,28 @@ export default async function EditBlogPage({
           <AdminBackButton href="/admin/blog" />
           <h1 className="text-2xl font-semibold tracking-tight">Sửa bài viết</h1>
         </div>
-        <p className="mt-1 ps-11 text-sm text-muted-foreground">{post.title}</p>
+        <p className="mt-1 ps-11 text-sm text-muted-foreground">{post.title.vi}</p>
       </div>
       <BlogForm
+        categories={categories}
         defaultValues={{
-          title: post.title,
+          id: post.id,
+          titleVi: post.title.vi,
+          titleEn: post.title.en,
+          excerptVi: post.excerpt.vi,
+          excerptEn: post.excerpt.en,
+          contentVi: post.content.vi,
+          contentEn: post.content.en,
+          imageAltVi: post.imageAlt.vi,
+          imageAltEn: post.imageAlt.en,
           slug: post.slug,
-          category: post.category,
-          coverUrl: post.thumbnail,
+          categoryId: post.categoryId,
+          coverUrl: post.coverUrl,
+          status: post.status,
+          publishedAt: post.publishedAt,
+          seoTitle: post.seoTitle,
+          seoDescription: post.seoDescription,
+          seoKeywords: post.seoKeywords,
         }}
       />
     </div>

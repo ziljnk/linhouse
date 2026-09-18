@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { Languages } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Languages, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Select,
   SelectContent,
@@ -37,42 +39,40 @@ import {
 } from "@/components/ui/tooltip"
 import {
   ImageUploader,
+  createUploadedImageFromUrl,
   type UploadedImage,
 } from "@/components/admin/image-uploader"
+import {
+  createProductAction,
+  updateProductAction,
+} from "@/app/admin/(dashboard)/products/actions"
+import { translateViToEnAction } from "@/app/admin/(dashboard)/translate/actions"
+import { persistUploadedImages } from "@/lib/persist-admin-images"
+import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
+import {
+  formatPriceInput,
+  parsePriceVnd,
+  PRICE_DISPLAY_LABELS,
+  PRICE_DISPLAYS,
+  PRODUCT_KIND_LABELS,
+  PRODUCT_KINDS,
+  type PriceDisplay,
+  type ProductKind,
+} from "@/lib/admin-products"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { isLivePublished, type PublishIntent } from "@/lib/content-status"
+import { PublishIntentActions } from "@/components/admin/publish-intent-actions"
+import {
+  SchedulePublishDialog,
+  datetimeLocalToIso,
+  defaultScheduleValue,
+  toDatetimeLocalValue,
+} from "@/components/admin/schedule-publish-dialog"
+import type {
+  AdminAttributeGroupOption,
+  AdminCollectionOption,
+} from "@/lib/admin-storefront"
 import { cn } from "@/lib/utils"
-
-const SILHOUETTE_OPTIONS = [
-  { value: "ball-gown", label: "Váy sân khấu" },
-  { value: "a-line", label: "Váy dáng A" },
-  { value: "mini-dress", label: "Váy ngắn" },
-  { value: "2-in-1", label: "Váy 2 trong 1" },
-]
-
-const NECKLINE_OPTIONS = [
-  { value: "strapless", label: "Cúp ngực" },
-  { value: "sweetheart", label: "Cổ tim" },
-  { value: "off-the-shoulder", label: "Trễ vai" },
-  { value: "v-neck", label: "Cổ V" },
-  { value: "long-sleeve", label: "Tay dài" },
-]
-
-const FABRIC_OPTIONS = [
-  { value: "sparkling", label: "Kim tuyến" },
-  { value: "lace", label: "Ren" },
-  { value: "tulle", label: "Voan lưới" },
-  { value: "satin", label: "Satin / Mikado / Taffeta" },
-  { value: "organza", label: "Organza" },
-]
-
-const COLLECTION_OPTIONS = [
-  { value: "spring-2026", label: "Spring 2026" },
-  { value: "atelier-noir", label: "Atelier Noir" },
-  { value: "garden-muse", label: "Garden Muse" },
-  { value: "bloom", label: "Bloom" },
-  { value: "opera", label: "Opera" },
-  { value: "silk-route", label: "Silk Route" },
-  { value: "after-party", label: "After Party" },
-]
 
 const PRODUCT_TAGS = [
   "New In",
@@ -123,86 +123,298 @@ function CharacterCount({
   )
 }
 
+type ComboboxOption = {
+  value: string
+  label: string
+}
+
+function MultiSelectCombobox({
+  id,
+  items,
+  value,
+  onValueChange,
+  placeholder,
+  emptyText,
+}: {
+  id: string
+  items: ComboboxOption[]
+  value: string[]
+  onValueChange: (value: string[]) => void
+  placeholder: string
+  emptyText: string
+}) {
+  const selected = value
+    .map((id) => items.find((item) => item.value === id))
+    .filter((item): item is ComboboxOption => item != null)
+
+  return (
+    <Combobox
+      items={items}
+      multiple
+      autoHighlight
+      value={selected}
+      onValueChange={(next) =>
+        onValueChange((next ?? []).map((item) => item.value))
+      }
+      isItemEqualToValue={(a, b) => a.value === b.value}
+    >
+      <ComboboxChips className="w-full">
+        <ComboboxValue>
+          {(selectedValue: ComboboxOption[]) =>
+            selectedValue.map((item) => (
+              <ComboboxChip key={item.value}>{item.label}</ComboboxChip>
+            ))
+          }
+        </ComboboxValue>
+        <ComboboxChipsInput id={id} placeholder={placeholder} />
+      </ComboboxChips>
+      <ComboboxContent>
+        <ComboboxEmpty>{emptyText}</ComboboxEmpty>
+        <ComboboxList>
+          {(item: ComboboxOption) => (
+            <ComboboxItem key={item.value} value={item}>
+              {item.label}
+            </ComboboxItem>
+          )}
+        </ComboboxList>
+      </ComboboxContent>
+    </Combobox>
+  )
+}
+
 export type ProductFormValues = {
+  id?: string
   name?: string
   code?: string
-  description?: string
   descriptionVi?: string
   descriptionEn?: string
-  silhouette?: string
-  neckline?: string
-  fabric?: string
-  collections?: string[]
+  attributeIds?: string[]
+  collectionIds?: string[]
   tags?: string[]
+  imageUrls?: string[]
+  priceVnd?: number | null
+  priceDisplay?: PriceDisplay
+  kind?: ProductKind
   slug?: string
+  status?: "draft" | "published"
+  publishedAt?: string | null
   seoTitle?: string
   seoDescription?: string
   seoKeywords?: string
 }
 
 export function ProductForm({
+  groups,
+  collections: collectionOptions,
   defaultValues,
 }: {
+  groups: AdminAttributeGroupOption[]
+  collections: AdminCollectionOption[]
   defaultValues?: ProductFormValues
-} = {}) {
+}) {
+  const router = useRouter()
   const [name, setName] = useState(defaultValues?.name ?? "")
   const [code, setCode] = useState(defaultValues?.code ?? "")
   const [descriptionVi, setDescriptionVi] = useState(
-    defaultValues?.descriptionVi ?? defaultValues?.description ?? ""
+    defaultValues?.descriptionVi ?? ""
   )
   const [descriptionEn, setDescriptionEn] = useState(
     defaultValues?.descriptionEn ?? ""
   )
-  const [silhouette, setSilhouette] = useState(defaultValues?.silhouette ?? "")
-  const [neckline, setNeckline] = useState(defaultValues?.neckline ?? "")
-  const [fabric, setFabric] = useState(defaultValues?.fabric ?? "")
-  const [collections, setCollections] = useState<string[]>(
-    defaultValues?.collections ?? []
+  const [attributeIds, setAttributeIds] = useState<string[]>(
+    defaultValues?.attributeIds ?? []
+  )
+  const [collectionIds, setCollectionIds] = useState<string[]>(
+    defaultValues?.collectionIds ?? []
   )
   const [tags, setTags] = useState<string[]>(defaultValues?.tags ?? [])
-  const [images, setImages] = useState<UploadedImage[]>([])
+  const [images, setImages] = useState<UploadedImage[]>(
+    (defaultValues?.imageUrls ?? []).map((url) => createUploadedImageFromUrl(url))
+  )
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
+  const [priceDisplay, setPriceDisplay] = useState<PriceDisplay>(
+    defaultValues?.priceDisplay ?? "contact"
+  )
+  const [priceInput, setPriceInput] = useState(
+    defaultValues?.priceVnd ? formatPriceInput(String(defaultValues.priceVnd)) : ""
+  )
+  const [kind, setKind] = useState<ProductKind>(defaultValues?.kind ?? "gown")
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [scheduleValue, setScheduleValue] = useState(
+    defaultValues?.publishedAt &&
+      !isLivePublished(defaultValues.status, defaultValues.publishedAt)
+      ? toDatetimeLocalValue(new Date(defaultValues.publishedAt))
+      : defaultScheduleValue
+  )
+  const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [seoTitle, setSeoTitle] = useState(defaultValues?.seoTitle ?? "")
   const [seoDescription, setSeoDescription] = useState(
     defaultValues?.seoDescription ?? ""
   )
   const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
-  const [formError, setFormError] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
+  const [pending, setPending] = useState(false)
+  const [translating, setTranslating] = useState(false)
   const [descriptionTab, setDescriptionTab] = useState<"vi" | "en">("vi")
 
-  const handleTranslateToEnglish = () => {
-    if (!descriptionVi.trim()) return
-    // Hook AI translation API here, then:
-    // setDescriptionEn(result)
-    // setDescriptionTab("en")
+  const handleTranslateToEnglish = async () => {
+    if (!descriptionVi.trim() || translating) return
+    setTranslating(true)
+    try {
+      const result = await translateViToEnAction(descriptionVi)
+      if (!result.ok) {
+        toastError(result.error)
+        return
+      }
+      setDescriptionEn(result.data.text)
+      setDescriptionTab("en")
+      toastSuccess("Đã dịch sang tiếng Anh.")
+    } catch {
+      toastError("Không dịch được. Vui lòng thử lại.")
+    } finally {
+      setTranslating(false)
+    }
   }
 
-  const toggleCollection = (value: string) => {
-    setCollections((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value]
+  const setGroupAttribute = (
+    group: AdminAttributeGroupOption,
+    value: string | string[] | null
+  ) => {
+    const groupAttrIds = new Set(group.attributes.map((item) => item.id))
+    const nextValues = Array.isArray(value) ? value : value ? [value] : []
+    setAttributeIds((current) => [
+      ...current.filter((id) => !groupAttrIds.has(id)),
+      ...nextValues,
+    ])
+  }
+
+  const selectedIdsForGroup = (group: AdminAttributeGroupOption) =>
+    attributeIds.filter((id) => group.attributes.some((item) => item.id === id))
+
+  const selectedForGroup = (group: AdminAttributeGroupOption) =>
+    selectedIdsForGroup(group)[0] ?? ""
+
+  const visibleGroups = groups.filter((group) => group.kind === kind)
+
+  const handleKindChange = (value: ProductKind) => {
+    setKind(value)
+    const allowed = new Set(
+      groups
+        .filter((group) => group.kind === value)
+        .flatMap((group) => group.attributes.map((item) => item.id))
     )
+    setAttributeIds((current) => current.filter((id) => allowed.has(id)))
+  }
+
+  const persistAndSave = async (intent: PublishIntent, publishedAt?: string | null) => {
+    if (!name.trim()) {
+      toastError("Vui lòng nhập tên sản phẩm.")
+      return
+    }
+
+    if (intent !== "draft" && images.length === 0) {
+      toastError("Vui lòng tải lên ít nhất một ảnh sản phẩm.")
+      return
+    }
+
+    if (priceDisplay === "amount" && parsePriceVnd(priceInput) == null) {
+      toastError("Vui lòng nhập giá sản phẩm.")
+      return
+    }
+
+    setPending(true)
+    try {
+      const imageUrls = images.length ? await persistUploadedImages(images) : []
+      const payload = {
+        name,
+        code,
+        slug,
+        descriptionVi,
+        descriptionEn,
+        attributeIds,
+        collectionIds,
+        tags,
+        imageUrls,
+        priceVnd: parsePriceVnd(priceInput),
+        priceDisplay,
+        kind,
+        intent,
+        publishedAt,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+      }
+      const result = defaultValues?.id
+        ? await updateProductAction(defaultValues.id, payload)
+        : await createProductAction(payload)
+
+      if (!result.ok) {
+        toastError(result.error)
+        return
+      }
+
+      setScheduleOpen(false)
+      setScheduleError(null)
+      if (intent === "publish") {
+        toastSuccess("Đã đăng sản phẩm.")
+      } else if (intent === "schedule") {
+        toastSuccess("Đã hẹn lịch đăng sản phẩm.")
+      } else {
+        toastSuccess("Đã lưu nháp.", "Sản phẩm chưa hiện trên website.")
+      }
+      if (!defaultValues?.id) {
+        router.push("/admin/products")
+      } else if (result.data.slug !== defaultValues.slug) {
+        router.replace(`/admin/products/${result.data.slug}/edit`)
+      }
+      router.refresh()
+    } catch (error) {
+      toastError(
+        error instanceof Error ? error.message : "Không lưu được sản phẩm."
+      )
+    } finally {
+      setPending(false)
+    }
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSubmitted(false)
+    void persistAndSave("draft")
+  }
 
+  const openSchedule = () => {
     if (!name.trim()) {
-      setFormError("Vui lòng nhập tên sản phẩm.")
+      toastError("Vui lòng nhập tên sản phẩm.")
       return
     }
-
     if (images.length === 0) {
-      setFormError("Vui lòng tải lên ít nhất một ảnh sản phẩm.")
+      toastError("Vui lòng tải lên ít nhất một ảnh sản phẩm.")
       return
     }
+    if (priceDisplay === "amount" && parsePriceVnd(priceInput) == null) {
+      toastError("Vui lòng nhập giá sản phẩm.")
+      return
+    }
+    setScheduleError(null)
+    if (!scheduleValue) setScheduleValue(defaultScheduleValue())
+    setScheduleOpen(true)
+  }
 
-    setFormError(null)
-    setSubmitted(true)
+  const confirmSchedule = () => {
+    const iso = datetimeLocalToIso(scheduleValue)
+    if (!iso) {
+      const message = "Vui lòng chọn ngày và giờ đăng."
+      setScheduleError(message)
+      toastError(message)
+      return
+    }
+    if (new Date(iso).getTime() <= Date.now()) {
+      const message = "Thời gian hẹn lịch phải ở tương lai."
+      setScheduleError(message)
+      toastError(message)
+      return
+    }
+    void persistAndSave("schedule", iso)
   }
 
   return (
@@ -243,80 +455,137 @@ export function ProductForm({
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-silhouette">Dáng váy</Label>
-            <Select
-              id="product-silhouette"
-              value={silhouette || null}
-              onValueChange={(value) => setSilhouette(value ?? "")}
-              items={SILHOUETTE_OPTIONS}
+          <fieldset className="flex flex-col gap-3 sm:col-span-2">
+            <legend className="text-sm font-medium">Loại sản phẩm</legend>
+            <RadioGroup
+              value={kind}
+              onValueChange={(value) => {
+                if (value === "gown" || value === "ao-dai") {
+                  handleKindChange(value)
+                }
+              }}
+              className="grid gap-2 sm:grid-cols-2"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn dáng váy" />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-                {SILHOUETTE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {PRODUCT_KINDS.map((option) => (
+                <Label
+                  key={option}
+                  htmlFor={`product-kind-${option}`}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 font-normal"
+                >
+                  <RadioGroupItem id={`product-kind-${option}`} value={option} />
+                  <span>{PRODUCT_KIND_LABELS[option]}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+          </fieldset>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-neckline">Kiểu cổ</Label>
-            <Select
-              id="product-neckline"
-              value={neckline || null}
-              onValueChange={(value) => setNeckline(value ?? "")}
-              items={NECKLINE_OPTIONS}
+          <fieldset className="flex flex-col gap-3 sm:col-span-2">
+            <legend className="text-sm font-medium">Giá</legend>
+            <RadioGroup
+              value={priceDisplay}
+              onValueChange={(value) => {
+                if (value === "contact" || value === "amount") {
+                  setPriceDisplay(value)
+                }
+              }}
+              className="grid gap-2 sm:grid-cols-2"
             >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn kiểu cổ" />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-                {NECKLINE_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              {PRICE_DISPLAYS.map((option) => (
+                <Label
+                  key={option}
+                  htmlFor={`product-price-${option}`}
+                  className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 font-normal"
+                >
+                  <RadioGroupItem id={`product-price-${option}`} value={option} />
+                  <span>{PRICE_DISPLAY_LABELS[option]}</span>
+                </Label>
+              ))}
+            </RadioGroup>
+            {priceDisplay === "amount" ? (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="product-price">Giá (VND)</Label>
+                <Input
+                  id="product-price"
+                  name="priceVnd"
+                  inputMode="numeric"
+                  value={priceInput}
+                  onChange={(event) =>
+                    setPriceInput(formatPriceInput(event.target.value))
+                  }
+                  placeholder="18.000.000"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Giá khách thấy trên website, ví dụ 18.000.000.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Khách sẽ thấy chữ “Liên hệ” thay cho số tiền.
+              </p>
+            )}
+          </fieldset>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="product-fabric">Chất liệu</Label>
-            <Select
-              id="product-fabric"
-              value={fabric || null}
-              onValueChange={(value) => setFabric(value ?? "")}
-              items={FABRIC_OPTIONS}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn chất liệu" />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-                {FABRIC_OPTIONS.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value}
-                    label={option.label}
-                  >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {visibleGroups.length === 0 ? (
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              Chưa có nhóm thuộc tính cho loại sản phẩm này. Thêm nhóm trong
+              mục Danh mục.
+            </p>
+          ) : null}
+
+          {visibleGroups.map((group) => {
+            const options = group.attributes.map((item) => ({
+              value: item.id,
+              label: item.label,
+            }))
+
+            if (group.selection === "multiple") {
+              const selectedIds = selectedIdsForGroup(group)
+              return (
+                <div key={group.id} className="flex flex-col gap-2 sm:col-span-2">
+                  <Label htmlFor={`product-attr-${group.slug}`}>{group.label}</Label>
+                  <MultiSelectCombobox
+                    id={`product-attr-${group.slug}`}
+                    items={options}
+                    value={selectedIds}
+                    onValueChange={(ids) => setGroupAttribute(group, ids)}
+                    placeholder={
+                      selectedIds.length
+                        ? `Thêm ${group.label.toLowerCase()}`
+                        : `Chọn hoặc tìm ${group.label.toLowerCase()}`
+                    }
+                    emptyText="Không tìm thấy mục phù hợp."
+                  />
+                </div>
+              )
+            }
+
+            return (
+              <div key={group.id} className="flex flex-col gap-2">
+                <Label htmlFor={`product-attr-${group.slug}`}>{group.label}</Label>
+                <Select
+                  id={`product-attr-${group.slug}`}
+                  value={selectedForGroup(group) || null}
+                  onValueChange={(value) => setGroupAttribute(group, value)}
+                  items={options}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={`Chọn ${group.label.toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
+                    {options.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value}
+                        label={option.label}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )
+          })}
 
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Label>Mô tả</Label>
@@ -354,13 +623,17 @@ export function ProductForm({
                           type="button"
                           variant="default"
                           size="icon-xs"
-                          aria-disabled={!descriptionVi.trim()}
-                          className="absolute top-2 right-2 shadow-sm aria-disabled:opacity-50"
+                          disabled={translating || !descriptionVi.trim()}
+                          className="absolute top-2 right-2 shadow-sm"
                         />
                       }
-                      onClick={handleTranslateToEnglish}
+                      onClick={() => void handleTranslateToEnglish()}
                     >
-                      <Languages />
+                      {translating ? (
+                        <Loader2 className="animate-spin" />
+                      ) : (
+                        <Languages />
+                      )}
                     </TooltipTrigger>
                     <TooltipContent>Dịch sang tiếng Anh</TooltipContent>
                   </Tooltip>
@@ -379,65 +652,35 @@ export function ProductForm({
             </Tabs>
           </div>
 
-          <fieldset className="flex flex-col gap-2 sm:col-span-2">
-            <legend className="text-sm font-medium">Bộ sưu tập</legend>
-            <div className="flex flex-wrap gap-2">
-              {COLLECTION_OPTIONS.map((option) => {
-                const selected = collections.includes(option.value)
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => toggleCollection(option.value)}
-                    className={cn(
-                      "rounded-full border px-3 py-1.5 text-sm transition-colors",
-                      selected
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background text-foreground hover:bg-muted"
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                )
-              })}
-            </div>
-          </fieldset>
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <Label htmlFor="product-collections">Bộ sưu tập</Label>
+            <MultiSelectCombobox
+              id="product-collections"
+              items={collectionOptions.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              value={collectionIds}
+              onValueChange={setCollectionIds}
+              placeholder={
+                collectionIds.length
+                  ? "Thêm bộ sưu tập"
+                  : "Chọn hoặc tìm bộ sưu tập"
+              }
+              emptyText="Không tìm thấy bộ sưu tập phù hợp."
+            />
+          </div>
 
           <div className="flex flex-col gap-2 sm:col-span-2">
             <Label htmlFor="product-tags">Tags</Label>
-            <Combobox
-              items={PRODUCT_TAGS}
-              multiple
-              autoHighlight
+            <MultiSelectCombobox
+              id="product-tags"
+              items={PRODUCT_TAGS.map((tag) => ({ value: tag, label: tag }))}
               value={tags}
-              onValueChange={(value) => setTags(value ?? [])}
-            >
-              <ComboboxChips className="w-full">
-                <ComboboxValue>
-                  {tags.map((tag) => (
-                    <ComboboxChip key={tag}>{tag}</ComboboxChip>
-                  ))}
-                </ComboboxValue>
-                <ComboboxChipsInput
-                  id="product-tags"
-                  placeholder={tags.length ? "Thêm tag" : "Chọn hoặc tìm tag"}
-                />
-              </ComboboxChips>
-              <ComboboxContent>
-                <ComboboxEmpty>Không tìm thấy tag phù hợp.</ComboboxEmpty>
-                <ComboboxList>
-                  {(item) => (
-                    <ComboboxItem key={item} value={item}>
-                      {item}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-            <p className="text-xs text-muted-foreground">
-              Có thể chọn nhiều tag. Gõ để lọc, bấm lại hoặc nút × để bỏ chọn.
-            </p>
+              onValueChange={setTags}
+              placeholder={tags.length ? "Thêm tag" : "Chọn hoặc tìm tag"}
+              emptyText="Không tìm thấy tag phù hợp."
+            />
           </div>
         </div>
       </section>
@@ -446,10 +689,14 @@ export function ProductForm({
         <div className="mb-5">
           <h2 className="text-base font-semibold">Ảnh sản phẩm</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Tải nhiều ảnh cùng lúc, rồi kéo thả để xếp thứ tự trưng bày.
+            Tải nhiều ảnh dọc cùng lúc, rồi kéo thả để xếp thứ tự trưng bày.
           </p>
         </div>
-        <ImageUploader images={images} onChange={setImages} />
+        <ImageUploader
+          images={images}
+          onChange={setImages}
+          sizeHint={ADMIN_IMAGE_SIZE_HINTS.product}
+        />
       </section>
 
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">
@@ -535,25 +782,27 @@ export function ProductForm({
         </div>
       </section>
 
-      {formError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {formError}
-        </p>
-      ) : null}
-
-      {submitted ? (
-        <p role="status" className="text-sm text-foreground">
-          Đã nhận {images.length} ảnh theo thứ tự đã sắp xếp. Lưu lên máy chủ sẽ được
-          bổ sung sau.
-        </p>
-      ) : null}
-
-      <div className="flex items-center gap-3">
-        <Button type="submit">Lưu sản phẩm</Button>
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           {images.length} ảnh · ảnh bìa là ảnh đầu tiên
         </p>
+        <PublishIntentActions
+          pending={pending}
+          isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
+          onPublish={() => void persistAndSave("publish")}
+          onSchedule={openSchedule}
+        />
       </div>
+      <SchedulePublishDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        value={scheduleValue}
+        onValueChange={setScheduleValue}
+        error={scheduleError}
+        pending={pending}
+        onConfirm={confirmSchedule}
+        description="Sản phẩm sẽ được đánh dấu đã đăng và chỉ hiện trên website khi tới giờ."
+      />
     </form>
   )
 }

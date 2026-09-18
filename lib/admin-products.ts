@@ -1,8 +1,31 @@
-import { parseProductName, productSlug, type CatalogProduct } from "@/lib/catalog"
+import {
+  parseProductName,
+  productSlug,
+  PRODUCT_KINDS,
+  type CatalogProduct,
+  type ProductKind,
+} from "@/lib/catalog"
+import {
+  CONTENT_LIST_FILTER_LABELS,
+  CONTENT_LIST_FILTERS,
+  formatPublishedAt,
+  type ContentListFilter,
+} from "@/lib/content-status"
 
-export const PRODUCT_STATUSES = ["published", "scheduled", "draft"] as const
+export { PRODUCT_KINDS, type ProductKind }
 
-export type ProductStatus = (typeof PRODUCT_STATUSES)[number]
+export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
+  gown: "Váy cưới",
+  "ao-dai": "Áo dài",
+}
+
+export const PRODUCT_STATUSES = CONTENT_LIST_FILTERS
+
+export type ProductStatus = ContentListFilter
+
+export const PRICE_DISPLAYS = ["contact", "amount"] as const
+
+export type PriceDisplay = (typeof PRICE_DISPLAYS)[number]
 
 export type AdminProductListItem = {
   id: string
@@ -11,18 +34,21 @@ export type AdminProductListItem = {
   fullName: string
   code: string
   image: string
-  price: number
+  price: number | null
+  priceDisplay: PriceDisplay
+  kind: ProductKind
   category: string
   collections: string[]
   status: ProductStatus
-  scheduledAt: string | null
+  publishedAt: string | null
 }
 
-export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = {
-  published: "Đã đăng",
-  scheduled: "Đã lên lịch",
-  draft: "Draft",
+export const PRICE_DISPLAY_LABELS: Record<PriceDisplay, string> = {
+  contact: "Liên hệ",
+  amount: "Hiển thị giá",
 }
+
+export const PRODUCT_STATUS_LABELS = CONTENT_LIST_FILTER_LABELS
 
 const CATEGORY_LABELS: Record<string, string> = {
   "ball-gown": "Váy sân khấu",
@@ -47,7 +73,7 @@ function productStatus(name: string): ProductStatus {
   return "draft"
 }
 
-function productScheduledAt(name: string, status: ProductStatus): string | null {
+function productPublishedAt(name: string, status: ProductStatus): string | null {
   if (status !== "scheduled") return null
 
   const hash = nameHash(name)
@@ -74,16 +100,19 @@ export function toAdminProductListItem(
     code,
     image: product.image,
     price: productPrice(product.name),
+    priceDisplay: "amount",
+    kind: product.kind ?? "gown",
     category: CATEGORY_LABELS[product.silhouette] ?? product.silhouette,
     collections: product.collections.map(
       (collectionSlug) => collectionLabels[collectionSlug] ?? collectionSlug
     ),
     status,
-    scheduledAt: productScheduledAt(product.name, status),
+    publishedAt: productPublishedAt(product.name, status),
   }
 }
 
-export function formatVnd(amount: number) {
+export function formatVnd(amount: number | null) {
+  if (amount == null) return "—"
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -91,10 +120,25 @@ export function formatVnd(amount: number) {
   }).format(amount)
 }
 
-export function formatScheduledAt(iso: string) {
-  return new Intl.DateTimeFormat("vi-VN", {
-    dateStyle: "short",
-    timeStyle: "short",
-    timeZone: "Asia/Ho_Chi_Minh",
-  }).format(new Date(iso))
+export function formatProductPrice(
+  amount: number | null,
+  display: PriceDisplay = "contact"
+) {
+  if (display === "contact") return PRICE_DISPLAY_LABELS.contact
+  return formatVnd(amount)
 }
+
+export function parsePriceVnd(value: string) {
+  const digits = value.replace(/\D/g, "")
+  if (!digits) return null
+  const amount = Number(digits)
+  return Number.isFinite(amount) && amount > 0 ? amount : null
+}
+
+export function formatPriceInput(value: string) {
+  const digits = value.replace(/\D/g, "")
+  if (!digits) return ""
+  return new Intl.NumberFormat("vi-VN").format(Number(digits))
+}
+
+export { formatPublishedAt as formatScheduledAt }

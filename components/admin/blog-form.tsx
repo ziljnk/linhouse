@@ -3,7 +3,18 @@
 import { useMemo, useRef, useState, type FormEvent } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { CalendarClock, ChevronDown, Send } from "lucide-react"
+import { saveBlogPostAction, type BlogIntent } from "@/app/admin/(dashboard)/blog/actions"
+import { persistUploadedImages } from "@/lib/persist-admin-images"
+import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { isLivePublished } from "@/lib/content-status"
+import { PublishIntentActions } from "@/components/admin/publish-intent-actions"
+import {
+  SchedulePublishDialog,
+  datetimeLocalToIso,
+  defaultScheduleValue,
+  toDatetimeLocalValue,
+} from "@/components/admin/schedule-publish-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import {
   Accordion,
@@ -32,38 +49,16 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
   ImageUploader,
   createUploadedImageFromUrl,
   type UploadedImage,
 } from "@/components/admin/image-uploader"
-import {
-  BLOG_CATEGORIES,
-  formatScheduledAt,
-  slugify,
-  type BlogStatus,
-} from "@/lib/admin-blog"
+import { slugify } from "@/lib/admin-blog"
+import type { AdminBlogCategoryOption } from "@/lib/admin-storefront"
 import { cn } from "@/lib/utils"
 
 const SEO_TITLE_LIMIT = 60
 const SEO_DESCRIPTION_LIMIT = 160
-const CATEGORY_OPTIONS = BLOG_CATEGORIES.map((item) => ({
-  value: item.value,
-  label: item.label,
-}))
 
 const BlogRichTextEditor = dynamic(
   () =>
@@ -102,56 +97,52 @@ function isEmptyHtml(html: string) {
     .trim() === ""
 }
 
-function pad(value: number) {
-  return String(value).padStart(2, "0")
-}
-
-function toDatetimeLocalValue(date: Date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
-
-function defaultScheduleValue() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  date.setHours(9, 0, 0, 0)
-  return toDatetimeLocalValue(date)
-}
-
-function datetimeLocalToIso(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString()
-}
-
-type SaveResult = {
-  status: BlogStatus
-  scheduledAt: string | null
-}
-
 export type BlogFormValues = {
-  title?: string
+  id?: string
+  titleVi?: string
+  titleEn?: string
+  excerptVi?: string
+  excerptEn?: string
+  contentVi?: string
+  contentEn?: string
+  imageAltVi?: string
+  imageAltEn?: string
   slug?: string
-  content?: string
-  category?: string
+  categoryId?: string
   coverUrl?: string
+  status?: "draft" | "published"
+  publishedAt?: string | null
   seoTitle?: string
   seoDescription?: string
   seoKeywords?: string
 }
 
 export function BlogForm({
+  categories,
   defaultValues,
   cancelHref = "/admin/blog",
 }: {
+  categories: AdminBlogCategoryOption[]
   defaultValues?: BlogFormValues
   cancelHref?: string
-} = {}) {
+}) {
   const router = useRouter()
-  const [title, setTitle] = useState(defaultValues?.title ?? "")
+  const categoryOptions = categories.map((item) => ({
+    value: item.id,
+    label: item.label,
+  }))
+  const [titleVi, setTitleVi] = useState(defaultValues?.titleVi ?? "")
+  const [titleEn, setTitleEn] = useState(defaultValues?.titleEn ?? "")
+  const [excerptVi, setExcerptVi] = useState(defaultValues?.excerptVi ?? "")
+  const [excerptEn, setExcerptEn] = useState(defaultValues?.excerptEn ?? "")
+  const [contentVi, setContentVi] = useState(defaultValues?.contentVi ?? "")
+  const [contentEn, setContentEn] = useState(defaultValues?.contentEn ?? "")
+  const [imageAltVi, setImageAltVi] = useState(defaultValues?.imageAltVi ?? "")
+  const [imageAltEn, setImageAltEn] = useState(defaultValues?.imageAltEn ?? "")
+  const [localeTab, setLocaleTab] = useState<"vi" | "en">("vi")
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
   const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
-  const [content, setContent] = useState(defaultValues?.content ?? "")
-  const [category, setCategory] = useState(defaultValues?.category ?? "")
+  const [categoryId, setCategoryId] = useState(defaultValues?.categoryId ?? "")
   const [coverImages, setCoverImages] = useState<UploadedImage[]>(
     defaultValues?.coverUrl
       ? [createUploadedImageFromUrl(defaultValues.coverUrl)]
@@ -162,30 +153,45 @@ export function BlogForm({
     defaultValues?.seoDescription ?? ""
   )
   const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
-  const [formError, setFormError] = useState<string | null>(null)
-  const [saveResult, setSaveResult] = useState<SaveResult | null>(null)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
-  const [scheduleValue, setScheduleValue] = useState(defaultScheduleValue)
+  const [scheduleValue, setScheduleValue] = useState(
+    defaultValues?.publishedAt && isLivePublished(defaultValues.status, defaultValues.publishedAt) === false
+      ? toDatetimeLocalValue(new Date(defaultValues.publishedAt))
+      : defaultScheduleValue
+  )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
   const snapshot = useMemo(
     () =>
       JSON.stringify({
-        title,
+        titleVi,
+        titleEn,
+        excerptVi,
+        excerptEn,
+        contentVi,
+        contentEn,
+        imageAltVi,
+        imageAltEn,
         slug,
-        content,
-        category,
+        categoryId,
         coverUrl: coverImages[0]?.url ?? "",
         seoTitle,
         seoDescription,
         seoKeywords,
       }),
     [
-      title,
+      titleVi,
+      titleEn,
+      excerptVi,
+      excerptEn,
+      contentVi,
+      contentEn,
+      imageAltVi,
+      imageAltEn,
       slug,
-      content,
-      category,
+      categoryId,
       coverImages,
       seoTitle,
       seoDescription,
@@ -196,64 +202,118 @@ export function BlogForm({
   const isDirty = snapshot !== cleanSnapshotRef.current
 
   const publishError = () => {
-    if (!title.trim()) return "Vui lòng nhập tiêu đề bài viết."
-    if (isEmptyHtml(content)) return "Vui lòng nhập nội dung bài viết."
-    if (!category) return "Vui lòng chọn danh mục."
+    if (!titleVi.trim()) return "Vui lòng nhập tiêu đề bài viết."
+    if (isEmptyHtml(contentVi)) return "Vui lòng nhập nội dung bài viết."
+    if (!categoryId) return "Vui lòng chọn danh mục."
     if (coverImages.length === 0) return "Vui lòng tải lên ảnh bìa."
     return null
   }
 
-  const finishSave = (result: SaveResult) => {
-    cleanSnapshotRef.current = snapshot
-    setFormError(null)
-    setSaveResult(result)
-    setScheduleOpen(false)
-    setScheduleError(null)
+  const persistAndSave = async (intent: BlogIntent, publishedAt?: string | null) => {
+    setPending(true)
+    try {
+      const uploaded = coverImages.length
+        ? await persistUploadedImages(coverImages)
+        : [""]
+      const coverUrl = uploaded[0] ?? ""
+      const result = await saveBlogPostAction({
+        id: defaultValues?.id,
+        titleVi,
+        titleEn,
+        excerptVi,
+        excerptEn,
+        contentVi,
+        contentEn,
+        imageAltVi,
+        imageAltEn,
+        slug,
+        categoryId,
+        coverUrl,
+        intent,
+        publishedAt,
+        seoTitle,
+        seoDescription,
+        seoKeywords,
+      })
+      if (!result.ok) {
+        toastError(result.error)
+        return
+      }
+
+      cleanSnapshotRef.current = snapshot
+      setScheduleOpen(false)
+      setScheduleError(null)
+
+      if (intent === "publish") {
+        toastSuccess("Đã đăng bài viết.")
+      } else if (intent === "schedule") {
+        toastSuccess("Đã hẹn lịch đăng bài viết.")
+      } else {
+        toastSuccess("Đã lưu nháp.", "Bài viết chưa hiện trên website.")
+      }
+
+      if (!defaultValues?.id) {
+        router.push("/admin/blog")
+      } else if (result.data.slug !== defaultValues.slug) {
+        router.replace(`/admin/blog/${result.data.slug}/edit`)
+      }
+      router.refresh()
+    } catch (error) {
+      toastError(
+        error instanceof Error ? error.message : "Không lưu được bài viết."
+      )
+    } finally {
+      setPending(false)
+    }
   }
 
   const saveDraft = () => {
-    setSaveResult(null)
-    if (!title.trim()) {
-      setFormError("Nhập tiêu đề trước khi lưu nháp.")
+    if (!titleVi.trim()) {
+      toastError("Nhập tiêu đề trước khi lưu nháp.")
       return
     }
-    finishSave({ status: "draft", scheduledAt: null })
+    if (!categoryId) {
+      toastError("Vui lòng chọn danh mục trước khi lưu nháp.")
+      return
+    }
+    void persistAndSave("draft")
   }
 
   const publishNow = () => {
-    setSaveResult(null)
     const error = publishError()
     if (error) {
-      setFormError(error)
+      toastError(error)
       return
     }
-    finishSave({ status: "published", scheduledAt: null })
+    void persistAndSave("publish")
   }
 
   const openSchedule = () => {
-    setSaveResult(null)
     const error = publishError()
     if (error) {
-      setFormError(error)
+      toastError(error)
       return
     }
-    setFormError(null)
     setScheduleError(null)
-    setScheduleValue(defaultScheduleValue())
+    if (!scheduleValue) setScheduleValue(defaultScheduleValue())
     setScheduleOpen(true)
   }
 
   const confirmSchedule = () => {
     const iso = datetimeLocalToIso(scheduleValue)
     if (!iso) {
-      setScheduleError("Vui lòng chọn ngày và giờ đăng.")
+      const message = "Vui lòng chọn ngày và giờ đăng."
+      setScheduleError(message)
+      toastError(message)
       return
     }
     if (new Date(iso).getTime() <= Date.now()) {
-      setScheduleError("Thời gian hẹn lịch phải ở tương lai.")
+      const message = "Thời gian hẹn lịch phải ở tương lai."
+      setScheduleError(message)
+      toastError(message)
       return
     }
-    finishSave({ status: "scheduled", scheduledAt: iso })
+    void persistAndSave("schedule", iso)
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -285,20 +345,66 @@ export function BlogForm({
         </div>
 
         <div className="grid gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="blog-title">Tiêu đề</Label>
-            <Input
-              id="blog-title"
-              name="title"
-              value={title}
-              onChange={(event) => {
-                const nextTitle = event.target.value
-                setTitle(nextTitle)
-                if (!slugTouched) setSlug(slugify(nextTitle))
-              }}
-              placeholder="Top 9 xu hướng váy cưới 2026"
-            />
-          </div>
+          <Tabs
+            value={localeTab}
+            onValueChange={(value) => {
+              if (value === "vi" || value === "en") setLocaleTab(value)
+            }}
+            className="gap-3"
+          >
+            <TabsList>
+              <TabsTrigger value="vi">Tiếng Việt</TabsTrigger>
+              <TabsTrigger value="en">Tiếng Anh</TabsTrigger>
+            </TabsList>
+            <TabsContent value="vi" className="grid gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="blog-title-vi">Tiêu đề</Label>
+                <Input
+                  id="blog-title-vi"
+                  name="titleVi"
+                  value={titleVi}
+                  onChange={(event) => {
+                    const nextTitle = event.target.value
+                    setTitleVi(nextTitle)
+                    if (!slugTouched) setSlug(slugify(nextTitle))
+                  }}
+                  placeholder="Top 9 xu hướng váy cưới 2026"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="blog-excerpt-vi">Tóm tắt</Label>
+                <Textarea
+                  id="blog-excerpt-vi"
+                  value={excerptVi}
+                  onChange={(event) => setExcerptVi(event.target.value)}
+                  placeholder="Đoạn mô tả ngắn hiện trên danh sách blog."
+                  rows={3}
+                />
+              </div>
+            </TabsContent>
+            <TabsContent value="en" className="grid gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="blog-title-en">Title</Label>
+                <Input
+                  id="blog-title-en"
+                  name="titleEn"
+                  value={titleEn}
+                  onChange={(event) => setTitleEn(event.target.value)}
+                  placeholder="Top 9 wedding dress trends 2026"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="blog-excerpt-en">Excerpt</Label>
+                <Textarea
+                  id="blog-excerpt-en"
+                  value={excerptEn}
+                  onChange={(event) => setExcerptEn(event.target.value)}
+                  placeholder="Short summary shown on the blog list."
+                  rows={3}
+                />
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="blog-slug">Đường dẫn</Label>
@@ -332,10 +438,24 @@ export function BlogForm({
             Soạn thảo bài viết với định dạng chữ, tiêu đề, danh sách và liên kết.
           </p>
         </div>
-        <BlogRichTextEditor
-          initialContent={defaultValues?.content}
-          onChange={setContent}
-        />
+        <Tabs defaultValue="vi" className="gap-3">
+          <TabsList>
+            <TabsTrigger value="vi">Tiếng Việt</TabsTrigger>
+            <TabsTrigger value="en">Tiếng Anh</TabsTrigger>
+          </TabsList>
+          <TabsContent value="vi">
+            <BlogRichTextEditor
+              initialContent={defaultValues?.contentVi}
+              onChange={setContentVi}
+            />
+          </TabsContent>
+          <TabsContent value="en">
+            <BlogRichTextEditor
+              initialContent={defaultValues?.contentEn}
+              onChange={setContentEn}
+            />
+          </TabsContent>
+        </Tabs>
       </section>
 
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">
@@ -351,15 +471,15 @@ export function BlogForm({
             <Label htmlFor="blog-category">Danh mục</Label>
             <Select
               id="blog-category"
-              value={category || null}
-              onValueChange={(value) => setCategory(value ?? "")}
-              items={CATEGORY_OPTIONS}
+              value={categoryId || null}
+              onValueChange={(value) => setCategoryId(value ?? "")}
+              items={categoryOptions}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn danh mục" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-                {CATEGORY_OPTIONS.map((option) => (
+                {categoryOptions.map((option) => (
                   <SelectItem
                     key={option.value}
                     value={option.value}
@@ -378,9 +498,31 @@ export function BlogForm({
               images={coverImages}
               onChange={setCoverImages}
               maxFiles={1}
-              aspect="landscape"
+              aspect="portrait"
+              sizeHint={ADMIN_IMAGE_SIZE_HINTS.blogCover}
             />
           </div>
+
+          <Tabs defaultValue="vi" className="gap-3">
+            <TabsList>
+              <TabsTrigger value="vi">Mô tả ảnh VI</TabsTrigger>
+              <TabsTrigger value="en">Image alt EN</TabsTrigger>
+            </TabsList>
+            <TabsContent value="vi">
+              <Input
+                value={imageAltVi}
+                onChange={(event) => setImageAltVi(event.target.value)}
+                placeholder="Cô dâu trong váy cưới LINHouse"
+              />
+            </TabsContent>
+            <TabsContent value="en">
+              <Input
+                value={imageAltEn}
+                onChange={(event) => setImageAltEn(event.target.value)}
+                placeholder="Bride in a LINHouse wedding gown"
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
 
@@ -449,59 +591,16 @@ export function BlogForm({
         </AccordionItem>
       </Accordion>
 
-      {formError ? (
-        <p role="alert" className="text-sm text-destructive">
-          {formError}
-        </p>
-      ) : null}
-
-      {saveResult ? (
-        <p role="status" className="text-sm text-foreground">
-          {saveResult.status === "draft"
-            ? "Đã lưu nháp. Bài viết chưa hiện trên website."
-            : saveResult.status === "published"
-              ? "Đã đăng bài viết."
-              : `Đã hẹn lịch đăng lúc ${formatScheduledAt(saveResult.scheduledAt ?? "")}.`}
-        </p>
-      ) : null}
-
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Button type="button" variant="ghost" onClick={handleCancel}>
           Hủy
         </Button>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button type="submit" variant="outline">
-            Lưu nháp
-          </Button>
-          <div className="flex">
-            <Button type="button" className="rounded-r-none" onClick={publishNow}>
-              Đăng bài
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label="Tùy chọn đăng bài"
-                render={
-                  <Button
-                    type="button"
-                    className="rounded-l-none border-l border-primary-foreground/25 px-2"
-                  />
-                }
-              >
-                <ChevronDown />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-48">
-                <DropdownMenuItem onClick={publishNow}>
-                  <Send />
-                  Đăng ngay
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={openSchedule}>
-                  <CalendarClock />
-                  Hẹn lịch đăng
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+        <PublishIntentActions
+          pending={pending}
+          isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
+          onPublish={publishNow}
+          onSchedule={openSchedule}
+        />
       </div>
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
@@ -519,47 +618,17 @@ export function BlogForm({
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={scheduleOpen} onOpenChange={setScheduleOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Hẹn lịch đăng</DialogTitle>
-            <DialogDescription>
-              Bài viết sẽ chuyển sang trạng thái Đã lên lịch và chỉ hiện trên
-              website khi tới giờ.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="blog-schedule-at">Thời điểm đăng</Label>
-            <Input
-              id="blog-schedule-at"
-              type="datetime-local"
-              value={scheduleValue}
-              min={toDatetimeLocalValue(new Date())}
-              onChange={(event) => setScheduleValue(event.target.value)}
-            />
-            <p className="text-xs text-muted-foreground">
-              Giờ theo máy tính của bạn.
-            </p>
-            {scheduleError ? (
-              <p role="alert" className="text-sm text-destructive">
-                {scheduleError}
-              </p>
-            ) : null}
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setScheduleOpen(false)}
-            >
-              Hủy
-            </Button>
-            <Button type="button" onClick={confirmSchedule}>
-              Hẹn lịch
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SchedulePublishDialog
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        value={scheduleValue}
+        onValueChange={setScheduleValue}
+        error={scheduleError}
+        pending={pending}
+        onConfirm={confirmSchedule}
+        description="Bài viết sẽ được đánh dấu đã đăng và chỉ hiện trên website khi tới giờ."
+      />
     </form>
   )
 }
+

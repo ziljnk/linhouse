@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect, useRef, useState, useTransition } from "react"
 import Image from "next/image"
 import { X } from "lucide-react"
-import type { Dictionary } from "@/app/[locale]/dictionaries"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import { submitAppointmentAction } from "@/app/[locale]/booking/actions"
 import {
   Dialog,
   DialogClose,
@@ -11,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { DateTimePicker24h } from "@/components/ui/date-time-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -22,16 +25,38 @@ const fieldClass =
 export function BookAppointmentDialog({
   open,
   onOpenChange,
+  locale,
   brand,
   booking,
   storeAddress,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
+  locale: Locale
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
 }) {
+  const formRef = useRef<HTMLFormElement>(null)
+  const [error, setError] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+  const [isPending, startTransition] = useTransition()
+  const [datetime, setDatetime] = useState("")
+
+  useEffect(() => {
+    if (open) return
+    formRef.current?.reset()
+    setError("")
+    setSubmitted(false)
+    setDatetime("")
+  }, [open])
+
+  useEffect(() => {
+    if (!submitted) return
+    const timer = window.setTimeout(() => onOpenChange(false), 2500)
+    return () => window.clearTimeout(timer)
+  }, [submitted, onOpenChange])
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
@@ -91,99 +116,127 @@ export function BookAppointmentDialog({
               </DialogDescription>
             </DialogHeader>
 
-            <form
-              className="flex flex-1 flex-col gap-3.5 lg:mt-8"
-              onSubmit={(event) => {
-                event.preventDefault()
-                event.currentTarget.reset()
-                onOpenChange(false)
-              }}
-            >
-              <Input
-                required
-                name="name"
-                autoComplete="name"
-                placeholder={booking.fullName}
-                aria-label={booking.fullName}
-                className={fieldClass}
-              />
+            {submitted ? (
+              <p
+                role="status"
+                className="mt-8 flex flex-1 items-center justify-center text-center text-sm font-light leading-relaxed text-charcoal"
+              >
+                {booking.success}
+              </p>
+            ) : (
+              <form
+                ref={formRef}
+                className="flex flex-1 flex-col gap-3.5 lg:mt-8"
+                onSubmit={(event) => {
+                  event.preventDefault()
+                  setError("")
+                  const formData = new FormData(event.currentTarget)
+                  startTransition(async () => {
+                    const result = await submitAppointmentAction(formData)
+                    if (!result.ok) {
+                      setError(result.error || booking.error)
+                      return
+                    }
+                    setSubmitted(true)
+                  })
+                }}
+              >
+                <input type="hidden" name="locale" value={locale} />
+                <input type="hidden" name="storeAddress" value={storeAddress} />
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Input
                   required
-                  type="tel"
-                  name="phone"
-                  autoComplete="tel"
-                  placeholder={booking.phone}
-                  aria-label={booking.phone}
+                  name="name"
+                  autoComplete="name"
+                  maxLength={120}
+                  minLength={2}
+                  placeholder={booking.fullName}
+                  aria-label={booking.fullName}
                   className={fieldClass}
                 />
-                <Input
-                  required
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  placeholder={booking.email}
-                  aria-label={booking.email}
-                  className={fieldClass}
-                />
-              </div>
 
-              <div className="mt-1 space-y-2.5">
-                <Label className="text-sm font-semibold text-charcoal">
-                  {booking.selectStore}
-                  <span className="text-burgundy"> *</span>
-                </Label>
-                <RadioGroup
-                  required
-                  name="store"
-                  defaultValue="main"
-                  className="gap-2"
-                >
-                  <Label className="flex cursor-pointer items-start gap-2.5 font-normal text-charcoal">
-                    <RadioGroupItem
-                      value="main"
-                      className="mt-0.5 border-burgundy/40 data-checked:border-burgundy data-checked:bg-burgundy"
-                    />
-                    <span className="text-sm leading-snug">{storeAddress}</span>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    required
+                    type="tel"
+                    name="phone"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    maxLength={40}
+                    placeholder={booking.phone}
+                    aria-label={booking.phone}
+                    className={fieldClass}
+                  />
+                  <Input
+                    required
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    maxLength={254}
+                    placeholder={booking.email}
+                    aria-label={booking.email}
+                    className={fieldClass}
+                  />
+                </div>
+
+                <div className="mt-1 space-y-2.5">
+                  <Label className="text-sm font-semibold text-charcoal">
+                    {booking.selectStore}
+                    <span className="text-burgundy"> *</span>
                   </Label>
-                </RadioGroup>
-              </div>
+                  <RadioGroup
+                    required
+                    name="store"
+                    defaultValue={storeAddress}
+                    className="gap-2"
+                  >
+                    <Label className="flex cursor-pointer items-start gap-2.5 font-normal text-charcoal">
+                      <RadioGroupItem
+                        value={storeAddress}
+                        className="mt-0.5 border-burgundy/40 data-checked:border-burgundy data-checked:bg-burgundy"
+                      />
+                      <span className="text-sm leading-snug">{storeAddress}</span>
+                    </Label>
+                  </RadioGroup>
+                </div>
 
-              <Input
-                required
-                type="text"
-                name="date"
-                placeholder={booking.date}
-                aria-label={booking.date}
-                className={fieldClass}
-                onFocus={(event) => {
-                  event.currentTarget.type = "date"
-                }}
-                onBlur={(event) => {
-                  if (!event.currentTarget.value) {
-                    event.currentTarget.type = "text"
-                  }
-                }}
-              />
+                <DateTimePicker24h
+                  required
+                  name="datetime"
+                  value={datetime}
+                  onChange={setDatetime}
+                  min={new Date()}
+                  placeholder={booking.date}
+                  aria-label={booking.date}
+                  className={fieldClass}
+                />
 
-              <Textarea
-                name="message"
-                rows={4}
-                placeholder={booking.message}
-                aria-label={booking.message}
-                className="min-h-24 resize-none rounded-none border-charcoal/20 bg-white shadow-none placeholder:text-muted-foreground/80 focus-visible:border-burgundy focus-visible:ring-0"
-              />
+                <Textarea
+                  name="message"
+                  rows={4}
+                  maxLength={2000}
+                  placeholder={booking.message}
+                  aria-label={booking.message}
+                  className="min-h-24 resize-none rounded-none border-charcoal/20 bg-white shadow-none placeholder:text-muted-foreground/80 focus-visible:border-burgundy focus-visible:ring-0"
+                />
 
-              <div className="mt-auto flex justify-center pt-2">
-                <button
-                  type="submit"
-                  className="w-full border border-burgundy-deep px-10 py-2.5 text-xs font-semibold tracking-[0.2em] text-burgundy-deep uppercase transition-colors hover:bg-burgundy-deep hover:text-ivory sm:w-auto"
-                >
-                  {booking.submit}
-                </button>
-              </div>
-            </form>
+                {error ? (
+                  <p role="alert" className="text-sm text-burgundy">
+                    {error}
+                  </p>
+                ) : null}
+
+                <div className="mt-auto flex justify-center pt-2">
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full border border-burgundy-deep px-10 py-2.5 text-xs font-semibold tracking-[0.2em] text-burgundy-deep uppercase transition-colors hover:bg-burgundy-deep hover:text-ivory disabled:pointer-events-none disabled:opacity-60 sm:w-auto"
+                  >
+                    {isPending ? booking.sending : booking.submit}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       </DialogContent>

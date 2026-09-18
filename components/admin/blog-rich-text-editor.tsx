@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { isSafeLinkHref } from "@/lib/sanitize-url"
 import { cn } from "@/lib/utils"
 
 const EDITOR_CLASS = cn(
@@ -89,6 +90,10 @@ function EditorToolbar({ editor }: { editor: Editor }) {
     const next = url.trim()
     if (next === "") {
       editor.chain().focus().unsetLink().run()
+      return
+    }
+    if (!isSafeLinkHref(next)) {
+      window.alert("Liên kết không hợp lệ. Chỉ dùng http(s), mailto hoặc đường dẫn nội bộ.")
       return
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: next }).run()

@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import Autoplay from "embla-carousel-autoplay"
-import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import type { Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
+import type { CollectionItem } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 import {
   Carousel,
@@ -19,7 +20,10 @@ export function CollectionSection({
   copy,
 }: {
   locale: Locale
-  copy: Dictionary["home"]["collection"]
+  copy: {
+    title: string
+    items: CollectionItem[]
+  }
 }) {
   const [autoplay] = useState(() =>
     Autoplay({

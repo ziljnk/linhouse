@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Montserrat } from "next/font/google"
+import { Toaster } from "@/components/ui/toast"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import "../globals.css"
@@ -56,7 +57,9 @@ export default function AdminLayout({
       )}
     >
       <body className="min-h-full">
-        <TooltipProvider>{children}</TooltipProvider>
+        <Toaster>
+          <TooltipProvider>{children}</TooltipProvider>
+        </Toaster>
       </body>
     </html>
   )

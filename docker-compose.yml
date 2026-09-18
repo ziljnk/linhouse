@@ -1,0 +1,30 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: linhouse-mysql
+    restart: unless-stopped
+    # Local development only. Do not use this file in production or on a VPS.
+    # Bind loopback so 3306 is not internet-reachable. Weak default credentials
+    # are for first `docker compose up` without a `.env`; the app rejects them
+    # on any non-localhost DATABASE_URL.
+    ports:
+      - "127.0.0.1:3306:3306"
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_USER: ${MYSQL_USER:-linhouse}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-linhouse}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-linhouse}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-linhouse}
+    volumes:
+      - linhouse_mysqldata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  linhouse_mysqldata:
+    name: linhouse_mysqldata

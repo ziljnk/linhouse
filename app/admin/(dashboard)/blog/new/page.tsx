@@ -1,11 +1,16 @@
 import { AdminBackButton } from "@/components/admin/back-button"
 import { BlogForm } from "@/components/admin/blog-form"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import { listAdminBlogCategories } from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Tạo bài viết",
 }
 
-export default function NewBlogPage() {
+export default async function NewBlogPage() {
+  await requireUsableAdminSession()
+  const categories = await listAdminBlogCategories()
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6">
       <div>
@@ -17,7 +22,7 @@ export default function NewBlogPage() {
           Thêm tiêu đề, nội dung, ảnh bìa và SEO cho bài blog.
         </p>
       </div>
-      <BlogForm />
+      <BlogForm categories={categories} />
     </div>
   )
 }

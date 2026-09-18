@@ -1,8 +1,17 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { deleteProductsAction } from "@/app/admin/(dashboard)/products/actions"
+import { AdminFilterSelect } from "@/components/admin/admin-filter-select"
+import { AdminPagination } from "@/components/admin/admin-pagination"
+import {
+  useAdminListParams,
+  useAdminSearchQuery,
+} from "@/components/admin/use-admin-list-params"
+import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { ChevronDown, Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -25,13 +34,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,8 +43,10 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import {
+  formatProductPrice,
   formatScheduledAt,
-  formatVnd,
+  PRODUCT_KIND_LABELS,
+  PRODUCT_KINDS,
   PRODUCT_STATUS_LABELS,
   PRODUCT_STATUSES,
   type AdminProductListItem,
@@ -58,6 +62,14 @@ const STATUS_BADGE_VARIANT: Record<
   draft: "outline",
 }
 
+const KIND_FILTER_OPTIONS = [
+  { value: "all", label: "Tất cả loại" },
+  ...PRODUCT_KINDS.map((kind) => ({
+    value: kind,
+    label: PRODUCT_KIND_LABELS[kind],
+  })),
+]
+
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "Tất cả trạng thái" },
   ...PRODUCT_STATUSES.map((status) => ({
@@ -66,124 +78,61 @@ const STATUS_FILTER_OPTIONS = [
   })),
 ]
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-}
-
-function FilterSelect({
-  id,
-  value,
-  onValueChange,
-  items,
-  "aria-label": ariaLabel,
-}: {
-  id: string
-  value: string
-  onValueChange: (value: string) => void
-  items: { value: string; label: string }[]
-  "aria-label": string
-}) {
-  return (
-    <Select
-      id={id}
-      value={value}
-      onValueChange={(next) => onValueChange(next ?? "all")}
-      items={items}
-    >
-      <SelectTrigger className="w-full sm:w-44" aria-label={ariaLabel}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value} label={item.label}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-}
-
 export function ProductsTable({
-  products: initialProducts,
+  products,
+  page,
+  pageCount,
+  total,
+  pageSize,
+  query,
+  kind,
+  status,
+  collection,
+  category,
+  collectionOptions,
+  categoryOptions,
 }: {
   products: AdminProductListItem[]
+  page: number
+  pageCount: number
+  total: number
+  pageSize: number
+  query: string
+  kind: string
+  status: string
+  collection: string
+  category: string
+  collectionOptions: { value: string; label: string }[]
+  categoryOptions: { value: string; label: string }[]
 }) {
-  const [products, setProducts] = useState(initialProducts)
+  const router = useRouter()
+  const { setParam, setParams, clearParams } = useAdminListParams()
+  const search = useAdminSearchQuery(query)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [deleteIds, setDeleteIds] = useState<string[] | null>(null)
-  const [query, setQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [categoryFilter, setCategoryFilter] = useState("all")
-  const [collectionFilter, setCollectionFilter] = useState("all")
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
 
-  const categoryOptions = useMemo(() => {
-    const values = [...new Set(products.map((product) => product.category))].sort(
-      (a, b) => a.localeCompare(b, "vi")
-    )
-    return [
-      { value: "all", label: "Tất cả danh mục" },
-      ...values.map((value) => ({ value, label: value })),
-    ]
-  }, [products])
-
-  const collectionOptions = useMemo(() => {
-    const values = [
-      ...new Set(products.flatMap((product) => product.collections)),
-    ].sort((a, b) => a.localeCompare(b, "vi"))
-    return [
-      { value: "all", label: "Tất cả bộ sưu tập" },
-      ...values.map((value) => ({ value, label: value })),
-    ]
-  }, [products])
-
-  const filteredProducts = useMemo(() => {
-    const needle = normalize(query.trim())
-
-    return products.filter((product) => {
-      if (statusFilter !== "all" && product.status !== statusFilter) return false
-      if (categoryFilter !== "all" && product.category !== categoryFilter) {
-        return false
-      }
-      if (
-        collectionFilter !== "all" &&
-        !product.collections.includes(collectionFilter)
-      ) {
-        return false
-      }
-      if (!needle) return true
-
-      const haystack = [
-        product.name,
-        product.fullName,
-        product.code,
-        product.category,
-        ...product.collections,
-        PRODUCT_STATUS_LABELS[product.status],
-        formatVnd(product.price),
-      ].join(" ")
-
-      return normalize(haystack).includes(needle)
+  useEffect(() => {
+    const visible = new Set(products.map((product) => product.id))
+    setSelected((current) => {
+      const next = new Set([...current].filter((id) => visible.has(id)))
+      return next.size === current.size ? current : next
     })
-  }, [products, query, statusFilter, categoryFilter, collectionFilter])
+  }, [products])
 
   const selectedCount = selected.size
   const allSelected =
-    filteredProducts.length > 0 &&
-    filteredProducts.every((product) => selected.has(product.id))
+    products.length > 0 && products.every((product) => selected.has(product.id))
   const someSelected =
-    filteredProducts.some((product) => selected.has(product.id)) && !allSelected
+    products.some((product) => selected.has(product.id)) && !allSelected
   const deleteOpen = deleteIds !== null
   const hasActiveFilters =
-    query.trim() !== "" ||
-    statusFilter !== "all" ||
-    categoryFilter !== "all" ||
-    collectionFilter !== "all"
+    query !== "" ||
+    kind !== "all" ||
+    status !== "all" ||
+    category !== "all" ||
+    collection !== "all"
 
   const deleteNames = useMemo(() => {
     if (!deleteIds) return []
@@ -196,7 +145,7 @@ export function ProductsTable({
   const toggleAll = (checked: boolean) => {
     setSelected((current) => {
       const next = new Set(current)
-      for (const product of filteredProducts) {
+      for (const product of products) {
         if (checked) next.add(product.id)
         else next.delete(product.id)
       }
@@ -213,23 +162,29 @@ export function ProductsTable({
     })
   }
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!deleteIds) return
-    const ids = new Set(deleteIds)
-    setProducts((current) => current.filter((product) => !ids.has(product.id)))
+    setPending(true)
+    setDeleteError(null)
+    const result = await deleteProductsAction(deleteIds)
+    setPending(false)
+    if (!result.ok) {
+      setDeleteError(result.error)
+      toastError(result.error)
+      return
+    }
+    toastSuccess(
+      deleteIds.length === 1
+        ? "Đã xóa sản phẩm."
+        : `Đã xóa ${deleteIds.length} sản phẩm.`
+    )
     setSelected((current) => {
       const next = new Set(current)
       for (const id of deleteIds) next.delete(id)
       return next
     })
     setDeleteIds(null)
-  }
-
-  const resetFilters = () => {
-    setQuery("")
-    setStatusFilter("all")
-    setCategoryFilter("all")
-    setCollectionFilter("all")
+    router.refresh()
   }
 
   return (
@@ -239,33 +194,48 @@ export function ProductsTable({
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm tên, mã, danh mục, bộ sưu tập..."
+              value={search.value}
+              onChange={(event) => search.onChange(event.target.value)}
+              onFocus={search.onFocus}
+              onBlur={search.onBlur}
+              placeholder="Tìm tên, mã, loại, danh mục, bộ sưu tập..."
               aria-label="Tìm sản phẩm"
               className="pl-8"
             />
           </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <FilterSelect
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <AdminFilterSelect
+              id="filter-kind"
+              aria-label="Lọc loại sản phẩm"
+              value={kind}
+              onValueChange={(value) => setParams({ kind: value, category: "all" })}
+              items={KIND_FILTER_OPTIONS}
+            />
+            <AdminFilterSelect
               id="filter-category"
               aria-label="Lọc danh mục"
-              value={categoryFilter}
-              onValueChange={setCategoryFilter}
-              items={categoryOptions}
+              value={category}
+              onValueChange={(value) => setParam("category", value)}
+              items={[
+                { value: "all", label: "Tất cả danh mục" },
+                ...categoryOptions,
+              ]}
             />
-            <FilterSelect
+            <AdminFilterSelect
               id="filter-collection"
               aria-label="Lọc bộ sưu tập"
-              value={collectionFilter}
-              onValueChange={setCollectionFilter}
-              items={collectionOptions}
+              value={collection}
+              onValueChange={(value) => setParam("collection", value)}
+              items={[
+                { value: "all", label: "Tất cả bộ sưu tập" },
+                ...collectionOptions,
+              ]}
             />
-            <FilterSelect
+            <AdminFilterSelect
               id="filter-status"
               aria-label="Lọc trạng thái"
-              value={statusFilter}
-              onValueChange={setStatusFilter}
+              value={status}
+              onValueChange={(value) => setParam("status", value)}
               items={STATUS_FILTER_OPTIONS}
             />
           </div>
@@ -273,15 +243,20 @@ export function ProductsTable({
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <p className="text-sm text-muted-foreground">
-              {selectedCount > 0
-                ? `Đã chọn ${selectedCount} sản phẩm`
-                : filteredProducts.length === products.length
-                  ? `${products.length} sản phẩm`
-                  : `${filteredProducts.length} / ${products.length} sản phẩm`}
-            </p>
+            {selectedCount > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Đã chọn {selectedCount} sản phẩm
+              </p>
+            ) : null}
             {hasActiveFilters ? (
-              <Button type="button" variant="ghost" size="sm" onClick={resetFilters}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  clearParams(["q", "kind", "status", "category", "collection"])
+                }
+              >
                 Xóa bộ lọc
               </Button>
             ) : null}
@@ -317,11 +292,12 @@ export function ProductsTable({
                   indeterminate={someSelected}
                   onCheckedChange={toggleAll}
                   aria-label="Chọn tất cả sản phẩm"
-                  disabled={filteredProducts.length === 0}
+                  disabled={products.length === 0}
                 />
               </TableHead>
               <TableHead>Ảnh</TableHead>
               <TableHead>Tên sản phẩm</TableHead>
+              <TableHead>Loại</TableHead>
               <TableHead>Danh mục</TableHead>
               <TableHead>Trạng thái</TableHead>
               <TableHead>Giá</TableHead>
@@ -331,16 +307,16 @@ export function ProductsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredProducts.length === 0 ? (
+            {products.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                  {products.length === 0
-                    ? "Chưa có sản phẩm nào."
-                    : "Không tìm thấy sản phẩm phù hợp."}
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                  {hasActiveFilters
+                    ? "Không tìm thấy sản phẩm phù hợp."
+                    : "Chưa có sản phẩm nào."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredProducts.map((product) => {
+              products.map((product) => {
                 const isSelected = selected.has(product.id)
 
                 return (
@@ -357,13 +333,15 @@ export function ProductsTable({
                     </TableCell>
                     <TableCell>
                       <div className="relative h-14 w-11 overflow-hidden rounded-md bg-muted">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          sizes="44px"
-                          className="object-cover"
-                        />
+                        {product.image ? (
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            sizes="44px"
+                            className="object-cover"
+                          />
+                        ) : null}
                       </div>
                     </TableCell>
                     <TableCell className="whitespace-normal">
@@ -376,21 +354,22 @@ export function ProductsTable({
                         </span>
                       </div>
                     </TableCell>
+                    <TableCell>{PRODUCT_KIND_LABELS[product.kind]}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell className="whitespace-normal">
                       <div className="flex flex-col gap-1">
                         <Badge variant={STATUS_BADGE_VARIANT[product.status]}>
                           {PRODUCT_STATUS_LABELS[product.status]}
                         </Badge>
-                        {product.status === "scheduled" && product.scheduledAt ? (
+                        {product.status === "scheduled" && product.publishedAt ? (
                           <span className="text-xs text-muted-foreground tabular-nums">
-                            {formatScheduledAt(product.scheduledAt)}
+                            {formatScheduledAt(product.publishedAt)}
                           </span>
                         ) : null}
                       </div>
                     </TableCell>
                     <TableCell className="tabular-nums">
-                      {formatVnd(product.price)}
+                      {formatProductPrice(product.price, product.priceDisplay)}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -440,6 +419,14 @@ export function ProductsTable({
         </Table>
       </div>
 
+      <AdminPagination
+        page={page}
+        pageCount={pageCount}
+        total={total}
+        pageSize={pageSize}
+        noun="sản phẩm"
+      />
+
       <AlertDialog
         open={deleteOpen}
         onOpenChange={(open) => {
@@ -455,13 +442,23 @@ export function ProductsTable({
               {deleteIds?.length === 1
                 ? `Bạn sắp xóa “${deleteNames[0]}”.`
                 : `Bạn sắp xóa ${deleteIds?.length ?? 0} sản phẩm.`}{" "}
-              Thao tác này chỉ áp dụng trên trang quản trị, chưa lưu lên máy chủ.
+              Thao tác này không hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError ? (
+            <p className="text-sm text-destructive">{deleteError}</p>
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Xóa
+            <AlertDialogAction
+              variant="destructive"
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void confirmDelete()
+              }}
+            >
+              {pending ? "Đang xóa..." : "Xóa"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

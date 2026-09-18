@@ -15,6 +15,16 @@
     "aodai": "Ao dai",
     "services": "Our services",
     "search": "Search",
+    "searchPlaceholder": "Search products, collections, and journal",
+    "searchHint": "Type to search published products, collections, and journal posts",
+    "searchMinLength": "Type at least 2 characters to search",
+    "searchEmpty": "No results found",
+    "searchProducts": "Products",
+    "searchCollections": "Collections",
+    "searchBlog": "Journal",
+    "wishlist": "Wishlist",
+    "wishlistEmpty": "No saved gowns yet.",
+    "removeWishlist": "Remove",
     "account": "Account",
     "bag": "Bag",
     "menu": "Open menu",
@@ -118,7 +128,12 @@
         "links": [
           { "label": "White", "href": "/catalog/ao-dai-white" },
           { "label": "Red", "href": "/catalog/ao-dai-red" },
-          { "label": "Yellow", "href": "/catalog/ao-dai-yellow" }
+          { "label": "Yellow", "href": "/catalog/ao-dai-yellow" },
+          { "label": "Pink", "href": "/catalog/ao-dai-pink" },
+          { "label": "Ivory", "href": "/catalog/ao-dai-ivory" },
+          { "label": "Blue", "href": "/catalog/ao-dai-blue" },
+          { "label": "Gold", "href": "/catalog/ao-dai-gold" },
+          { "label": "Black", "href": "/catalog/ao-dai-black" }
         ]
       },
       {
@@ -126,7 +141,19 @@
         "links": [
           { "label": "Silk", "href": "/catalog/ao-dai-silk" },
           { "label": "Lace", "href": "/catalog/ao-dai-lace" },
-          { "label": "Mesh", "href": "/catalog/ao-dai-mesh" }
+          { "label": "Mesh", "href": "/catalog/ao-dai-mesh" },
+          { "label": "Brocade", "href": "/catalog/ao-dai-brocade" },
+          { "label": "Velvet", "href": "/catalog/ao-dai-velvet" },
+          { "label": "Organza", "href": "/catalog/ao-dai-organza" }
+        ]
+      },
+      {
+        "title": "Silhouette",
+        "links": [
+          { "label": "Traditional", "href": "/catalog/ao-dai-traditional" },
+          { "label": "Modern", "href": "/catalog/ao-dai-modern" },
+          { "label": "Wedding", "href": "/catalog/ao-dai-wedding" },
+          { "label": "Column", "href": "/catalog/ao-dai-column" }
         ]
       }
     ],
@@ -146,9 +173,12 @@
     "phone": "Phone number",
     "email": "Email",
     "selectStore": "Select store",
-    "date": "Appointment date",
+    "date": "Appointment date and time",
     "message": "Your message",
     "submit": "Send now",
+    "sending": "Sending...",
+    "success": "We received your appointment request and will contact you soon.",
+    "error": "Could not send your request. Please try again.",
     "close": "Close",
     "imageAlt": "Bridal fitting at LINHouse"
   },
@@ -332,7 +362,10 @@
     },
     "blog": {
       "title": "Wedding Tips",
+      "description": "Advice, silhouettes, and atelier notes for the LINHouse bride.",
       "readMore": "Read more",
+      "viewAll": "View all",
+      "empty": "No articles published yet.",
       "back": "Back to wedding tips",
       "posts": [
         {
@@ -489,6 +522,7 @@
     "clear": "Clear all",
     "results": "gowns",
     "empty": "No gowns match these filters.",
+    "loadMore": "Load more",
     "otherCollections": "Other collections",
     "prevImage": "Previous image",
     "nextImage": "Next image"
@@ -500,8 +534,9 @@
     "neckline": "Neckline",
     "fabric": "Fabric",
     "collection": "Collection",
-    "book": "Book a fitting",
-    "contact": "Enquire",
+    "book": "Enquire",
+    "addToWishlist": "Wishlist",
+    "removeFromWishlist": "Remove from wishlist",
     "details": "Details",
     "careTitle": "Care",
     "care": "Store the gown in a breathable garment bag, away from direct sunlight and moisture. Professional cleaning only — never machine wash, steam at home, or hang the skirt from the bodice.",
@@ -510,6 +545,7 @@
     "madeToMeasureTitle": "Made to measure",
     "madeToMeasure": "Share your measurements with a simple photo guide — no local tailor required. We confirm silhouette, coverage, and every alteration over WhatsApp, Zalo, or Messenger before a single cut is made.",
     "lead": "{name} is a {silhouette} design with a {neckline}, cut from {fabric}. Made at the LINHouse atelier for the bride who wants a gown built around her, not a sample size.",
+    "leadAoDai": "{name} is an áo dài design{details}. Made at the LINHouse atelier for the bride who wants a garment built around her, not a sample size.",
     "body": "Every seam is considered for movement, coverage, and presence — from the first fitting through the last stitch. The gown is finished by hand so it holds its line through the ceremony, the portraits, and the hours that follow.",
     "prevImage": "Previous image",
     "nextImage": "Next image",

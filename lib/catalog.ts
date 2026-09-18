@@ -1,49 +1,53 @@
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 
+export const PRODUCT_KINDS = ["gown", "ao-dai"] as const
+export type ProductKind = (typeof PRODUCT_KINDS)[number]
+
 export const CATALOG_FILTER_KEYS = ["silhouette", "neckline", "fabric"] as const
+export const CATALOG_INITIAL_PAGE_SIZE = 20
+export const CATALOG_LOAD_MORE_SIZE = 8
 
 export type CatalogFilterKey = (typeof CATALOG_FILTER_KEYS)[number]
 
-export type CatalogProduct = Dictionary["catalog"][number]
+export type CatalogProduct = Dictionary["catalog"][number] & {
+  slug?: string
+  images?: string[]
+  attributeSlugs?: string[]
+  attributesByGroup?: Record<string, string[]>
+  featured?: boolean
+  description?: string
+  seoTitle?: string
+  seoDescription?: string
+  priceVnd?: number | null
+  priceDisplay?: "amount" | "contact"
+  kind?: ProductKind
+}
 
-export type CollectionItem = Dictionary["home"]["collection"]["items"][number]
+export type CollectionItem = Dictionary["home"]["collection"]["items"][number] & {
+  galleryUrls?: string[]
+  year?: number | null
+  seoTitle?: string
+  seoDescription?: string
+}
 
 export type CatalogPageCopy = Dictionary["catalogPage"]
 
 export type CatalogFilterGroup = {
-  key: CatalogFilterKey
+  key: string
   title: string
+  kind?: ProductKind
   options: { value: string; label: string }[]
 }
 
-export function findCollection(dict: Dictionary, slug: string) {
-  return dict.home.collection.items.find((item) => item.href === `/catalog/${slug}`)
+export function findCollection(
+  source: Dictionary | CollectionItem[],
+  slug: string
+) {
+  const items = Array.isArray(source) ? source : source.home.collection.items
+  return items.find((item) => item.href === `/catalog/${slug}`)
 }
 
 const GALLERY_HEIGHTS = [400, 250, 600, 350, 500, 280, 450, 320, 540]
-
-const LOOKBOOK_POOL = [
-  "https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1510070009289-b5bc34383727?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1550005809-91ad75fb315f?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1445431928240-2771ba27f0ce?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1509927083803-4bed4726557a?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1591604466107-ec97de577aff?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1515932799417-2456d6ba80d9?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1545239705-1564e58b9e4a?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1529634597493-8c9638abdbee?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1478146896981-b80fe407b86d?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1519223484940-8ea749b2e8eb?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1522673141818-6b7c0e6c0e6e?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1583939412120-5c5c80e00dc1?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1520855144806-7bdd4c0c4c8e?auto=format&fit=crop&w=900&q=80",
-  "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=900&q=80",
-]
 
 export type CollectionGalleryItem = {
   id: string
@@ -54,35 +58,20 @@ export type CollectionGalleryItem = {
 }
 
 export function collectionGallery(
-  collection: CollectionItem,
-  catalog: Dictionary["catalog"],
-  minCount = 32
+  collection: CollectionItem
 ): CollectionGalleryItem[] {
   const slug = collection.href.replace("/catalog/", "")
   const seen = new Set<string>()
   const items: { src: string; alt: string }[] = []
 
   const add = (src: string, alt: string) => {
-    if (seen.has(src)) return
+    if (!src || seen.has(src)) return
     seen.add(src)
     items.push({ src, alt })
   }
 
-  add(collection.image, collection.imageAlt)
-
-  for (const product of catalog) {
-    if (product.collections.includes(slug)) {
-      add(product.image, product.name)
-    }
-  }
-
-  for (const product of catalog) {
-    add(product.image, collection.imageAlt)
-  }
-
-  const offset = slug.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)
-  for (let i = 0; i < LOOKBOOK_POOL.length && items.length < minCount; i++) {
-    add(LOOKBOOK_POOL[(offset + i) % LOOKBOOK_POOL.length], collection.imageAlt)
+  for (const url of collection.galleryUrls ?? []) {
+    add(url, collection.imageAlt)
   }
 
   return items.map((item, index) => ({
@@ -92,6 +81,36 @@ export function collectionGallery(
     alt: item.alt,
     height: GALLERY_HEIGHTS[index % GALLERY_HEIGHTS.length],
   }))
+}
+
+export function productAttributeValues(
+  product: CatalogProduct,
+  groupKey: string
+) {
+  const grouped = product.attributesByGroup?.[groupKey]
+  if (grouped?.length) return grouped
+
+  if (
+    groupKey === "silhouette" ||
+    groupKey === "neckline" ||
+    groupKey === "fabric"
+  ) {
+    const value = product[groupKey]
+    return value ? [value] : []
+  }
+
+  return []
+}
+
+export function productMatchesFilters(
+  product: CatalogProduct,
+  filters: Record<string, string[]>
+) {
+  return Object.entries(filters).every(([key, selected]) => {
+    if (selected.length === 0) return true
+    const values = productAttributeValues(product, key)
+    return selected.some((value) => values.includes(value))
+  })
 }
 
 export function catalogFilterGroups(dict: Dictionary): CatalogFilterGroup[] {
@@ -110,23 +129,80 @@ export function catalogFilterGroups(dict: Dictionary): CatalogFilterGroup[] {
   })
 }
 
-export function catalogProductsForSlug(
-  catalog: Dictionary["catalog"],
-  slug: string
+function productMatchesSlug(product: CatalogProduct, slug: string) {
+  if (product.collections.includes(slug)) return true
+  if (product.attributeSlugs?.includes(slug)) return true
+  return (
+    product.silhouette === slug ||
+    product.neckline === slug ||
+    product.fabric === slug
+  )
+}
+
+export function productKindOf(product: CatalogProduct): ProductKind {
+  return product.kind ?? "gown"
+}
+
+export function catalogKindForSlug(
+  slug: string,
+  groups: CatalogFilterGroup[]
+): ProductKind | null {
+  if (slug === "all-gowns") return "gown"
+  if (slug === "all-ao-dai") return "ao-dai"
+  const group = groups.find((item) =>
+    item.options.some((option) => option.value === slug)
+  )
+  return group?.kind ?? null
+}
+
+export function filterGroupsForCatalogSlug(
+  slug: string,
+  groups: CatalogFilterGroup[]
 ) {
-  if (slug === "all-gowns" || slug === "all-ao-dai") return catalog
+  const kind = catalogKindForSlug(slug, groups)
+  if (!kind) return groups
+  return groups.filter((group) => (group.kind ?? "gown") === kind)
+}
+
+export function productSpecRows(
+  product: CatalogProduct,
+  groups: CatalogFilterGroup[]
+) {
+  const kind = productKindOf(product)
+  return groups
+    .filter((group) => (group.kind ?? "gown") === kind)
+    .map((group) => {
+      const slugs = product.attributesByGroup?.[group.key] ?? fallbackGroupSlugs(product, group.key)
+      const value = slugs
+        .map((item) => catalogOptionLabel(groups, group.key, item))
+        .filter(Boolean)
+        .join(", ")
+      return { label: group.title, value }
+    })
+    .filter((row) => row.value)
+}
+
+function fallbackGroupSlugs(product: CatalogProduct, key: string) {
+  if (key === "silhouette" && product.silhouette) return [product.silhouette]
+  if (key === "neckline" && product.neckline) return [product.neckline]
+  if (key === "fabric" && product.fabric) return [product.fabric]
+  return []
+}
+
+export function catalogProductsForSlug(catalog: CatalogProduct[], slug: string) {
+  if (slug === "all-gowns") {
+    return catalog.filter((product) => productKindOf(product) === "gown")
+  }
+  if (slug === "all-ao-dai") {
+    return catalog.filter((product) => productKindOf(product) === "ao-dai")
+  }
 
   const inCollection = catalog.filter((product) =>
     product.collections.includes(slug)
   )
   if (inCollection.length) return inCollection
 
-  return catalog.filter(
-    (product) =>
-      product.silhouette === slug ||
-      product.neckline === slug ||
-      product.fabric === slug
-  )
+  return catalog.filter((product) => productMatchesSlug(product, slug))
 }
 
 export function parseProductName(name: string) {
@@ -138,6 +214,8 @@ export function parseProductName(name: string) {
 }
 
 export function productSlug(product: CatalogProduct) {
+  if (product.slug) return product.slug
+
   return parseProductName(product.name)
     .shortName.toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -148,25 +226,54 @@ export function productHref(locale: Locale, product: CatalogProduct) {
   return `/${locale}/product/${productSlug(product)}`
 }
 
-export function findProduct(catalog: Dictionary["catalog"], slug: string) {
+export function showsProductPrice(product: CatalogProduct) {
+  return (
+    product.priceDisplay === "amount" &&
+    product.priceVnd != null &&
+    product.priceVnd > 0
+  )
+}
+
+export function formatProductPriceVnd(amount: number) {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+export function productPriceLabel(product: CatalogProduct, contactLabel: string) {
+  if (!showsProductPrice(product) || product.priceVnd == null) return contactLabel
+  return formatProductPriceVnd(product.priceVnd)
+}
+
+export function findProduct(catalog: CatalogProduct[], slug: string) {
   return catalog.find((product) => productSlug(product) === slug)
 }
 
-export function productSlugs(catalog: Dictionary["catalog"]) {
+export function productSlugs(catalog: CatalogProduct[]) {
   return catalog.map((product) => productSlug(product))
 }
 
 export function catalogOptionLabel(
-  dict: Dictionary,
-  key: CatalogFilterKey,
+  source: Dictionary | CatalogFilterGroup[],
+  key: string,
   value: string
 ) {
-  const group = catalogFilterGroups(dict).find((item) => item.key === key)
+  const groups = Array.isArray(source) ? source : catalogFilterGroups(source)
+  const group = groups.find((item) => item.key === key)
   return group?.options.find((option) => option.value === value)?.label ?? value
 }
 
-export function collectionLabel(dict: Dictionary, slug: string) {
-  return findCollection(dict, slug)?.name ?? slug
+export function collectionLabel(
+  source: Dictionary | CollectionItem[],
+  slug: string
+) {
+  return findCollection(source, slug)?.name ?? slug
+}
+
+function productKey(product: CatalogProduct) {
+  return productSlug(product)
 }
 
 function uniqueProducts(products: CatalogProduct[], count: number) {
@@ -174,8 +281,9 @@ function uniqueProducts(products: CatalogProduct[], count: number) {
   const seen = new Set<string>()
 
   for (const product of products) {
-    if (seen.has(product.name)) continue
-    seen.add(product.name)
+    const key = productKey(product)
+    if (seen.has(key)) continue
+    seen.add(key)
     unique.push(product)
     if (unique.length === count) break
   }
@@ -183,17 +291,22 @@ function uniqueProducts(products: CatalogProduct[], count: number) {
   return unique
 }
 
-export function productGallery(
-  product: CatalogProduct,
-  catalog: Dictionary["catalog"]
-) {
-  const images = [product.image]
+export function productGallery(product: CatalogProduct, catalog: CatalogProduct[]) {
+  const images = [...(product.images?.length ? product.images : [product.image])]
   const seen = new Set(images)
   const pool = [
     ...catalog.filter(
-      (item) => item.silhouette === product.silhouette && item.name !== product.name
+      (item) =>
+        productKindOf(item) === productKindOf(product) &&
+        item.silhouette === product.silhouette &&
+        productKey(item) !== productKey(product)
     ),
-    ...catalog.filter((item) => item.name !== product.name),
+    ...catalog.filter(
+      (item) =>
+        productKindOf(item) === productKindOf(product) &&
+        productKey(item) !== productKey(product)
+    ),
+    ...catalog.filter((item) => productKey(item) !== productKey(product)),
   ]
 
   for (const item of pool) {
@@ -208,17 +321,21 @@ export function productGallery(
 }
 
 export function relatedProducts(
-  catalog: Dictionary["catalog"],
+  catalog: CatalogProduct[],
   product: CatalogProduct,
   count = 4
 ) {
-  const rest = catalog.filter((item) => item.name !== product.name)
+  const rest = catalog.filter((item) => productKey(item) !== productKey(product))
+  const sameKind = rest.filter(
+    (item) => productKindOf(item) === productKindOf(product)
+  )
   return uniqueProducts(
     [
-      ...rest.filter((item) => item.silhouette === product.silhouette),
-      ...rest.filter((item) =>
+      ...sameKind.filter((item) => item.silhouette === product.silhouette),
+      ...sameKind.filter((item) =>
         item.collections.some((slug) => product.collections.includes(slug))
       ),
+      ...sameKind,
       ...rest,
     ],
     count
@@ -226,18 +343,25 @@ export function relatedProducts(
 }
 
 export function recommendedProducts(
-  catalog: Dictionary["catalog"],
+  catalog: CatalogProduct[],
   product: CatalogProduct,
   related: CatalogProduct[],
   count = 4
 ) {
-  const skip = new Set([product.name, ...related.map((item) => item.name)])
-  const rest = catalog.filter((item) => !skip.has(item.name))
+  const skip = new Set([
+    productKey(product),
+    ...related.map((item) => productKey(item)),
+  ])
+  const rest = catalog.filter((item) => !skip.has(productKey(item)))
+  const sameKind = rest.filter(
+    (item) => productKindOf(item) === productKindOf(product)
+  )
 
   return uniqueProducts(
     [
-      ...rest.filter((item) => item.fabric === product.fabric),
-      ...rest.filter((item) => item.neckline === product.neckline),
+      ...sameKind.filter((item) => item.fabric === product.fabric),
+      ...sameKind.filter((item) => item.neckline === product.neckline),
+      ...sameKind,
       ...rest,
     ],
     count

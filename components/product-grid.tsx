@@ -1,8 +1,15 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import type { Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
-import { parseProductName, productHref } from "@/lib/catalog"
+import {
+  parseProductName,
+  productHref,
+  productPriceLabel,
+  productSlug,
+  showsProductPrice,
+  type CatalogProduct,
+} from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 
 export function ProductGrid({
@@ -12,7 +19,7 @@ export function ProductGrid({
   columns = 3,
   className,
 }: {
-  products: Dictionary["catalog"]
+  products: CatalogProduct[]
   locale: Locale
   contactLabel: string
   columns?: 3 | 4
@@ -32,7 +39,7 @@ export function ProductGrid({
 
         return (
           <ScrollReveal
-            key={product.name}
+            key={productSlug(product)}
             className="h-full"
             delay={(index % columns) * 0.08}
             duration={0.7}
@@ -61,12 +68,18 @@ export function ProductGrid({
                     {title || code}
                   </Link>
                 </h3>
-                <a
-                  href="#footer"
-                  className="mt-3 inline-block text-[11px] tracking-[0.14em] text-burgundy hover:text-burgundy-deep sm:mt-4 sm:text-xs sm:tracking-[0.18em]"
-                >
-                  {contactLabel}
-                </a>
+                {showsProductPrice(product) ? (
+                  <p className="mt-3 text-[11px] tracking-[0.14em] text-burgundy sm:mt-4 sm:text-xs sm:tracking-[0.18em]">
+                    {productPriceLabel(product, contactLabel)}
+                  </p>
+                ) : (
+                  <a
+                    href="#footer"
+                    className="mt-3 inline-block text-[11px] tracking-[0.14em] text-burgundy hover:text-burgundy-deep sm:mt-4 sm:text-xs sm:tracking-[0.18em]"
+                  >
+                    {contactLabel}
+                  </a>
+                )}
               </div>
             </article>
           </ScrollReveal>

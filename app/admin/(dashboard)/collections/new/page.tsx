@@ -1,11 +1,14 @@
 import { AdminBackButton } from "@/components/admin/back-button"
 import { CollectionForm } from "@/components/admin/collection-form"
+import { requireUsableAdminSession } from "@/lib/admin-session"
 
 export const metadata = {
   title: "Tạo bộ sưu tập",
 }
 
-export default function NewCollectionPage() {
+export default async function NewCollectionPage() {
+  await requireUsableAdminSession()
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6">
       <div>

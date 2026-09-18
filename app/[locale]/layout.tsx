@@ -4,10 +4,22 @@ import { notFound } from "next/navigation"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
 import { SocialFloat } from "@/components/social-float"
+import { AnalyticsTracker } from "@/components/analytics/analytics-tracker"
 import { cn } from "@/lib/utils"
 import { getDictionary, hasLocale } from "./dictionaries"
 import "../globals.css"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import {
+  getStorefront,
+  getStorefrontContact,
+  storefrontNav,
+} from "@/lib/storefront"
+
+const parsedRevalidate = Number(process.env.STOREFRONT_REVALIDATE_SECONDS ?? "60")
+export const revalidate =
+  Number.isFinite(parsedRevalidate) && parsedRevalidate > 0
+    ? parsedRevalidate
+    : 60
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
@@ -46,6 +58,16 @@ export default async function LocaleLayout({
   if (!hasLocale(locale)) notFound()
 
   const dict = await getDictionary(locale)
+  const [storefront, contact] = await Promise.all([
+    getStorefront(locale, dict),
+    getStorefrontContact(locale, dict),
+  ])
+  const nav = storefrontNav(
+    dict.nav,
+    storefront.collections,
+    storefront.featuredProducts,
+    storefront.filterGroups
+  )
 
   return (
     <html
@@ -62,17 +84,19 @@ export default async function LocaleLayout({
         <TooltipProvider>
           <SiteHeader
             locale={locale}
-            nav={dict.nav}
-            brand={dict.brand}
+            nav={nav}
+            brand={contact.brand}
             booking={dict.booking}
-            storeAddress={dict.footer.company.address}
+            storeAddress={contact.storeAddress}
           />
           {children}
-          <SiteFooter footer={dict.footer} />
+          <AnalyticsTracker />
+          <SiteFooter footer={contact.footer} />
           <SocialFloat
-            social={dict.social}
-            email={dict.footer.company.email}
-            phone={dict.footer.company.phone}
+            social={contact.social}
+            email={contact.footer.company.email}
+            phone={contact.footer.company.phone}
+            zalo={contact.social.zaloPhone}
           />
         </TooltipProvider>
       </body>

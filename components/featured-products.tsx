@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import type { Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { ProductGrid } from "@/components/product-grid"
+import type { CatalogProduct } from "@/lib/catalog"
 
 const PAGE_SIZE = 8
 
@@ -18,7 +19,7 @@ export function FeaturedProducts({
   showLess,
   contactLabel,
 }: {
-  products: Dictionary["catalog"]
+  products: CatalogProduct[]
   locale: Locale
   title: string
   loadMore: string

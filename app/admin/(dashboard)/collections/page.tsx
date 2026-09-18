@@ -2,19 +2,30 @@ import Link from "next/link"
 import { Plus } from "lucide-react"
 import { CollectionsTable } from "@/components/admin/collections-table"
 import { Button } from "@/components/ui/button"
-import { getDictionary } from "@/app/[locale]/dictionaries"
-import { toAdminCollectionListItems } from "@/lib/admin-collections"
+import {
+  parseAdminFilter,
+  parseAdminPage,
+  parseAdminQuery,
+} from "@/lib/admin-pagination"
+import { requireUsableAdminSession } from "@/lib/admin-session"
+import { listAdminCollections } from "@/lib/admin-storefront"
 
 export const metadata = {
   title: "Bộ sưu tập",
 }
 
-export default async function AdminCollectionsPage() {
-  const dict = await getDictionary("vi")
-  const collections = toAdminCollectionListItems(
-    dict.home.collection.items,
-    dict.catalog
-  )
+export default async function AdminCollectionsPage({
+  searchParams,
+}: PageProps<"/admin/collections">) {
+  await requireUsableAdminSession()
+  const params = await searchParams
+  const q = parseAdminQuery(params.q)
+  const status = parseAdminFilter(params.status)
+  const result = await listAdminCollections({
+    q,
+    page: parseAdminPage(params.page),
+    status,
+  })
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
@@ -33,7 +44,15 @@ export default async function AdminCollectionsPage() {
           Tạo bộ sưu tập
         </Button>
       </div>
-      <CollectionsTable collections={collections} />
+      <CollectionsTable
+        collections={result.items}
+        page={result.page}
+        pageCount={result.pageCount}
+        total={result.total}
+        pageSize={result.pageSize}
+        query={q}
+        status={status || "all"}
+      />
     </div>
   )
 }
