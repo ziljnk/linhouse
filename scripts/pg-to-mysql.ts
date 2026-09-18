@@ -1,7 +1,7 @@
 /**
  * One-shot copy: Postgres → MySQL.
  * Requires a running Postgres (`POSTGRES_URL`) and migrated MySQL (`DATABASE_URL`).
- * Usage: bun run db:import-pg [--force]
+ * Usage: npm run db:import-pg -- --force
  */
 import { sql } from "drizzle-orm"
 import { Client } from "pg"
