@@ -291,33 +291,21 @@ function uniqueProducts(products: CatalogProduct[], count: number) {
   return unique
 }
 
-export function productGallery(product: CatalogProduct, catalog: CatalogProduct[]) {
-  const images = [...(product.images?.length ? product.images : [product.image])]
-  const seen = new Set(images)
-  const pool = [
-    ...catalog.filter(
-      (item) =>
-        productKindOf(item) === productKindOf(product) &&
-        item.silhouette === product.silhouette &&
-        productKey(item) !== productKey(product)
-    ),
-    ...catalog.filter(
-      (item) =>
-        productKindOf(item) === productKindOf(product) &&
-        productKey(item) !== productKey(product)
-    ),
-    ...catalog.filter((item) => productKey(item) !== productKey(product)),
-  ]
+export function productGallery(product: CatalogProduct) {
+  const source = product.images?.length
+    ? product.images
+    : product.image
+      ? [product.image]
+      : []
 
-  for (const item of pool) {
-    if (seen.has(item.image)) continue
-    seen.add(item.image)
-    images.push(item.image)
-    if (images.length === 4) break
+  const unique: string[] = []
+  const seen = new Set<string>()
+  for (const url of source) {
+    if (!url || seen.has(url)) continue
+    seen.add(url)
+    unique.push(url)
   }
-
-  while (images.length < 4) images.push(product.image)
-  return images
+  return unique
 }
 
 export function relatedProducts(

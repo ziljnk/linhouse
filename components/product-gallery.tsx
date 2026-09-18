@@ -55,7 +55,8 @@ export function ProductGallery({
   nextLabel: string
   thumbnailLabel: string
 }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+  const canNavigate = images.length > 1
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: canNavigate })
   const [selected, setSelected] = useState(0)
 
   const onSelect = useCallback(() => {
@@ -81,6 +82,7 @@ export function ProductGallery({
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLDivElement>) => {
+      if (!canNavigate) return
       if (event.key === "ArrowLeft") {
         event.preventDefault()
         emblaApi?.scrollPrev()
@@ -89,7 +91,7 @@ export function ProductGallery({
         emblaApi?.scrollNext()
       }
     },
-    [emblaApi]
+    [canNavigate, emblaApi]
   )
 
   const navClass =
@@ -104,13 +106,15 @@ export function ProductGallery({
       tabIndex={0}
       onKeyDown={onKeyDown}
     >
-      <Thumbs
-        images={images}
-        selected={selected}
-        thumbnailLabel={thumbnailLabel}
-        onSelect={scrollTo}
-        className="hidden w-20 shrink-0 flex-col gap-2 lg:flex"
-      />
+      {canNavigate ? (
+        <Thumbs
+          images={images}
+          selected={selected}
+          thumbnailLabel={thumbnailLabel}
+          onSelect={scrollTo}
+          className="hidden w-20 shrink-0 flex-col gap-2 lg:flex"
+        />
+      ) : null}
 
       <div className="relative min-w-0 flex-1 overflow-hidden bg-charcoal/5">
         <div ref={emblaRef} className="overflow-hidden">
@@ -135,31 +139,37 @@ export function ProductGallery({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => emblaApi?.scrollPrev()}
-          aria-label={prevLabel}
-          className={cn(navClass, "left-3")}
-        >
-          <ChevronLeft className="size-5" strokeWidth={1.5} />
-        </button>
-        <button
-          type="button"
-          onClick={() => emblaApi?.scrollNext()}
-          aria-label={nextLabel}
-          className={cn(navClass, "right-3")}
-        >
-          <ChevronRight className="size-5" strokeWidth={1.5} />
-        </button>
+        {canNavigate ? (
+          <>
+            <button
+              type="button"
+              onClick={() => emblaApi?.scrollPrev()}
+              aria-label={prevLabel}
+              className={cn(navClass, "left-3")}
+            >
+              <ChevronLeft className="size-5" strokeWidth={1.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => emblaApi?.scrollNext()}
+              aria-label={nextLabel}
+              className={cn(navClass, "right-3")}
+            >
+              <ChevronRight className="size-5" strokeWidth={1.5} />
+            </button>
+          </>
+        ) : null}
       </div>
 
-      <Thumbs
-        images={images}
-        selected={selected}
-        thumbnailLabel={thumbnailLabel}
-        onSelect={scrollTo}
-        className="flex gap-2 overflow-x-auto lg:hidden [&_button]:w-16"
-      />
+      {canNavigate ? (
+        <Thumbs
+          images={images}
+          selected={selected}
+          thumbnailLabel={thumbnailLabel}
+          onSelect={scrollTo}
+          className="flex gap-2 overflow-x-auto lg:hidden [&_button]:w-16"
+        />
+      ) : null}
     </div>
   )
 }

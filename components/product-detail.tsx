@@ -74,7 +74,7 @@ export function ProductDetail({
 }) {
   const copy = dict.productPage
   const { code, title, shortName } = parseProductName(product.name)
-  const images = productGallery(product, catalog)
+  const images = productGallery(product)
   const related = relatedProducts(catalog, product)
   const recommended = recommendedProducts(catalog, product, related)
   const specs = productSpecRows(product, groups)
