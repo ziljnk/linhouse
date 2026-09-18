@@ -20,15 +20,19 @@ app
       handle(req, res, parse(req.url, true))
     })
 
+    // Same reverse-port binding as cPanel's generated app.js (`server.listen()`).
     if (passenger) {
       server.listen("passenger")
-      return
+    } else if (process.env.PORT) {
+      server.listen(Number(process.env.PORT))
+    } else {
+      server.listen()
     }
 
-    const port = Number(process.env.PORT) || 3000
-    server.listen(port, "127.0.0.1")
+    console.log("LINHouse Next.js is listening")
   })
   .catch((error) => {
+    console.error("LINHouse failed to start")
     console.error(error)
     process.exit(1)
   })
