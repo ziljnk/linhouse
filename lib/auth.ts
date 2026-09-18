@@ -17,10 +17,6 @@ if (authSecret.length < 32) {
   throw new Error("BETTER_AUTH_SECRET must be at least 32 characters")
 }
 
-if (isProd && (!baseURL || !baseURL.startsWith("https://"))) {
-  throw new Error("BETTER_AUTH_URL must be https:// in production")
-}
-
 export const auth = betterAuth({
   appName: "LINHouse Admin",
   database: drizzleAdapter(db, {

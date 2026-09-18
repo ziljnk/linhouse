@@ -15,11 +15,7 @@ import {
   storefrontNav,
 } from "@/lib/storefront"
 
-const parsedRevalidate = Number(process.env.STOREFRONT_REVALIDATE_SECONDS ?? "60")
-export const revalidate =
-  Number.isFinite(parsedRevalidate) && parsedRevalidate > 0
-    ? parsedRevalidate
-    : 60
+export const revalidate = 60
 
 const montserrat = Montserrat({
   subsets: ["latin", "vietnamese"],
