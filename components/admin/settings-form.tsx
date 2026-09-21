@@ -199,36 +199,6 @@ export function SettingsForm({
       </SettingsSection>
 
       <SettingsSection
-        title="Cài đặt thông báo"
-        description="Email nhận thông báo khi khách gửi form đặt lịch trên website."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="settings-notification-email"
-            label="Email nhận thông báo đặt lịch"
-            hint="Để trống sẽ dùng email liên hệ trong mục Liên hệ."
-          >
-            <Input
-              id="settings-notification-email"
-              name="notificationEmail"
-              type="email"
-              value={values.contact.notificationEmail}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  contact: {
-                    ...current.contact,
-                    notificationEmail: event.target.value,
-                  },
-                }))
-              }
-              placeholder="admin@linhouse.com.vn"
-            />
-          </Field>
-        </div>
-      </SettingsSection>
-
-      <SettingsSection
         title="Địa chỉ"
         description="Địa chỉ showroom và vị trí Google Map ở cuối trang."
       >

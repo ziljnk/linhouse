@@ -29,6 +29,7 @@ export function BookAppointmentDialog({
   brand,
   booking,
   storeAddress,
+  product,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -36,6 +37,7 @@ export function BookAppointmentDialog({
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
+  product?: { slug: string; name: string }
 }) {
   const formRef = useRef<HTMLFormElement>(null)
   const [error, setError] = useState("")
@@ -143,6 +145,20 @@ export function BookAppointmentDialog({
               >
                 <input type="hidden" name="locale" value={locale} />
                 <input type="hidden" name="storeAddress" value={storeAddress} />
+                {product ? (
+                  <>
+                    <input type="hidden" name="productSlug" value={product.slug} />
+                    <input type="hidden" name="productName" value={product.name} />
+                    <p className="border border-charcoal/10 bg-ivory px-3 py-2.5">
+                      <span className="block text-[11px] tracking-[0.16em] text-gold uppercase">
+                        {booking.productInterest}
+                      </span>
+                      <span className="mt-1 block text-sm font-light text-charcoal">
+                        {product.name}
+                      </span>
+                    </p>
+                  </>
+                ) : null}
 
                 <Input
                   required

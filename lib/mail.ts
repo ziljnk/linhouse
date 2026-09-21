@@ -65,7 +65,7 @@ function getTransporter() {
 }
 
 export async function sendAppointmentNotification(input: {
-  to: string
+  to: string | string[]
   appointment: AppointmentMailInput
 }): Promise<boolean> {
   const config = smtpConfig()
@@ -76,11 +76,19 @@ export async function sendAppointmentNotification(input: {
     return false
   }
 
+  const recipients = (Array.isArray(input.to) ? input.to : [input.to])
+    .map((email) => email.trim())
+    .filter(Boolean)
+
+  if (recipients.length === 0) {
+    return false
+  }
+
   try {
     const { subject, text, html } = buildAppointmentEmail(input.appointment)
     await transporter.sendMail({
       from: config.from,
-      to: input.to,
+      to: recipients,
       replyTo: input.appointment.email.replace(/[\u0000-\u001F\u007F]/g, ""),
       subject,
       text,

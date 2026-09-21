@@ -110,7 +110,7 @@ export function AdminLoginForm() {
           type="email"
           inputMode="email"
           autoComplete="email"
-          placeholder="admin@linhouse.com.vn"
+          placeholder="admin@example.com"
           value={email}
           onChange={(event) => {
             setEmail(event.target.value)
@@ -131,7 +131,7 @@ export function AdminLoginForm() {
             name="password"
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
-            placeholder="Nhập mật khẩu"
+            placeholder="********"
             value={password}
             onChange={(event) => {
               setPassword(event.target.value)

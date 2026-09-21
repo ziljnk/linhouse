@@ -175,6 +175,7 @@
     "selectStore": "Select store",
     "date": "Appointment date and time",
     "message": "Your message",
+    "productInterest": "Product of interest",
     "submit": "Send now",
     "sending": "Sending...",
     "success": "We received your appointment request and will contact you soon.",

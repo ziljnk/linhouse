@@ -7,6 +7,12 @@ export type AppointmentMailInput = {
   preferredTime: string
   message: string
   locale: string
+  product?: {
+    slug: string
+    name: string
+    code: string
+    url: string
+  } | null
 }
 
 const BRAND = {
@@ -70,6 +76,10 @@ function appointmentSubject(appointment: AppointmentMailInput) {
   const when = appointment.preferredTime
     ? `${dateShort} ${appointment.preferredTime}`
     : dateShort
+  const productName = headerSafe(appointment.product?.name ?? "")
+  if (productName) {
+    return `${BRAND.name} · Tư vấn: ${productName} — ${headerSafe(appointment.name)} — ${when}`
+  }
   return `${BRAND.name} · Lịch hẹn mới: ${headerSafe(appointment.name)} — ${when}`
 }
 
@@ -95,7 +105,13 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
   const store = escapeHtml(appointment.store)
   const phone = escapeHtml(appointment.phone)
   const email = escapeHtml(appointment.email)
-  const preheader = `${appointment.name} đặt lịch ${when} tại ${appointment.store}.`
+  const product = appointment.product
+  const productName = product ? escapeHtml(product.name) : ""
+  const productCode = product?.code ? escapeHtml(product.code) : ""
+  const productUrl = product?.url ? escapeHtml(product.url) : ""
+  const preheader = product
+    ? `${appointment.name} hỏi tư vấn ${product.name} — hẹn ${when}.`
+    : `${appointment.name} đặt lịch ${when} tại ${appointment.store}.`
 
   const text = [
     `${BRAND.name.toUpperCase()} — LỊCH HẸN MỚI`,
@@ -104,6 +120,15 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
     "",
     `Thời gian hẹn: ${when}`,
     `Cửa hàng:      ${appointment.store}`,
+    ...(product
+      ? [
+          "",
+          "Sản phẩm quan tâm:",
+          `  Tên:  ${product.name}`,
+          ...(product.code ? [`  Mã:   ${product.code}`] : []),
+          `  Link: ${product.url}`,
+        ]
+      : []),
     "",
     `Họ và tên:     ${appointment.name}`,
     `Điện thoại:    ${appointment.phone}`,
@@ -148,7 +173,7 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
               <p style="margin:0;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:${BRAND.gold};">Lịch hẹn mới</p>
               <h1 style="margin:10px 0 12px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.3;font-weight:normal;color:${BRAND.burgundy};">Có khách đặt lịch từ website</h1>
               <p style="margin:0 0 28px;font-size:15px;line-height:1.65;color:${BRAND.charcoal};">
-                <strong>${name}</strong> vừa gửi yêu cầu đặt lịch hẹn. Vui lòng xác nhận khung giờ và liên hệ lại khách hàng.
+                <strong>${name}</strong> vừa gửi yêu cầu ${product ? "tư vấn sản phẩm" : "đặt lịch hẹn"}. Vui lòng xác nhận khung giờ và liên hệ lại khách hàng.
               </p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${BRAND.ivory};border:1px solid ${BRAND.line};">
                 <tr>
@@ -159,6 +184,22 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
                   </td>
                 </tr>
               </table>
+              ${
+                product
+                  ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;background-color:${BRAND.ivory};border:1px solid ${BRAND.line};">
+                <tr>
+                  <td style="padding:22px 24px;">
+                    <p style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${BRAND.gold};">Sản phẩm quan tâm</p>
+                    <p style="margin:8px 0 0;font-family:Georgia,'Times New Roman',serif;font-size:18px;line-height:1.4;color:${BRAND.burgundy};">${productName}</p>
+                    ${productCode ? `<p style="margin:6px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${BRAND.muted};">${productCode}</p>` : ""}
+                    <p style="margin:12px 0 0;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;">
+                      <a href="${productUrl}" style="color:${BRAND.burgundyMid};text-decoration:none;">Xem sản phẩm trên website →</a>
+                    </p>
+                  </td>
+                </tr>
+              </table>`
+                  : ""
+              }
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
                 ${detailRow("Họ và tên", name)}
                 ${detailRow(

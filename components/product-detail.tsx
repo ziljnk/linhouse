@@ -194,6 +194,10 @@ export function ProductDetail({
               brand={dict.brand}
               booking={dict.booking}
               storeAddress={dict.footer.company.address}
+              product={{
+                slug: productSlug(product),
+                name: product.name,
+              }}
             />
             <ProductFavoriteCta
               slug={productSlug(product)}

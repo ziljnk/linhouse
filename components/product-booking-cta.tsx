@@ -10,12 +10,14 @@ export function ProductBookingCta({
   brand,
   booking,
   storeAddress,
+  product,
 }: {
   label: string
   locale: Locale
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
+  product: { slug: string; name: string }
 }) {
   const [open, setOpen] = useState(false)
 
@@ -35,6 +37,7 @@ export function ProductBookingCta({
         brand={brand}
         booking={booking}
         storeAddress={storeAddress}
+        product={product}
       />
     </>
   )

@@ -6,11 +6,11 @@ import { headers } from "next/headers"
 import { hasLocale, type Locale } from "@/app/[locale]/dictionaries"
 import { actionFail, actionOk, type ActionResult } from "@/lib/admin-actions"
 import { db } from "@/lib/db"
-import { appointment } from "@/lib/db/schema"
+import { appointment, product } from "@/lib/db/schema"
 import { sendAppointmentNotification } from "@/lib/mail"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import {
-  bookingNotificationEmail,
+  bookingNotificationEmails,
   isValidEmail,
   type SiteSettings,
 } from "@/lib/site-settings"
@@ -20,6 +20,7 @@ const RATE_WINDOW_MS = 10 * 60 * 1000
 const RATE_MAX = 5
 const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/g
+const PRODUCT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
 const recentSubmits = new Map<string, number[]>()
 
@@ -48,6 +49,13 @@ const ERRORS = {
 
 type BookingError = keyof typeof ERRORS.vi
 
+export type AppointmentProduct = {
+  slug: string
+  name: string
+  code: string
+  url: string
+}
+
 export type AppointmentInput = {
   name: string
   phone: string
@@ -57,6 +65,12 @@ export type AppointmentInput = {
   preferredTime: string
   message: string
   locale: Locale
+  product: AppointmentProduct | null
+}
+
+type ParsedAppointment = Omit<AppointmentInput, "product"> & {
+  productSlug: string
+  productName: string
 }
 
 function errorFor(locale: Locale, key: BookingError) {
@@ -170,9 +184,66 @@ function resolveStore(
   return canonical || allowed[0] || null
 }
 
+function parseProductSlug(formData: FormData) {
+  const slug = readField(formData, "productSlug").toLowerCase().slice(0, 120)
+  if (!PRODUCT_SLUG_PATTERN.test(slug)) return ""
+  return slug
+}
+
+function productPageUrl(locale: Locale, slug: string, requestHeaders: Headers) {
+  const host =
+    requestHeaders.get("x-forwarded-host")?.split(",")[0]?.trim() ||
+    requestHeaders.get("host") ||
+    "linhouse.com.vn"
+  const proto =
+    requestHeaders.get("x-forwarded-proto")?.split(",")[0]?.trim() ||
+    (host.includes("localhost") ? "http" : "https")
+  return `${proto}://${host}/${locale}/product/${slug}`
+}
+
+async function resolveAppointmentProduct(
+  slug: string,
+  fallbackName: string,
+  locale: Locale,
+  requestHeaders: Headers
+): Promise<AppointmentProduct | null> {
+  if (!slug) return null
+
+  const [row] = await db
+    .select({
+      slug: product.slug,
+      name: product.name,
+      code: product.code,
+    })
+    .from(product)
+    .where(eq(product.slug, slug))
+    .limit(1)
+
+  const name = (fallbackName || row?.name || "").slice(0, 255)
+  if (!name) return null
+
+  const canonicalSlug = row?.slug || slug
+  return {
+    slug: canonicalSlug,
+    name,
+    code: (row?.code || "").slice(0, 255),
+    url: productPageUrl(locale, canonicalSlug, requestHeaders),
+  }
+}
+
+function appointmentRecordMessage(input: AppointmentInput) {
+  if (!input.product) return input.message
+
+  const label = input.product.code
+    ? `${input.product.name} (${input.product.code})`
+    : input.product.name
+  const productBlock = `[Sản phẩm] ${label}\n${input.product.url}`
+  return [input.message, productBlock].filter(Boolean).join("\n\n")
+}
+
 function parseAppointmentForm(
   formData: FormData
-): { ok: true; data: AppointmentInput } | { ok: false; locale: Locale; error: BookingError } {
+): { ok: true; data: ParsedAppointment } | { ok: false; locale: Locale; error: BookingError } {
   const localeRaw = readField(formData, "locale")
   const locale: Locale = hasLocale(localeRaw) ? localeRaw : "vi"
   const storeValue = readField(formData, "store")
@@ -183,7 +254,7 @@ function parseAppointmentForm(
   const dateTime = readField(formData, "datetime") || readField(formData, "date")
   const { date, time } = splitDateTime(dateTime)
 
-  const data: AppointmentInput = {
+  const data: ParsedAppointment = {
     name: readField(formData, "name").slice(0, 120),
     phone: readField(formData, "phone").slice(0, 40),
     email: readField(formData, "email").slice(0, 254),
@@ -192,6 +263,8 @@ function parseAppointmentForm(
     preferredTime: time,
     message: readField(formData, "message").slice(0, 2000),
     locale,
+    productSlug: parseProductSlug(formData),
+    productName: readField(formData, "productName").slice(0, 255),
   }
 
   if (
@@ -248,7 +321,27 @@ export async function submitAppointment(
       )
     }
 
-    return createAppointment({ ...parsed.data, store }, settings)
+    const resolvedProduct = await resolveAppointmentProduct(
+      parsed.data.productSlug,
+      parsed.data.productName,
+      parsed.data.locale,
+      requestHeaders
+    )
+
+    return createAppointment(
+      {
+        name: parsed.data.name,
+        phone: parsed.data.phone,
+        email: parsed.data.email,
+        store,
+        preferredDate: parsed.data.preferredDate,
+        preferredTime: parsed.data.preferredTime,
+        message: parsed.data.message,
+        locale: parsed.data.locale,
+        product: resolvedProduct,
+      },
+      settings
+    )
   } catch (error) {
     console.error("Failed to create appointment", error)
     return errorFor(parsed.data.locale, "failed")
@@ -269,7 +362,7 @@ async function createAppointment(
         store: input.store,
         preferredDate: input.preferredDate,
         preferredTime: input.preferredTime,
-        message: input.message,
+        message: appointmentRecordMessage(input),
         locale: input.locale,
       })
       .$returningId()
@@ -277,8 +370,8 @@ async function createAppointment(
 
     if (!row) return errorFor(input.locale, "failed")
 
-    const to = bookingNotificationEmail(settings)
-    const sent = to
+    const to = bookingNotificationEmails(settings)
+    const sent = to.length > 0
       ? await sendAppointmentNotification({
           to,
           appointment: input,

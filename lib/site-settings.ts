@@ -9,8 +9,10 @@ export type SiteSettings = {
   contact: {
     hotline: string
     email: string
-    notificationEmail: string
     zalo: string
+  }
+  notifications: {
+    emails: string[]
   }
   address: {
     vi: string
@@ -35,8 +37,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   contact: {
     hotline: "0902 678 114",
     email: "info@linhouse.com.vn",
-    notificationEmail: "",
     zalo: "0902678114",
+  },
+  notifications: {
+    emails: [],
   },
   address: {
     vi: "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
@@ -71,6 +75,16 @@ function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback
 }
 
+function asEmailList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string")
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value.split(/[,;]+/).map((item) => item.trim()).filter(Boolean)
+  }
+  return []
+}
+
 function asLocalizedText(
   value: unknown,
   fallback: LocalizedText
@@ -85,20 +99,24 @@ function asLocalizedText(
 export function normalizeSiteSettings(value: unknown): SiteSettings {
   const root = asRecord(value)
   const contact = asRecord(root.contact)
+  const notifications = asRecord(root.notifications)
   const address = asRecord(root.address)
   const business = asRecord(root.business)
   const social = asRecord(root.social)
   const defaults = DEFAULT_SITE_SETTINGS
+  const emails = asEmailList(notifications.emails)
+  const legacyEmails = asEmailList(
+    contact.notificationEmails ?? contact.notificationEmail
+  )
 
   return {
     contact: {
       hotline: asString(contact.hotline, defaults.contact.hotline),
       email: asString(contact.email, defaults.contact.email),
-      notificationEmail: asString(
-        contact.notificationEmail,
-        defaults.contact.notificationEmail
-      ),
       zalo: asString(contact.zalo, defaults.contact.zalo),
+    },
+    notifications: {
+      emails: emails.length > 0 ? emails : legacyEmails,
     },
     address: {
       vi: asString(address.vi, defaults.address.vi),
@@ -163,8 +181,10 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
     contact: {
       hotline,
       email: trim(input.contact.email),
-      notificationEmail: trim(input.contact.notificationEmail),
       zalo,
+    },
+    notifications: {
+      emails: sanitizeNotificationEmails(input.notifications?.emails ?? []),
     },
     address: {
       vi: addressVi,
@@ -208,13 +228,6 @@ export function validateSiteSettings(input: SiteSettings): SiteSettingsResult {
     return { ok: false, error: "Email không hợp lệ." }
   }
 
-  if (
-    data.contact.notificationEmail &&
-    !EMAIL_PATTERN.test(data.contact.notificationEmail)
-  ) {
-    return { ok: false, error: "Email nhận thông báo đặt lịch không hợp lệ." }
-  }
-
   if (!data.address.vi) {
     return { ok: false, error: "Vui lòng nhập địa chỉ tiếng Việt." }
   }
@@ -241,8 +254,54 @@ export function isValidEmail(value: string) {
   return EMAIL_PATTERN.test(value)
 }
 
-export function bookingNotificationEmail(settings: SiteSettings) {
-  return settings.contact.notificationEmail || settings.contact.email
+export const MAX_NOTIFICATION_EMAILS = 20
+
+export type NotificationEmailsResult =
+  | { ok: true; data: string[] }
+  | { ok: false; error: string }
+
+export function sanitizeNotificationEmails(emails: string[]): string[] {
+  const seen = new Set<string>()
+  const result: string[] = []
+
+  for (const raw of emails) {
+    const email = trim(raw)
+    if (!email) continue
+    const key = email.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    result.push(email)
+  }
+
+  return result
+}
+
+export function validateNotificationEmails(
+  emails: string[]
+): NotificationEmailsResult {
+  const data = sanitizeNotificationEmails(emails)
+
+  if (data.length > MAX_NOTIFICATION_EMAILS) {
+    return {
+      ok: false,
+      error: `Tối đa ${MAX_NOTIFICATION_EMAILS} email nhận thông báo.`,
+    }
+  }
+
+  for (const email of data) {
+    if (!EMAIL_PATTERN.test(email)) {
+      return { ok: false, error: `Email không hợp lệ: ${email}` }
+    }
+  }
+
+  return { ok: true, data }
+}
+
+export function bookingNotificationEmails(settings: SiteSettings) {
+  if (settings.notifications.emails.length > 0) {
+    return settings.notifications.emails
+  }
+  return settings.contact.email ? [settings.contact.email] : []
 }
 
 export function localizedValue(

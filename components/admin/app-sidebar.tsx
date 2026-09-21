@@ -4,6 +4,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
+  Bell,
   Images,
   LayoutDashboard,
   Library,
@@ -40,6 +41,7 @@ const navItems = [
 
 const systemItems = [
   { title: "Cài đặt chung", href: "/admin/settings", icon: Settings },
+  { title: "Cài đặt thông báo", href: "/admin/notifications", icon: Bell },
 ]
 
 function isActivePath(pathname: string, href: string) {

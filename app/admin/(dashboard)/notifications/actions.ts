@@ -2,19 +2,19 @@
 
 import { actionOk, revalidateAdmin } from "@/lib/admin-actions"
 import { requireUsableAdminSession } from "@/lib/admin-session"
-import { validateSiteSettings, type SiteSettings } from "@/lib/site-settings"
+import { validateNotificationEmails } from "@/lib/site-settings"
 import { getSiteSettings, writeSiteSettings } from "@/lib/site-settings-store"
 
-export async function saveSiteSettingsAction(input: SiteSettings) {
+export async function saveNotificationEmailsAction(emails: string[]) {
   await requireUsableAdminSession()
 
-  const result = validateSiteSettings(input)
+  const result = validateNotificationEmails(emails)
   if (!result.ok) return result
 
   const current = await getSiteSettings()
   await writeSiteSettings({
-    ...result.data,
-    notifications: current.notifications,
+    ...current,
+    notifications: { emails: result.data },
   })
   await revalidateAdmin()
 
