@@ -213,7 +213,7 @@ export function BlogForm({
     setPending(true)
     try {
       const uploaded = coverImages.length
-        ? await persistUploadedImages(coverImages)
+        ? await persistUploadedImages(coverImages, "blog")
         : [""]
       const coverUrl = uploaded[0] ?? ""
       const result = await saveBlogPostAction({

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { deleteTestimonialAction } from "@/app/admin/(dashboard)/testimonials/actions"
@@ -12,6 +11,7 @@ import {
   useAdminSearchQuery,
 } from "@/components/admin/use-admin-list-params"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -189,7 +189,7 @@ export function TestimonialsTable({
                   <TableCell>
                     <div className="relative h-14 w-11 overflow-hidden rounded-md bg-muted">
                       {item.image ? (
-                        <Image
+                        <OptimizedImage
                           src={item.image}
                           alt={item.imageAltVi}
                           fill

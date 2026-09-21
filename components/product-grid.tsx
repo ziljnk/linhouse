@@ -1,7 +1,7 @@
-import Image from "next/image"
 import Link from "next/link"
 import type { Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import {
   parseProductName,
   productHref,
@@ -46,11 +46,16 @@ export function ProductGrid({
           >
             <article className="flex h-full flex-col bg-ivory">
               <Link href={href} className="relative block">
-                <Image
+                <OptimizedImage
                   src={product.image}
                   alt={product.name}
                   width={800}
                   height={1067}
+                  sizes={
+                    columns === 4
+                      ? "(min-width: 1024px) 25vw, 50vw"
+                      : "(min-width: 1024px) 33vw, 50vw"
+                  }
                   className="aspect-3/4 w-full object-cover"
                 />
                 <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center font-heading text-[10px] tracking-[0.2em] text-ivory uppercase drop-shadow sm:bottom-4 sm:text-[13px] sm:tracking-[0.28em]">

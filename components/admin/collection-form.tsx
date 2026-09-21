@@ -155,10 +155,10 @@ export function CollectionForm({
 
     setPending(true)
     try {
-      const uploaded = await persistUploadedImages([
-        ...coverImages,
-        ...galleryImages,
-      ])
+      const uploaded = await persistUploadedImages(
+        [...coverImages, ...galleryImages],
+        "collections"
+      )
       const coverUrl = uploaded[0] ?? ""
       const galleryUrls = uploaded.slice(1)
       if (intent !== "draft" && !coverUrl) {

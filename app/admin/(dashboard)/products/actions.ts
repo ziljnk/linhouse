@@ -27,6 +27,7 @@ import {
 } from "@/lib/content-schedule"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import { sanitizeMediaUrls } from "@/lib/sanitize-url"
+import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
 
 export type ProductInput = {
   name: string
@@ -94,6 +95,11 @@ async function replaceJoins(
     )
   }
 
+  const previous = await db
+    .select({ url: productImage.url })
+    .from(productImage)
+    .where(eq(productImage.productId, productId))
+
   await db.delete(productImage).where(eq(productImage.productId, productId))
   if (imageUrls.length) {
     await db.insert(productImage).values(
@@ -104,6 +110,11 @@ async function replaceJoins(
       }))
     )
   }
+
+  await cleanupRemovedCmsImages(
+    previous.map((row) => row.url),
+    imageUrls
+  )
 }
 
 function validateProduct(input: ProductInput) {
@@ -254,7 +265,16 @@ export async function deleteProductsAction(
   await requireUsableAdminSession()
   if (!ids.length) return actionFail("Chưa chọn sản phẩm.")
 
+  const images = await db
+    .select({ url: productImage.url })
+    .from(productImage)
+    .where(inArray(productImage.productId, ids))
+
   await db.delete(product).where(inArray(product.id, ids))
+  await cleanupRemovedCmsImages(
+    images.map((row) => row.url),
+    []
+  )
   await revalidateAdmin()
   return actionOk()
 }

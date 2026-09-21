@@ -151,7 +151,7 @@ export function TestimonialForm({
     setFormError(null)
     setPending(true)
     try {
-      const [imageUrl] = await persistUploadedImages(images)
+      const [imageUrl] = await persistUploadedImages(images, "testimonials")
       if (!imageUrl) {
         setFormError("Vui lòng tải lên ảnh cô dâu.")
         return

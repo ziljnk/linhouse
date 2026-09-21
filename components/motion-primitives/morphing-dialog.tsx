@@ -20,6 +20,7 @@ import {
 } from 'motion/react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
+import { resolveCmsImageSources } from '@/lib/cms-image';
 import { XIcon } from 'lucide-react';
 import useClickOutside from '@/hooks/useClickOutside';
 
@@ -369,6 +370,7 @@ export type MorphingDialogImageProps = {
   className?: string;
   style?: React.CSSProperties;
   loading?: 'lazy' | 'eager';
+  sizes?: string;
 };
 
 function MorphingDialogImage({
@@ -377,14 +379,19 @@ function MorphingDialogImage({
   className,
   style,
   loading,
+  sizes,
 }: MorphingDialogImageProps) {
   const { uniqueId } = useMorphingDialog();
+  const sources = resolveCmsImageSources({ src });
 
   return (
     <motion.img
-      src={src}
+      src={sources?.src ?? src}
+      srcSet={sources?.srcSet}
+      sizes={sources?.srcSet ? sizes : undefined}
       alt={alt}
       loading={loading}
+      decoding='async'
       className={cn(className)}
       layoutId={`dialog-img-${uniqueId}`}
       style={style}

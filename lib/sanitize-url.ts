@@ -1,5 +1,7 @@
 const UNSAFE_PATH_CHARS = /[<>"'`\\\s\x00-\x1f\x7f]/
 const SAFE_RELATIVE_PATH = /^\/[\w\-./%]+$/
+const CMS_STORAGE_KEY =
+  /^(products|collections|blog|testimonials)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export function isSafeLinkHref(href: string) {
   const trimmed = href.trim()
@@ -24,6 +26,8 @@ export function isSafeLinkHref(href: string) {
 export function sanitizeMediaUrl(url: string): string | null {
   const trimmed = url.trim()
   if (!trimmed) return null
+
+  if (CMS_STORAGE_KEY.test(trimmed)) return trimmed
 
   if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
     if (UNSAFE_PATH_CHARS.test(trimmed) || !SAFE_RELATIVE_PATH.test(trimmed)) {

@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useState, type KeyboardEvent } from "react"
-import Image from "next/image"
 import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
 function Thumbs({
@@ -35,7 +35,13 @@ function Thumbs({
               : "ring-1 ring-transparent hover:ring-charcoal/30"
           )}
         >
-          <img src={image} alt="" className="absolute inset-0 size-full object-cover" />
+          <OptimizedImage
+            src={image}
+            alt=""
+            fill
+            sizes="80px"
+            className="object-cover"
+          />
         </button>
       ))}
     </div>
@@ -125,13 +131,14 @@ export function ProductGallery({
                 className="relative min-w-0 shrink-0 grow-0 basis-full"
               >
                 <div className="relative aspect-3/4 w-full">
-                  <Image
+                  <OptimizedImage
                     src={image}
                     alt={alt}
                     fill
-                    priority={index === 0}
                     sizes="(min-width: 1024px) 48vw, 100vw"
                     className="object-cover"
+                    loading={index === 0 ? "eager" : "lazy"}
+                    fetchPriority={index === 0 ? "high" : undefined}
                   />
                 </div>
               </div>

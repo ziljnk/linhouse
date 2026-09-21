@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
-import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import {
   getStorefront,
@@ -64,11 +64,12 @@ export default async function BlogPostPage({
           {post.title}
         </h1>
         <div className="relative mt-10 aspect-3/4 overflow-hidden sm:aspect-4/5">
-          <Image
+          <OptimizedImage
             src={post.image}
             alt={post.imageAlt}
             fill
-            priority
+            loading="eager"
+            fetchPriority="high"
             sizes="(max-width: 768px) 100vw, 768px"
             className="object-cover object-center"
           />

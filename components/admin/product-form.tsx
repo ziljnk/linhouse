@@ -324,7 +324,9 @@ export function ProductForm({
 
     setPending(true)
     try {
-      const imageUrls = images.length ? await persistUploadedImages(images) : []
+      const imageUrls = images.length
+        ? await persistUploadedImages(images, "products")
+        : []
       const payload = {
         name,
         code,

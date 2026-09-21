@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { deleteProductsAction } from "@/app/admin/(dashboard)/products/actions"
@@ -12,6 +11,7 @@ import {
   useAdminSearchQuery,
 } from "@/components/admin/use-admin-list-params"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { ChevronDown, Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -334,7 +334,7 @@ export function ProductsTable({
                     <TableCell>
                       <div className="relative h-14 w-11 overflow-hidden rounded-md bg-muted">
                         {product.image ? (
-                          <Image
+                          <OptimizedImage
                             src={product.image}
                             alt={product.name}
                             fill

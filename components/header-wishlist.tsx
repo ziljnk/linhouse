@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Heart, Trash2, X } from "lucide-react"
 import { AnimatePresence, motion, useReducedMotion } from "motion/react"
@@ -14,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { parseProductName } from "@/lib/catalog"
 import { removeWishlistItem, useWishlist } from "@/lib/wishlist"
 
@@ -96,11 +96,12 @@ export function HeaderWishlist({
                       className="flex min-w-0 flex-1 items-center gap-3 hover:text-burgundy"
                       onClick={() => setOpen(false)}
                     >
-                      <Image
+                      <OptimizedImage
                         src={item.image}
                         alt={item.name}
                         width={56}
                         height={74}
+                        sizes="56px"
                         className="size-14 shrink-0 object-cover"
                       />
                       <span className="min-w-0 truncate text-sm tracking-[0.04em] uppercase">

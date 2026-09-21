@@ -28,6 +28,7 @@ import {
   MAX_IMAGE_FILE_SIZE,
   validateImageFile,
 } from "@/lib/image-file"
+import { cmsImageDisplaySrc } from "@/lib/cms-image"
 import { cn } from "@/lib/utils"
 
 const DEFAULT_MAX_FILES = 24
@@ -103,6 +104,7 @@ export function ImageUploader({
   showCoverBadge = true,
 }: ImageUploaderProps) {
   const inputId = useId()
+  const dndContextId = useId()
   const dragCountRef = useRef(0)
   const imagesRef = useRef(images)
   const [isDraggingFiles, setIsDraggingFiles] = useState(false)
@@ -327,6 +329,7 @@ export function ImageUploader({
             </div>
           ) : (
             <DndContext
+              id={dndContextId}
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragStart={handleDragStart}
@@ -436,7 +439,7 @@ function SingleImagePreview({
       {/* Preview uses object URLs; next/image cannot optimize local blobs */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={image.url}
+        src={cmsImageDisplaySrc(image.url)}
         alt={image.name}
         className={cn("w-full object-cover", aspectClass(aspect))}
       />
@@ -546,7 +549,7 @@ function ImageTilePreview({
       {/* Preview uses object URLs; next/image cannot optimize local blobs */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={image.url}
+        src={cmsImageDisplaySrc(image.url)}
         alt={image.name}
         className="size-full object-cover"
         draggable={false}

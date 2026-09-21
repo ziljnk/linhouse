@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Search, X } from "lucide-react"
 import { motion, useReducedMotion } from "motion/react"
@@ -14,6 +13,7 @@ import {
   SEARCH_QUERY_MAX_LENGTH,
   SEARCH_QUERY_MIN_LENGTH,
 } from "@/lib/search-query"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import {
   Sheet,
   SheetClose,
@@ -230,11 +230,12 @@ function SearchResultGroups({
                   onClick={onSelect}
                 >
                   {item.image ? (
-                    <Image
+                    <OptimizedImage
                       src={item.image}
                       alt=""
                       width={48}
                       height={64}
+                      sizes="48px"
                       className="size-12 shrink-0 object-cover"
                     />
                   ) : (

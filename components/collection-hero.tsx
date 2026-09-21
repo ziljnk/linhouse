@@ -1,4 +1,4 @@
-import Image from "next/image"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import type { CollectionItem } from "@/lib/catalog"
 
 export function CollectionHero({
@@ -8,11 +8,12 @@ export function CollectionHero({
 }) {
   return (
     <section className="relative isolate h-[min(72vh,38rem)] min-h-80 overflow-hidden bg-charcoal">
-      <Image
+      <OptimizedImage
         src={collection.image}
         alt={collection.imageAlt}
         fill
-        priority
+        loading="eager"
+        fetchPriority="high"
         sizes="100vw"
         className="object-cover object-center"
       />

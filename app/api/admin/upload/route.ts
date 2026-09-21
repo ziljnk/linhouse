@@ -1,13 +1,11 @@
-import { randomUUID } from "node:crypto"
-import { mkdir, writeFile } from "node:fs/promises"
-import path from "node:path"
 import { NextResponse } from "next/server"
 import {
   getAdminSession,
   needsPasswordChange,
 } from "@/lib/admin-session"
+import { saveCmsImageVariants } from "@/lib/cms-image-storage"
+import { getImageUrl, isCmsImageType } from "@/lib/cms-image"
 import {
-  IMAGE_EXTENSIONS,
   MAX_IMAGE_FILE_SIZE,
   validateImageFile,
 } from "@/lib/image-file"
@@ -20,9 +18,17 @@ export async function POST(request: Request) {
 
   const formData = await request.formData()
   const file = formData.get("file")
+  const type = String(formData.get("type") ?? "")
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Thiếu file ảnh." }, { status: 400 })
+  }
+
+  if (!isCmsImageType(type)) {
+    return NextResponse.json(
+      { error: "Loại ảnh không hợp lệ." },
+      { status: 400 }
+    )
   }
 
   const validation = await validateImageFile(file, {
@@ -41,14 +47,24 @@ export async function POST(request: Request) {
     )
   }
 
-  const extension = IMAGE_EXTENSIONS[validation.mime]
-  const filename = `${Date.now()}-${randomUUID()}.${extension}`
-  const directory = path.join(process.cwd(), "public", "uploads")
-  await mkdir(directory, { recursive: true })
-  await writeFile(
-    path.join(directory, filename),
-    Buffer.from(await file.arrayBuffer())
-  )
-
-  return NextResponse.json({ url: `/uploads/${filename}` })
+  try {
+    const saved = await saveCmsImageVariants(
+      Buffer.from(await file.arrayBuffer()),
+      type
+    )
+    return NextResponse.json({
+      id: saved.id,
+      storageKey: saved.storageKey,
+      width: saved.width,
+      height: saved.height,
+      format: saved.format,
+      url: getImageUrl(saved.storageKey),
+    })
+  } catch (error) {
+    console.error("CMS image upload failed", error)
+    return NextResponse.json(
+      { error: "Không xử lý được ảnh." },
+      { status: 500 }
+    )
+  }
 }

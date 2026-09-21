@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { deleteCollectionAction } from "@/app/admin/(dashboard)/collections/actions"
@@ -12,6 +11,7 @@ import {
   useAdminSearchQuery,
 } from "@/components/admin/use-admin-list-params"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -175,7 +175,7 @@ export function CollectionsTable({
                   <TableCell>
                     <div className="relative h-14 w-11 overflow-hidden rounded-md bg-muted">
                       {collection.image ? (
-                        <Image
+                        <OptimizedImage
                           src={collection.image}
                           alt={collection.imageAlt}
                           fill

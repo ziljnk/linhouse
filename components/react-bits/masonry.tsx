@@ -122,6 +122,7 @@ function MasonryLightbox({
         <MorphingDialogImage
           src={viewed.img}
           alt={viewed.alt ?? ''}
+          sizes="90vw"
           className="h-auto w-full max-w-[90vw] object-cover lg:h-[90vh]"
         />
       </MorphingDialogContent>
@@ -195,6 +196,7 @@ function MasonryPhoto({
             src={item.img}
             alt={alt}
             loading={loading}
+            sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
             className="block h-full w-full object-cover"
           />
         </MorphingDialogTrigger>

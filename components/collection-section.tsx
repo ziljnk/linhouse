@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import Autoplay from "embla-carousel-autoplay"
 import type { Locale } from "@/app/[locale]/dictionaries"
@@ -14,6 +13,7 @@ import {
   CarouselItem,
   useCarousel,
 } from "@/components/ui/carousel"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 
 export function CollectionSection({
   locale,
@@ -60,7 +60,7 @@ export function CollectionSection({
                     className="group block h-full outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                   >
                     <article className="relative aspect-3/4 overflow-hidden rounded-2xl bg-white">
-                      <Image
+                      <OptimizedImage
                         src={item.image}
                         alt={item.imageAlt}
                         fill

@@ -18,6 +18,7 @@ import type {
 } from "@/lib/admin-testimonials"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import { sanitizeMediaUrl } from "@/lib/sanitize-url"
+import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
 
 export type TestimonialInput = {
   name: string
@@ -87,7 +88,13 @@ export async function saveTestimonialAction(
   }
 
   if (input.id) {
+    const [current] = await db
+      .select({ imageUrl: testimonial.imageUrl })
+      .from(testimonial)
+      .where(eq(testimonial.id, input.id))
+      .limit(1)
     await db.update(testimonial).set(values).where(eq(testimonial.id, input.id))
+    await cleanupRemovedCmsImages([current?.imageUrl ?? ""], [imageUrl])
     await revalidateAdmin()
     return actionOk({ slug })
   }
@@ -102,7 +109,13 @@ export async function saveTestimonialAction(
 
 export async function deleteTestimonialAction(id: string): Promise<ActionResult> {
   await requireUsableAdminSession()
+  const [row] = await db
+    .select({ imageUrl: testimonial.imageUrl })
+    .from(testimonial)
+    .where(eq(testimonial.id, id))
+    .limit(1)
   await db.delete(testimonial).where(eq(testimonial.id, id))
+  await cleanupRemovedCmsImages([row?.imageUrl ?? ""], [])
   await revalidateAdmin()
   return actionOk()
 }

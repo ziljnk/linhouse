@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { deleteBlogPostAction } from "@/app/admin/(dashboard)/blog/actions"
@@ -12,6 +11,7 @@ import {
   useAdminSearchQuery,
 } from "@/components/admin/use-admin-list-params"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 import { Eye, MoreHorizontal, Pencil, Search, Trash2 } from "lucide-react"
 import {
   AlertDialog,
@@ -191,7 +191,7 @@ export function BlogTable({
                   <TableCell>
                     <div className="relative h-14 w-20 overflow-hidden rounded-md bg-muted">
                       {post.thumbnail ? (
-                        <Image
+                        <OptimizedImage
                           src={post.thumbnail}
                           alt={post.title}
                           fill

@@ -5,6 +5,7 @@ import type { Dictionary } from "@/app/[locale]/dictionaries"
 import { InfiniteSlider } from "@/components/motion-primitives/infinite-slider"
 import { ProgressiveBlur } from "@/components/motion-primitives/progressive-blur"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 
 export function TestimonialSection({
   copy,
@@ -48,11 +49,11 @@ export function TestimonialSection({
               key={slide.src}
               className="relative aspect-3/4 w-[min(78vw,360px)] shrink-0 overflow-hidden rounded-2xl bg-ivory shadow-[0_18px_50px_rgba(43,36,32,0.18)]"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <OptimizedImage
                 src={slide.src}
                 alt={slide.alt}
                 draggable={false}
+                sizes="360px"
                 className="h-full w-full object-cover"
               />
               <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/50 to-transparent px-5 pt-20 pb-5 text-ivory">

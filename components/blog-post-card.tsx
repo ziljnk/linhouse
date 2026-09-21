@@ -1,6 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 import type { Locale } from "@/app/[locale]/dictionaries"
+import { OptimizedImage } from "@/components/ui/optimized-image"
 
 export type BlogCardPost = {
   slug: string
@@ -30,7 +30,7 @@ export function BlogPostCard({
       {variant === "stack" ? (
         <article className="flex h-full flex-col">
           <div className="relative aspect-3/4 overflow-hidden bg-blush">
-            <Image
+            <OptimizedImage
               src={post.image}
               alt={post.imageAlt}
               fill
@@ -62,7 +62,7 @@ export function BlogPostCard({
       ) : (
         <article className="relative">
           <div className="relative mr-[22%] aspect-3/4 overflow-hidden bg-blush sm:mr-[30%]">
-            <Image
+            <OptimizedImage
               src={post.image}
               alt={post.imageAlt}
               fill

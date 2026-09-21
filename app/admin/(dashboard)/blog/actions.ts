@@ -13,6 +13,7 @@ import {
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import { sanitizeMediaUrl } from "@/lib/sanitize-url"
+import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
 import { db } from "@/lib/db"
 import { blogPost } from "@/lib/db/schema"
 import {
@@ -108,7 +109,13 @@ export async function saveBlogPostAction(
   }
 
   if (input.id) {
+    const [previous] = await db
+      .select({ coverUrl: blogPost.coverUrl })
+      .from(blogPost)
+      .where(eq(blogPost.id, input.id))
+      .limit(1)
     await db.update(blogPost).set(values).where(eq(blogPost.id, input.id))
+    await cleanupRemovedCmsImages([previous?.coverUrl ?? ""], [coverUrl ?? ""])
     await revalidateAdmin()
     return actionOk({ slug: slugResult.slug })
   }
@@ -120,7 +127,13 @@ export async function saveBlogPostAction(
 
 export async function deleteBlogPostAction(id: string): Promise<ActionResult> {
   await requireUsableAdminSession()
+  const [row] = await db
+    .select({ coverUrl: blogPost.coverUrl })
+    .from(blogPost)
+    .where(eq(blogPost.id, id))
+    .limit(1)
   await db.delete(blogPost).where(eq(blogPost.id, id))
+  await cleanupRemovedCmsImages([row?.coverUrl ?? ""], [])
   await revalidateAdmin()
   return actionOk()
 }

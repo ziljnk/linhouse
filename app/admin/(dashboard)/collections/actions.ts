@@ -24,6 +24,7 @@ import {
   type PublishIntent,
 } from "@/lib/content-schedule"
 import { sanitizeMediaUrl, sanitizeMediaUrls } from "@/lib/sanitize-url"
+import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
 
 export type CollectionInput = {
   nameVi: string
@@ -151,7 +152,21 @@ export async function deleteCollectionAction(id: string): Promise<ActionResult> 
     return actionFail("Không xóa được bộ sưu tập đang gắn sản phẩm.")
   }
 
+  const [row] = await db
+    .select({ coverUrl: collection.coverUrl })
+    .from(collection)
+    .where(eq(collection.id, id))
+    .limit(1)
+  const images = await db
+    .select({ url: collectionImage.url })
+    .from(collectionImage)
+    .where(eq(collectionImage.collectionId, id))
+
   await db.delete(collection).where(eq(collection.id, id))
+  await cleanupRemovedCmsImages(
+    [...images.map((item) => item.url), row?.coverUrl ?? ""],
+    []
+  )
   await revalidateAdmin()
   return actionOk()
 }
@@ -161,6 +176,11 @@ async function replaceCollectionImages(
   coverUrl: string,
   galleryUrls: string[]
 ) {
+  const previous = await db
+    .select({ url: collectionImage.url })
+    .from(collectionImage)
+    .where(eq(collectionImage.collectionId, collectionId))
+
   await db.delete(collectionImage).where(eq(collectionImage.collectionId, collectionId))
   const urls = [coverUrl, ...galleryUrls.filter((url) => url !== coverUrl)]
   await db.insert(collectionImage).values(
@@ -169,5 +189,9 @@ async function replaceCollectionImages(
       url,
       sortOrder: index,
     }))
+  )
+  await cleanupRemovedCmsImages(
+    previous.map((row) => row.url),
+    urls
   )
 }
