@@ -6,8 +6,18 @@ export type ProductKind = (typeof PRODUCT_KINDS)[number]
 export const CATALOG_FILTER_KEYS = ["silhouette", "neckline", "fabric"] as const
 export const CATALOG_INITIAL_PAGE_SIZE = 20
 export const CATALOG_LOAD_MORE_SIZE = 8
+export const CATALOG_SORT_VALUES = [
+  "featured",
+  "newest",
+  "price-asc",
+  "price-desc",
+  "name-asc",
+  "name-desc",
+] as const
 
 export type CatalogFilterKey = (typeof CATALOG_FILTER_KEYS)[number]
+export type CatalogSort = (typeof CATALOG_SORT_VALUES)[number]
+export const DEFAULT_CATALOG_SORT: CatalogSort = "featured"
 
 export type CatalogProduct = Dictionary["catalog"][number] & {
   slug?: string
@@ -31,6 +41,27 @@ export type CollectionItem = Dictionary["home"]["collection"]["items"][number] &
 }
 
 export type CatalogPageCopy = Dictionary["catalogPage"]
+
+export function parseCatalogSort(value: unknown): CatalogSort {
+  if (
+    typeof value === "string" &&
+    (CATALOG_SORT_VALUES as readonly string[]).includes(value)
+  ) {
+    return value as CatalogSort
+  }
+  return DEFAULT_CATALOG_SORT
+}
+
+export function catalogSortOptions(copy: CatalogPageCopy) {
+  return [
+    { value: "featured" as const, label: copy.sortFeatured },
+    { value: "newest" as const, label: copy.sortNewest },
+    { value: "price-asc" as const, label: copy.sortPriceAsc },
+    { value: "price-desc" as const, label: copy.sortPriceDesc },
+    { value: "name-asc" as const, label: copy.sortNameAsc },
+    { value: "name-desc" as const, label: copy.sortNameDesc },
+  ]
+}
 
 export type CatalogFilterGroup = {
   key: string

@@ -27,6 +27,7 @@ try {
 
 const pool = mysql.createPool({
   uri: connectionString,
+  charset: "utf8mb4",
   connectionLimit: 1,
   timezone: "Z",
 })

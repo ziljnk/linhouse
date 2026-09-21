@@ -10,15 +10,19 @@ import {
   exists,
   inArray,
   or,
+  sql,
+  type SQL,
 } from "drizzle-orm"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { VIRTUAL_CATALOG_SLUGS } from "@/lib/admin-actions"
 import { isLiveContent } from "@/lib/content-schedule"
 import {
+  parseCatalogSort,
   parseProductName,
   productSlug,
   type CatalogFilterGroup,
   type CatalogProduct,
+  type CatalogSort,
   type CollectionItem,
 } from "@/lib/catalog"
 import { db } from "@/lib/db"
@@ -158,6 +162,36 @@ type ProductMapRows = Pick<
 >
 
 export type CatalogQueryFilters = Record<string, string[]>
+
+function pricedFirst() {
+  return sql`case when ${product.priceDisplay} = 'amount' and ${product.priceVnd} is not null then 0 else 1 end`
+}
+
+function catalogOrderBy(sort: CatalogSort): SQL[] {
+  switch (sort) {
+    case "newest":
+      return [
+        desc(product.publishedAt),
+        desc(product.createdAt),
+        asc(product.sortOrder),
+      ]
+    case "price-asc":
+      return [pricedFirst(), asc(product.priceVnd), asc(product.sortOrder)]
+    case "price-desc":
+      return [pricedFirst(), desc(product.priceVnd), asc(product.sortOrder)]
+    case "name-asc":
+      return [asc(product.name), asc(product.sortOrder)]
+    case "name-desc":
+      return [desc(product.name), asc(product.sortOrder)]
+    case "featured":
+    default:
+      return [
+        asc(product.sortOrder),
+        asc(product.sortNumber),
+        asc(product.name),
+      ]
+  }
+}
 
 function isSafeCatalogSlug(value: string) {
   return value.length > 0 && value.length <= 120 && !/[\s\\/\0]/.test(value)
@@ -336,12 +370,14 @@ export async function listStorefrontCatalog({
   locale,
   slug,
   filters,
+  sort,
   offset,
   limit,
 }: {
   locale: Locale
   slug: string
   filters?: CatalogQueryFilters
+  sort?: CatalogSort
   offset: number
   limit: number
 }) {
@@ -352,6 +388,7 @@ export async function listStorefrontCatalog({
 
   const safeOffset = Math.max(0, Math.floor(offset))
   const safeLimit = Math.max(1, Math.min(Math.floor(limit), 20))
+  const orderBy = catalogOrderBy(parseCatalogSort(sort))
   const where = await catalogProductWhere(
     safeSlug,
     sanitizeCatalogFilters(filters)
@@ -367,11 +404,7 @@ export async function listStorefrontCatalog({
       .select()
       .from(product)
       .where(where)
-      .orderBy(
-        asc(product.sortOrder),
-        asc(product.sortNumber),
-        asc(product.name)
-      )
+      .orderBy(...orderBy)
       .limit(safeLimit)
       .offset(safeOffset),
   ])

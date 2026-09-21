@@ -7,9 +7,13 @@ import type { Locale } from "@/app/[locale]/dictionaries"
 import {
   CATALOG_INITIAL_PAGE_SIZE,
   CATALOG_LOAD_MORE_SIZE,
+  catalogSortOptions,
+  DEFAULT_CATALOG_SORT,
+  parseCatalogSort,
   type CatalogFilterGroup,
   type CatalogPageCopy,
   type CatalogProduct,
+  type CatalogSort,
 } from "@/lib/catalog"
 import { ProductGrid } from "@/components/product-grid"
 import {
@@ -18,6 +22,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Sheet,
   SheetContent,
@@ -127,6 +138,60 @@ function FilterGroups({
   )
 }
 
+function CatalogSortSelect({
+  value,
+  onChange,
+  copy,
+  disabled,
+}: {
+  value: CatalogSort
+  onChange: (value: CatalogSort) => void
+  copy: CatalogPageCopy
+  disabled?: boolean
+}) {
+  const items = catalogSortOptions(copy)
+
+  return (
+    <label className="flex items-center gap-2">
+      <span className="hidden text-[11px] tracking-[0.16em] text-charcoal/60 uppercase sm:inline">
+        {copy.sort}
+      </span>
+      <Select
+        value={value}
+        onValueChange={(next) => {
+          if (!next) return
+          onChange(parseCatalogSort(next))
+        }}
+        items={items}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          aria-label={copy.sort}
+          className="h-auto min-h-9 min-w-50 rounded-none border-charcoal/80 bg-transparent px-3 py-2 text-[11px] tracking-[0.14em] text-charcoal uppercase shadow-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent [&_svg]:text-charcoal"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent
+          align="end"
+          alignItemWithTrigger={false}
+          className="w-max min-w-54 rounded-none border-0 bg-ivory text-charcoal shadow-md ring-charcoal/10"
+        >
+          {items.map((item) => (
+            <SelectItem
+              key={item.value}
+              value={item.value}
+              label={item.label}
+              className="rounded-none text-[11px] tracking-[0.12em] text-charcoal uppercase focus:bg-charcoal/5 focus:text-burgundy"
+            >
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </label>
+  )
+}
+
 export function CollectionCatalog({
   slug,
   initialProducts,
@@ -147,12 +212,14 @@ export function CollectionCatalog({
   title?: string
 }) {
   const [filters, setFilters] = useState<Filters>(() => emptyFilters(groups))
+  const [sort, setSort] = useState<CatalogSort>(DEFAULT_CATALOG_SORT)
   const [sheetOpen, setSheetOpen] = useState(false)
   const [products, setProducts] = useState(initialProducts)
   const [total, setTotal] = useState(initialTotal)
   const [loadingMore, setLoadingMore] = useState(false)
   const [loadingFilters, setLoadingFilters] = useState(false)
   const filtersRef = useRef(filters)
+  const sortRef = useRef(sort)
   const requestId = useRef(0)
   const loadingMoreRef = useRef(false)
 
@@ -167,6 +234,20 @@ export function CollectionCatalog({
     setFilters(next)
     void fetchPage({
       nextFilters: next,
+      nextSort: sortRef.current,
+      offset: 0,
+      limit: CATALOG_INITIAL_PAGE_SIZE,
+      replace: true,
+    })
+  }
+
+  function setNextSort(next: CatalogSort) {
+    if (next === sortRef.current) return
+    sortRef.current = next
+    setSort(next)
+    void fetchPage({
+      nextFilters: filtersRef.current,
+      nextSort: next,
       offset: 0,
       limit: CATALOG_INITIAL_PAGE_SIZE,
       replace: true,
@@ -175,11 +256,13 @@ export function CollectionCatalog({
 
   async function fetchPage({
     nextFilters,
+    nextSort,
     offset,
     limit,
     replace,
   }: {
     nextFilters: Filters
+    nextSort: CatalogSort
     offset: number
     limit: number
     replace: boolean
@@ -196,6 +279,7 @@ export function CollectionCatalog({
         locale,
         slug,
         filters: nextFilters,
+        sort: nextSort,
         offset,
         limit,
       })
@@ -239,6 +323,7 @@ export function CollectionCatalog({
     if (loadingMoreRef.current || loadingFilters || !hasMore) return
     void fetchPage({
       nextFilters: filtersRef.current,
+      nextSort: sortRef.current,
       offset: products.length,
       limit: CATALOG_LOAD_MORE_SIZE,
       replace: false,
@@ -275,50 +360,59 @@ export function CollectionCatalog({
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <p className="text-[11px] tracking-[0.16em] text-charcoal/60 uppercase">
               {total} {copy.results}
             </p>
 
-            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-              <SheetTrigger
-                nativeButton
-                className="inline-flex items-center gap-2 border border-charcoal/80 px-4 py-2 text-[11px] tracking-[0.16em] text-charcoal uppercase lg:hidden"
-              >
-                <SlidersHorizontal className="size-3.5" />
-                {copy.filters}
-                {activeCount > 0 ? ` (${activeCount})` : ""}
-              </SheetTrigger>
-              <SheetContent
-                side="left"
-                className="h-dvh max-h-dvh w-80 max-w-[85vw] gap-0 overflow-hidden bg-ivory p-0"
-                showCloseButton
-              >
-                <SheetHeader className="shrink-0 border-b border-charcoal/10 px-6 py-5">
-                  <div className="flex items-center justify-between pr-8">
-                    <SheetTitle className="text-xs tracking-[0.16em] text-charcoal uppercase">
-                      {copy.filters}
-                    </SheetTitle>
-                    {activeCount > 0 ? (
-                      <button
-                        type="button"
-                        onClick={clearFilters}
-                        className="text-[11px] tracking-[0.12em] text-burgundy uppercase hover:text-burgundy-deep"
-                      >
-                        {copy.clear}
-                      </button>
-                    ) : null}
+            <div className="flex items-center gap-2">
+              <CatalogSortSelect
+                value={sort}
+                onChange={setNextSort}
+                copy={copy}
+                disabled={loadingFilters}
+              />
+
+              <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                <SheetTrigger
+                  nativeButton
+                  className="inline-flex items-center gap-2 border border-charcoal/80 px-4 py-2 text-[11px] tracking-[0.16em] text-charcoal uppercase lg:hidden"
+                >
+                  <SlidersHorizontal className="size-3.5" />
+                  {copy.filters}
+                  {activeCount > 0 ? ` (${activeCount})` : ""}
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  className="h-dvh max-h-dvh w-80 max-w-[85vw] gap-0 overflow-hidden bg-ivory p-0"
+                  showCloseButton
+                >
+                  <SheetHeader className="shrink-0 border-b border-charcoal/10 px-6 py-5">
+                    <div className="flex items-center justify-between pr-8">
+                      <SheetTitle className="text-xs tracking-[0.16em] text-charcoal uppercase">
+                        {copy.filters}
+                      </SheetTitle>
+                      {activeCount > 0 ? (
+                        <button
+                          type="button"
+                          onClick={clearFilters}
+                          className="text-[11px] tracking-[0.12em] text-burgundy uppercase hover:text-burgundy-deep"
+                        >
+                          {copy.clear}
+                        </button>
+                      ) : null}
+                    </div>
+                  </SheetHeader>
+                  <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y px-6 py-6">
+                    <FilterGroups
+                      groups={groups}
+                      filters={filters}
+                      onToggle={toggle}
+                    />
                   </div>
-                </SheetHeader>
-                <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain touch-pan-y px-6 py-6">
-                  <FilterGroups
-                    groups={groups}
-                    filters={filters}
-                    onToggle={toggle}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
 
           {total > 0 ? (

@@ -21,6 +21,7 @@ export const pool =
   globalForDb.mysqlPool ??
   mysql.createPool({
     uri: connectionString,
+    charset: "utf8mb4",
     connectionLimit: 10,
     timezone: "Z",
   })

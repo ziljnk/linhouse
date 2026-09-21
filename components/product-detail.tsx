@@ -7,12 +7,14 @@ import { ProductGrid } from "@/components/product-grid"
 import {
   catalogOptionLabel,
   collectionLabel,
+  formatProductPriceVnd,
   parseProductName,
   productGallery,
   productSlug,
   productSpecRows,
   recommendedProducts,
   relatedProducts,
+  showsProductPrice,
   type CatalogFilterGroup,
   type CatalogProduct,
   type CollectionItem,
@@ -143,6 +145,11 @@ export function ProductDetail({
           <p className="mt-3 text-sm font-light tracking-[0.04em] text-charcoal/70">
             {title}
           </p>
+          {showsProductPrice(product) && product.priceVnd != null ? (
+            <p className="mt-5 font-heading text-xl tracking-[0.08em] text-burgundy sm:text-2xl">
+              {formatProductPriceVnd(product.priceVnd)}
+            </p>
+          ) : null}
 
           <p className="mt-8 text-sm leading-relaxed font-light text-charcoal/80">
             {lead}
