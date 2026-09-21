@@ -35,7 +35,7 @@ function Thumbs({
               : "ring-1 ring-transparent hover:ring-charcoal/30"
           )}
         >
-          <Image src={image} alt="" fill sizes="80px" className="object-cover" />
+          <img src={image} alt="" className="absolute inset-0 size-full object-cover" />
         </button>
       ))}
     </div>
