@@ -98,7 +98,8 @@ export function findCollection(
   return items.find((item) => item.href === `/catalog/${slug}`)
 }
 
-const GALLERY_HEIGHTS = [400, 250, 600, 350, 500, 280, 450, 320, 540]
+/** Fallback height ÷ width until the photo's real ratio is measured. Lookbook uploads are 2:3. */
+const GALLERY_RATIO = 3 / 2
 
 export type CollectionGalleryItem = {
   id: string
@@ -130,7 +131,7 @@ export function collectionGallery(
     img: item.src,
     url: "",
     alt: item.alt,
-    height: GALLERY_HEIGHTS[index % GALLERY_HEIGHTS.length],
+    height: GALLERY_RATIO,
   }))
 }
 

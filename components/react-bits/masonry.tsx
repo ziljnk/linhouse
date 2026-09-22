@@ -57,9 +57,13 @@ interface Item {
   id: string;
   img: string;
   url: string;
+  /** Fallback height ÷ width until the photo's real ratio is measured. */
   height: number;
   alt?: string;
 }
+
+/** Extra height on top of the photo. 1 shows the full image; taller tiles stagger equal uploads. */
+const TILE_STRETCH = [1.18, 1, 1.42, 1.08, 1.32, 1.04, 1.24, 1.12, 1.36];
 
 const lightboxControlVariants = {
   initial: { opacity: 0 },
@@ -260,6 +264,16 @@ const Masonry: React.FC<MasonryProps> = ({
   const [containerRef, { width }] = useMeasure<HTMLDivElement>();
   const hasMounted = useRef(false);
   const revealSetup = useRef(false);
+  const [intrinsicRatios, setIntrinsicRatios] = useState<Record<string, number>>({});
+
+  const reportRatio = useCallback((id: string, ratio: number) => {
+    if (!Number.isFinite(ratio) || ratio <= 0) return;
+    setIntrinsicRatios(current => {
+      const previous = current[id];
+      if (previous !== undefined && Math.abs(previous - ratio) < 0.01) return current;
+      return { ...current, [id]: ratio };
+    });
+  }, []);
 
   const grid = useMemo<GridItem[]>(() => {
     if (!width) return [];
@@ -268,16 +282,40 @@ const Masonry: React.FC<MasonryProps> = ({
     const totalGaps = (columns - 1) * gap;
     const columnWidth = (width - totalGaps) / columns;
 
-    return items.map(child => {
+    return items.map((child, index) => {
       const col = colHeights.indexOf(Math.min(...colHeights));
       const x = col * (columnWidth + gap);
-      const height = child.height / 2;
+      const ratio = intrinsicRatios[child.id] ?? child.height;
+      const stretch = TILE_STRETCH[index % TILE_STRETCH.length];
+      const height = columnWidth * ratio * stretch;
       const y = colHeights[col];
 
       colHeights[col] += height + gap;
       return { ...child, x, y, w: columnWidth, h: height };
     });
-  }, [columns, items, width]);
+  }, [columns, intrinsicRatios, items, width]);
+
+  useEffect(() => {
+    const root = containerRef.current;
+    if (!root) return;
+
+    const sync = (img: HTMLImageElement) => {
+      const id = img.closest("[data-key]")?.getAttribute("data-key");
+      if (!id || !img.naturalWidth) return;
+      reportRatio(id, img.naturalHeight / img.naturalWidth);
+    };
+
+    const onLoad = (event: Event) => {
+      if (event.target instanceof HTMLImageElement) sync(event.target);
+    };
+
+    root.addEventListener("load", onLoad, true);
+    for (const img of root.querySelectorAll("img")) {
+      if (img.complete) sync(img);
+    }
+
+    return () => root.removeEventListener("load", onLoad, true);
+  }, [items, reportRatio, width]);
 
   useLayoutEffect(() => {
     if (!grid.length) return;
