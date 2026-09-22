@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { Languages, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -56,8 +57,11 @@ import {
   PRICE_DISPLAYS,
   PRODUCT_KIND_LABELS,
   PRODUCT_KINDS,
+  PRODUCT_PURCHASE_OPTION_LABELS,
+  PRODUCT_PURCHASE_OPTIONS,
   type PriceDisplay,
   type ProductKind,
+  type ProductPurchaseOption,
 } from "@/lib/admin-products"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { isLivePublished, type PublishIntent } from "@/lib/content-status"
@@ -72,6 +76,7 @@ import type {
   AdminAttributeGroupOption,
   AdminCollectionOption,
 } from "@/lib/admin-storefront"
+import { nextAutoSlug, slugify } from "@/lib/slug"
 import { cn } from "@/lib/utils"
 
 const PRODUCT_TAGS = [
@@ -94,17 +99,6 @@ const PRODUCT_TAGS = [
 
 const SEO_TITLE_LIMIT = 60
 const SEO_DESCRIPTION_LIMIT = 160
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
 
 function CharacterCount({
   value,
@@ -191,6 +185,7 @@ export type ProductFormValues = {
   attributeIds?: string[]
   collectionIds?: string[]
   tags?: string[]
+  purchaseOptions?: ProductPurchaseOption[]
   imageUrls?: string[]
   priceVnd?: number | null
   priceDisplay?: PriceDisplay
@@ -228,11 +223,13 @@ export function ProductForm({
     defaultValues?.collectionIds ?? []
   )
   const [tags, setTags] = useState<string[]>(defaultValues?.tags ?? [])
+  const [purchaseOptions, setPurchaseOptions] = useState<ProductPurchaseOption[]>(
+    defaultValues?.purchaseOptions ?? []
+  )
   const [images, setImages] = useState<UploadedImage[]>(
     (defaultValues?.imageUrls ?? []).map((url) => createUploadedImageFromUrl(url))
   )
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
-  const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [priceDisplay, setPriceDisplay] = useState<PriceDisplay>(
     defaultValues?.priceDisplay ?? "contact"
   )
@@ -336,6 +333,7 @@ export function ProductForm({
         attributeIds,
         collectionIds,
         tags,
+        purchaseOptions,
         imageUrls,
         priceVnd: parsePriceVnd(priceInput),
         priceDisplay,
@@ -438,8 +436,8 @@ export function ProductForm({
               value={name}
               onChange={(event) => {
                 const nextName = event.target.value
+                setSlug((current) => nextAutoSlug(name, current, nextName))
                 setName(nextName)
-                if (!slugTouched) setSlug(slugify(nextName))
               }}
               placeholder="Fern — Luxury Ivory Ballgown Dress"
               required
@@ -525,6 +523,41 @@ export function ProductForm({
                 Khách sẽ thấy chữ “Liên hệ” thay cho số tiền.
               </p>
             )}
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-3 sm:col-span-2">
+            <legend className="text-sm font-medium">Hình thức</legend>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {PRODUCT_PURCHASE_OPTIONS.map((option) => {
+                const checked = purchaseOptions.includes(option)
+                return (
+                  <Label
+                    key={option}
+                    htmlFor={`product-purchase-${option}`}
+                    className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 font-normal"
+                  >
+                    <Checkbox
+                      id={`product-purchase-${option}`}
+                      checked={checked}
+                      onCheckedChange={(value) => {
+                        setPurchaseOptions((current) => {
+                          const next = new Set(current)
+                          if (value === true) next.add(option)
+                          else next.delete(option)
+                          return PRODUCT_PURCHASE_OPTIONS.filter((item) =>
+                            next.has(item)
+                          )
+                        })
+                      }}
+                    />
+                    <span>{PRODUCT_PURCHASE_OPTION_LABELS[option]}</span>
+                  </Label>
+                )
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Chọn một hoặc nhiều hình thức. Các mục đã chọn sẽ hiện trên trang sản phẩm.
+            </p>
           </fieldset>
 
           {visibleGroups.length === 0 ? (
@@ -720,10 +753,7 @@ export function ProductForm({
                 id="product-slug"
                 name="slug"
                 value={slug}
-                onChange={(event) => {
-                  setSlugTouched(true)
-                  setSlug(slugify(event.target.value))
-                }}
+                onChange={(event) => setSlug(slugify(event.target.value))}
                 placeholder="fern-luxury-ivory-ballgown"
                 className="h-full rounded-none border-0 shadow-none focus-visible:border-0 focus-visible:ring-0"
               />

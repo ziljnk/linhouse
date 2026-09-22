@@ -1,4 +1,7 @@
 import type { Dictionary } from "@/app/[locale]/dictionaries"
+import { slugify } from "@/lib/slug"
+
+export { slugify }
 
 export const TESTIMONIAL_STATUSES = ["published", "draft"] as const
 
@@ -31,17 +34,6 @@ export const TESTIMONIAL_STATUS_LABELS: Record<TestimonialStatus, string> = {
 }
 
 type TestimonialItem = Dictionary["home"]["testimonials"]["items"][number]
-
-export function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
 
 function metaValue(item: TestimonialItem, labels: string[]) {
   const match = item.meta.find((row) => labels.includes(row.label))

@@ -45,6 +45,10 @@ import { contentAppearance, toContentStatus } from "@/lib/content-status"
 import type { AdminBlogListItem } from "@/lib/admin-blog"
 import type { AdminCollectionListItem } from "@/lib/admin-collections"
 import type { AdminProductListItem, ProductKind } from "@/lib/admin-products"
+import {
+  parsePurchaseOptions,
+  type ProductPurchaseOption,
+} from "@/lib/catalog"
 import type {
   AdminTestimonial,
   TestimonialsSectionCopy,
@@ -93,6 +97,7 @@ export type AdminProductRecord = {
   fullTitle: string
   description: LocalizedText
   tags: string[]
+  purchaseOptions: ProductPurchaseOption[]
   priceVnd: number | null
   priceDisplay: AdminProductListItem["priceDisplay"]
   kind: ProductKind
@@ -421,6 +426,7 @@ export async function getAdminProduct(
     fullTitle: row.fullTitle,
     description: asLocalized(row.description),
     tags: row.tags ?? [],
+    purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
     priceVnd: row.priceVnd,
     priceDisplay: row.priceDisplay,
     kind: row.kind,

@@ -3,11 +3,13 @@
 import { useState, useTransition, type FormEvent, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { saveSiteSettingsAction } from "@/app/admin/(dashboard)/settings/actions"
+import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  MAX_CONTACT_METHODS,
   validateSiteSettings,
   type SiteSettings,
 } from "@/lib/site-settings"
@@ -59,7 +61,14 @@ export function SettingsForm({
   defaultValues: SiteSettings
 }) {
   const router = useRouter()
-  const [values, setValues] = useState(defaultValues)
+  const [values, setValues] = useState(() =>
+    defaultValues.contactMethods.length > 0
+      ? defaultValues
+      : {
+          ...defaultValues,
+          contactMethods: [{ id: "", label: { vi: "", en: "" } }],
+        }
+  )
   const [isPending, startTransition] = useTransition()
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -195,6 +204,129 @@ export function SettingsForm({
               placeholder="https://www.instagram.com/linhouse.bridal"
             />
           </Field>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Phương thức liên lạc"
+        description="Danh sách hiện trong form đặt lịch để khách chọn cách LINHouse liên hệ lại. Để trống sẽ ẩn ô chọn."
+      >
+        <div className="flex flex-col gap-3">
+          {values.contactMethods.map((method, index) => (
+            <div
+              key={method.id || `method-${index}`}
+              className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-end"
+            >
+              <Field
+                id={`settings-contact-method-vi-${index}`}
+                label="Tên (Tiếng Việt)"
+              >
+                <Input
+                  id={`settings-contact-method-vi-${index}`}
+                  value={method.label.vi}
+                  onChange={(event) =>
+                    setValues((current) => ({
+                      ...current,
+                      contactMethods: current.contactMethods.map(
+                        (item, itemIndex) =>
+                          itemIndex === index
+                            ? {
+                                ...item,
+                                label: {
+                                  ...item.label,
+                                  vi: event.target.value,
+                                },
+                              }
+                            : item
+                      ),
+                    }))
+                  }
+                  placeholder="Zalo"
+                />
+              </Field>
+              <Field
+                id={`settings-contact-method-en-${index}`}
+                label="Tên (English)"
+              >
+                <Input
+                  id={`settings-contact-method-en-${index}`}
+                  value={method.label.en}
+                  onChange={(event) =>
+                    setValues((current) => ({
+                      ...current,
+                      contactMethods: current.contactMethods.map(
+                        (item, itemIndex) =>
+                          itemIndex === index
+                            ? {
+                                ...item,
+                                label: {
+                                  ...item.label,
+                                  en: event.target.value,
+                                },
+                              }
+                            : item
+                      ),
+                    }))
+                  }
+                  placeholder="Zalo"
+                />
+              </Field>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                aria-label={`Xóa phương thức ${index + 1}`}
+                disabled={
+                  values.contactMethods.length === 1 &&
+                  !method.label.vi &&
+                  !method.label.en
+                }
+                onClick={() =>
+                  setValues((current) => {
+                    const next = current.contactMethods.filter(
+                      (_, itemIndex) => itemIndex !== index
+                    )
+                    return {
+                      ...current,
+                      contactMethods:
+                        next.length > 0
+                          ? next
+                          : [{ id: "", label: { vi: "", en: "" } }],
+                    }
+                  })
+                }
+              >
+                <Trash2 />
+              </Button>
+            </div>
+          ))}
+
+          <div>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={values.contactMethods.length >= MAX_CONTACT_METHODS}
+              onClick={() => {
+                if (values.contactMethods.length >= MAX_CONTACT_METHODS) return
+                setValues((current) => ({
+                  ...current,
+                  contactMethods: [
+                    ...current.contactMethods,
+                    { id: "", label: { vi: "", en: "" } },
+                  ],
+                }))
+              }}
+            >
+              <Plus />
+              Thêm phương thức
+            </Button>
+            {values.contactMethods.length >= MAX_CONTACT_METHODS ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Tối đa {MAX_CONTACT_METHODS} phương thức liên lạc.
+              </p>
+            ) : null}
+          </div>
         </div>
       </SettingsSection>
 

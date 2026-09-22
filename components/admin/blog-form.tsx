@@ -53,7 +53,7 @@ import {
   createUploadedImageFromUrl,
   type UploadedImage,
 } from "@/components/admin/image-uploader"
-import { slugify } from "@/lib/admin-blog"
+import { nextAutoSlug, slugify } from "@/lib/slug"
 import type { AdminBlogCategoryOption } from "@/lib/admin-storefront"
 import { cn } from "@/lib/utils"
 
@@ -141,7 +141,6 @@ export function BlogForm({
   const [imageAltEn, setImageAltEn] = useState(defaultValues?.imageAltEn ?? "")
   const [localeTab, setLocaleTab] = useState<"vi" | "en">("vi")
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
-  const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [categoryId, setCategoryId] = useState(defaultValues?.categoryId ?? "")
   const [coverImages, setCoverImages] = useState<UploadedImage[]>(
     defaultValues?.coverUrl
@@ -365,8 +364,8 @@ export function BlogForm({
                   value={titleVi}
                   onChange={(event) => {
                     const nextTitle = event.target.value
+                    setSlug((current) => nextAutoSlug(titleVi, current, nextTitle))
                     setTitleVi(nextTitle)
-                    if (!slugTouched) setSlug(slugify(nextTitle))
                   }}
                   placeholder="Top 9 xu hướng váy cưới 2026"
                 />
@@ -416,10 +415,7 @@ export function BlogForm({
                 id="blog-slug"
                 name="slug"
                 value={slug}
-                onChange={(event) => {
-                  setSlugTouched(true)
-                  setSlug(slugify(event.target.value))
-                }}
+                onChange={(event) => setSlug(slugify(event.target.value))}
                 placeholder="xu-huong-vay-cuoi-2026"
                 className="h-full rounded-none border-0 shadow-none focus-visible:border-0 focus-visible:ring-0"
               />

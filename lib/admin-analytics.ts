@@ -8,6 +8,7 @@ export type AnalyticsRankItem = {
   key: string
   label: string
   description?: string
+  hint?: string
   href?: string
   views: number
 }

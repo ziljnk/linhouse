@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { Eye, Newspaper, Shirt } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { AnalyticsInfoHint } from "@/components/admin/analytics-info-hint"
 import { AnalyticsRangeTabs } from "@/components/admin/analytics-range-tabs"
 import { AnalyticsRefreshButton } from "@/components/admin/analytics-refresh-button"
 import {
@@ -16,6 +18,8 @@ import {
   type AnalyticsOverview,
   type AnalyticsRankItem,
 } from "@/lib/admin-analytics"
+
+const VISIBLE_ROWS = 10
 
 function barWidth(views: number, maxViews: number) {
   if (maxViews <= 0) return 0
@@ -36,14 +40,28 @@ function RankingList({
   }
 
   const maxViews = Math.max(...items.map((item) => item.views))
+  const scrollable = items.length > VISIBLE_ROWS
+  const hasDescription = items.some((item) => item.description)
+  const maxHeight = hasDescription
+    ? "max-h-[calc(10*3.25rem+9*0.25rem)]"
+    : "max-h-[calc(10*2.25rem+9*0.25rem)]"
 
   return (
-    <ul className="flex flex-col gap-1">
+    <ul
+      className={cn(
+        "flex flex-col gap-1",
+        scrollable &&
+          cn(maxHeight, "overflow-y-auto overscroll-contain pe-1")
+      )}
+    >
       {items.map((item) => {
         const width = barWidth(item.views, maxViews)
         const title = (
           <span className="flex min-w-0 flex-col">
-            <span className="truncate font-medium">{item.label}</span>
+            <span className="flex min-w-0 items-center gap-1">
+              <span className="truncate font-medium">{item.label}</span>
+              {item.hint ? <AnalyticsInfoHint text={item.hint} /> : null}
+            </span>
             {item.description ? (
               <span className="truncate text-xs text-muted-foreground">
                 {item.description}
@@ -53,7 +71,10 @@ function RankingList({
         )
 
         return (
-          <li key={item.key} className="relative overflow-hidden rounded-md">
+          <li
+            key={item.key}
+            className="relative shrink-0 overflow-hidden rounded-md"
+          >
             <span
               aria-hidden
               className="absolute inset-y-0 left-0 bg-foreground/8"

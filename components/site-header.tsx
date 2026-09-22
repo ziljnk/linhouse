@@ -293,12 +293,14 @@ export function SiteHeader({
   brand,
   booking,
   storeAddress,
+  contactMethods,
 }: {
   locale: Locale
   nav: Dictionary["nav"]
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
+  contactMethods: { id: string; label: string }[]
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const [bookingOpen, setBookingOpen] = useState(false)
@@ -491,6 +493,7 @@ export function SiteHeader({
       brand={brand}
       booking={booking}
       storeAddress={storeAddress}
+      contactMethods={contactMethods}
     />
     </>
   )

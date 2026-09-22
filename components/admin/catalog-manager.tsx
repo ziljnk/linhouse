@@ -36,23 +36,13 @@ import {
   PRODUCT_KINDS,
   type ProductKind,
 } from "@/lib/admin-products"
+import { nextAutoSlug, slugify } from "@/lib/slug"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
 
 const SELECTION_OPTIONS = [
   { value: "single", label: "Chọn một" },
   { value: "multiple", label: "Chọn nhiều" },
 ]
-
-function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
 
 type GroupDraft = {
   id?: string
@@ -202,7 +192,6 @@ export function CatalogManager({
   const [deleteAttributeId, setDeleteAttributeId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [slugTouched, setSlugTouched] = useState(false)
   const [kindTab, setKindTab] = useState<ProductKind>("gown")
 
   useEffect(() => {
@@ -215,7 +204,6 @@ export function CatalogManager({
     setDeleteGroupId(null)
     setDeleteAttributeId(null)
     setError(null)
-    setSlugTouched(false)
   }
 
   const saveGroup = async () => {
@@ -305,7 +293,6 @@ export function CatalogManager({
     groups.filter((group) => group.kind === kind)
 
   const openNewGroup = (kind: ProductKind) => {
-    setSlugTouched(false)
     setGroupDraft(emptyGroup(kind))
   }
 
@@ -350,11 +337,9 @@ export function CatalogManager({
                     key={group.id}
                     group={group}
                     onAddAttribute={() => {
-                      setSlugTouched(true)
                       setAttributeDraft(emptyAttribute(group.id))
                     }}
                     onEditGroup={() => {
-                      setSlugTouched(true)
                       setGroupDraft({
                         id: group.id,
                         slug: group.slug,
@@ -367,7 +352,6 @@ export function CatalogManager({
                     }}
                     onDeleteGroup={() => setDeleteGroupId(group.id)}
                     onEditAttribute={(attribute) => {
-                      setSlugTouched(true)
                       setAttributeDraft({
                         id: attribute.id,
                         groupId: group.id,
@@ -417,7 +401,7 @@ export function CatalogManager({
                     setGroupDraft({
                       ...groupDraft,
                       labelVi,
-                      slug: slugTouched ? groupDraft.slug : slugify(labelVi),
+                      slug: nextAutoSlug(groupDraft.labelVi, groupDraft.slug, labelVi),
                     })
                   }}
                 />
@@ -438,8 +422,10 @@ export function CatalogManager({
                   id="group-slug"
                   value={groupDraft.slug}
                   onChange={(event) => {
-                    setSlugTouched(true)
-                    setGroupDraft({ ...groupDraft, slug: slugify(event.target.value) })
+                    setGroupDraft({
+                      ...groupDraft,
+                      slug: slugify(event.target.value),
+                    })
                   }}
                 />
               </div>
@@ -529,7 +515,11 @@ export function CatalogManager({
                     setAttributeDraft({
                       ...attributeDraft,
                       labelVi,
-                      slug: slugTouched ? attributeDraft.slug : slugify(labelVi),
+                      slug: nextAutoSlug(
+                        attributeDraft.labelVi,
+                        attributeDraft.slug,
+                        labelVi
+                      ),
                     })
                   }}
                 />
@@ -553,7 +543,6 @@ export function CatalogManager({
                   id="attr-slug"
                   value={attributeDraft.slug}
                   onChange={(event) => {
-                    setSlugTouched(true)
                     setAttributeDraft({
                       ...attributeDraft,
                       slug: slugify(event.target.value),

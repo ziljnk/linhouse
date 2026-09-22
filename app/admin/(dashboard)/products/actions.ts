@@ -22,6 +22,10 @@ import {
 } from "@/lib/db/schema"
 import type { PriceDisplay, ProductKind } from "@/lib/admin-products"
 import {
+  parsePurchaseOptions,
+  type ProductPurchaseOption,
+} from "@/lib/catalog"
+import {
   resolvePublishFields,
   type PublishIntent,
 } from "@/lib/content-schedule"
@@ -38,6 +42,7 @@ export type ProductInput = {
   attributeIds?: string[]
   collectionIds?: string[]
   tags?: string[]
+  purchaseOptions?: ProductPurchaseOption[]
   imageUrls?: string[]
   priceVnd?: number | null
   priceDisplay?: PriceDisplay
@@ -180,6 +185,7 @@ export async function createProductAction(
       tags: (input.tags ?? [])
         .map((tag) => sanitizePlainText(tag))
         .filter(Boolean),
+      purchaseOptions: parsePurchaseOptions(input.purchaseOptions),
       seoTitle: seoLocalized(input.seoTitle ?? ""),
       seoDescription: seoLocalized(input.seoDescription ?? ""),
       seoKeywords: seoLocalized(input.seoKeywords ?? ""),
@@ -243,6 +249,7 @@ export async function updateProductAction(
       tags: (input.tags ?? [])
         .map((tag) => sanitizePlainText(tag))
         .filter(Boolean),
+      purchaseOptions: parsePurchaseOptions(input.purchaseOptions),
       seoTitle: seoLocalized(input.seoTitle ?? ""),
       seoDescription: seoLocalized(input.seoDescription ?? ""),
       seoKeywords: seoLocalized(input.seoKeywords ?? ""),

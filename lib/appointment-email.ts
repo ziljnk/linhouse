@@ -1,3 +1,5 @@
+import { countryDisplayName } from "@/lib/country-dial-codes"
+
 export type AppointmentMailInput = {
   name: string
   phone: string
@@ -7,6 +9,8 @@ export type AppointmentMailInput = {
   preferredTime: string
   message: string
   locale: string
+  countryCode?: string
+  contactMethod?: string
   product?: {
     slug: string
     name: string
@@ -39,10 +43,6 @@ function escapeHtml(value: string) {
 
 function escapeHtmlMultiline(value: string) {
   return escapeHtml(value).replaceAll("\n", "<br>")
-}
-
-function localeLabel(locale: string) {
-  return locale === "en" ? "English" : "Tiếng Việt"
 }
 
 function telHref(phone: string) {
@@ -100,7 +100,9 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
   const message = hasMessage
     ? appointment.message.trim()
     : "Không có lời nhắn."
-  const language = localeLabel(appointment.locale)
+  const country = appointment.countryCode
+    ? countryDisplayName(appointment.countryCode, "vi")
+    : ""
   const name = escapeHtml(appointment.name)
   const store = escapeHtml(appointment.store)
   const phone = escapeHtml(appointment.phone)
@@ -131,9 +133,12 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
       : []),
     "",
     `Họ và tên:     ${appointment.name}`,
+    ...(country ? [`Quốc gia:      ${country}`] : []),
     `Điện thoại:    ${appointment.phone}`,
+    ...(appointment.contactMethod
+      ? [`Liên lạc qua:  ${appointment.contactMethod}`]
+      : []),
     `Email:         ${appointment.email}`,
-    `Ngôn ngữ:      ${language}`,
     "",
     "Lời nhắn:",
     message,
@@ -202,15 +207,28 @@ export function buildAppointmentEmail(appointment: AppointmentMailInput) {
               }
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-collapse:collapse;">
                 ${detailRow("Họ và tên", name)}
+                ${
+                  country
+                    ? detailRow("Quốc gia", escapeHtml(country))
+                    : ""
+                }
                 ${detailRow(
                   "Điện thoại",
                   `<a href="${telHref(appointment.phone)}" style="color:${BRAND.burgundyMid};text-decoration:none;">${phone}</a>`
                 )}
+                ${
+                  appointment.contactMethod
+                    ? detailRow(
+                        "Liên lạc qua",
+                        escapeHtml(appointment.contactMethod)
+                      )
+                    : ""
+                }
                 ${detailRow(
                   "Email",
-                  `<a href="mailto:${email}" style="color:${BRAND.burgundyMid};text-decoration:none;">${email}</a>`
+                  `<a href="mailto:${email}" style="color:${BRAND.burgundyMid};text-decoration:none;">${email}</a>`,
+                  true
                 )}
-                ${detailRow("Ngôn ngữ", escapeHtml(language), true)}
               </table>
               <p style="margin:28px 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:${BRAND.gold};">Lời nhắn</p>
               <p style="margin:0;padding:16px 18px;background-color:${BRAND.ivory};border-left:3px solid ${BRAND.gold};font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.65;color:${hasMessage ? BRAND.charcoal : BRAND.muted};font-style:${hasMessage ? "normal" : "italic"};">${escapeHtmlMultiline(message)}</p>

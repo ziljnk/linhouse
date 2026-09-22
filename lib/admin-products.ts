@@ -2,8 +2,10 @@ import {
   parseProductName,
   productSlug,
   PRODUCT_KINDS,
+  PRODUCT_PURCHASE_OPTIONS,
   type CatalogProduct,
   type ProductKind,
+  type ProductPurchaseOption,
 } from "@/lib/catalog"
 import {
   CONTENT_LIST_FILTER_LABELS,
@@ -12,7 +14,21 @@ import {
   type ContentListFilter,
 } from "@/lib/content-status"
 
-export { PRODUCT_KINDS, type ProductKind }
+export {
+  PRODUCT_KINDS,
+  PRODUCT_PURCHASE_OPTIONS,
+  type ProductKind,
+  type ProductPurchaseOption,
+}
+
+export const PRODUCT_PURCHASE_OPTION_LABELS: Record<
+  ProductPurchaseOption,
+  string
+> = {
+  rent: "Có sẵn cho thuê",
+  "made-to-order": "May đo",
+  "ready-to-purchase": "Sẵn sàng mua",
+}
 
 export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
   gown: "Váy cưới",

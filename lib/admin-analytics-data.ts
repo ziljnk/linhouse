@@ -2,7 +2,7 @@ import "server-only"
 
 import { connection } from "next/server"
 import { and, count, desc, eq, gte } from "drizzle-orm"
-import { countryLabelVi } from "@/lib/country-labels"
+import { countryCodeHintVi, countryLabelVi } from "@/lib/country-labels"
 import { db } from "@/lib/db"
 import { analyticsPageview, blogPost, product } from "@/lib/db/schema"
 import type {
@@ -10,8 +10,6 @@ import type {
   AnalyticsRange,
   AnalyticsRankItem,
 } from "@/lib/admin-analytics"
-
-const TOP_LIMIT = 10
 
 const DEVICE_LABELS: Record<string, string> = {
   mobile: "Điện thoại",
@@ -91,8 +89,7 @@ export async function getAnalyticsOverview(
         product.slug,
         product.name
       )
-      .orderBy(desc(count()))
-      .limit(TOP_LIMIT),
+      .orderBy(desc(count())),
     db
       .select({
         entityId: analyticsPageview.entityId,
@@ -104,8 +101,7 @@ export async function getAnalyticsOverview(
       .leftJoin(blogPost, eq(blogPost.id, analyticsPageview.entityId))
       .where(and(inRange, eq(analyticsPageview.entityType, "blog_post")))
       .groupBy(analyticsPageview.entityId, blogPost.slug, blogPost.title)
-      .orderBy(desc(count()))
-      .limit(TOP_LIMIT),
+      .orderBy(desc(count())),
     db
       .select({
         countryCode: analyticsPageview.countryCode,
@@ -114,8 +110,7 @@ export async function getAnalyticsOverview(
       .from(analyticsPageview)
       .where(inRange)
       .groupBy(analyticsPageview.countryCode)
-      .orderBy(desc(count()))
-      .limit(TOP_LIMIT),
+      .orderBy(desc(count())),
     db
       .select({
         referrerHost: analyticsPageview.referrerHost,
@@ -124,8 +119,7 @@ export async function getAnalyticsOverview(
       .from(analyticsPageview)
       .where(inRange)
       .groupBy(analyticsPageview.referrerHost)
-      .orderBy(desc(count()))
-      .limit(TOP_LIMIT),
+      .orderBy(desc(count())),
     db
       .select({
         deviceType: analyticsPageview.deviceType,
@@ -177,6 +171,7 @@ export async function getAnalyticsOverview(
       key: row.countryCode,
       label: countryLabelVi(row.countryCode),
       description: row.countryCode,
+      hint: countryCodeHintVi(row.countryCode) ?? undefined,
       views: row.views,
     })),
     referrers: referrers.map((row) => ({

@@ -10,6 +10,7 @@ export function ProductBookingCta({
   brand,
   booking,
   storeAddress,
+  contactMethods,
   product,
 }: {
   label: string
@@ -17,6 +18,7 @@ export function ProductBookingCta({
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
+  contactMethods: { id: string; label: string }[]
   product: { slug: string; name: string }
 }) {
   const [open, setOpen] = useState(false)
@@ -37,6 +39,7 @@ export function ProductBookingCta({
         brand={brand}
         booking={booking}
         storeAddress={storeAddress}
+        contactMethods={contactMethods}
         product={product}
       />
     </>

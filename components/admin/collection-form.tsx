@@ -30,7 +30,7 @@ import {
 import { translateViToEnAction } from "@/app/admin/(dashboard)/translate/actions"
 import { persistUploadedImages } from "@/lib/persist-admin-images"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
-import { slugify } from "@/lib/admin-collections"
+import { nextAutoSlug, slugify } from "@/lib/slug"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { isLivePublished, type PublishIntent } from "@/lib/content-status"
 import { PublishIntentActions } from "@/components/admin/publish-intent-actions"
@@ -103,7 +103,6 @@ export function CollectionForm({
     (defaultValues?.galleryUrls ?? []).map((url) => createUploadedImageFromUrl(url))
   )
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
-  const [slugTouched, setSlugTouched] = useState(Boolean(defaultValues?.slug))
   const [year, setYear] = useState(
     defaultValues?.year ? String(defaultValues.year) : ""
   )
@@ -283,8 +282,8 @@ export function CollectionForm({
                     value={nameVi}
                     onChange={(event) => {
                       const nextName = event.target.value
+                      setSlug((current) => nextAutoSlug(nameVi, current, nextName))
                       setNameVi(nextName)
-                      if (!slugTouched) setSlug(slugify(nextName))
                     }}
                     placeholder="Spring 2026"
                     required
@@ -441,10 +440,7 @@ export function CollectionForm({
                 id="collection-slug"
                 name="slug"
                 value={slug}
-                onChange={(event) => {
-                  setSlugTouched(true)
-                  setSlug(slugify(event.target.value))
-                }}
+                onChange={(event) => setSlug(slugify(event.target.value))}
                 placeholder="spring-2026"
                 className="h-full rounded-none border-0 shadow-none focus-visible:border-0 focus-visible:ring-0"
               />

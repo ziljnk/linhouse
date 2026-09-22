@@ -3,6 +3,25 @@ import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 export const PRODUCT_KINDS = ["gown", "ao-dai"] as const
 export type ProductKind = (typeof PRODUCT_KINDS)[number]
 
+export const PRODUCT_PURCHASE_OPTIONS = [
+  "rent",
+  "made-to-order",
+  "ready-to-purchase",
+] as const
+export type ProductPurchaseOption = (typeof PRODUCT_PURCHASE_OPTIONS)[number]
+
+export function parsePurchaseOptions(value: unknown): ProductPurchaseOption[] {
+  if (!Array.isArray(value)) return []
+  const selected = new Set(
+    value.filter(
+      (item): item is ProductPurchaseOption =>
+        typeof item === "string" &&
+        (PRODUCT_PURCHASE_OPTIONS as readonly string[]).includes(item)
+    )
+  )
+  return PRODUCT_PURCHASE_OPTIONS.filter((option) => selected.has(option))
+}
+
 export const CATALOG_FILTER_KEYS = ["silhouette", "neckline", "fabric"] as const
 export const CATALOG_INITIAL_PAGE_SIZE = 20
 export const CATALOG_LOAD_MORE_SIZE = 8
@@ -31,6 +50,7 @@ export type CatalogProduct = Dictionary["catalog"][number] & {
   priceVnd?: number | null
   priceDisplay?: "amount" | "contact"
   kind?: ProductKind
+  purchaseOptions?: ProductPurchaseOption[]
 }
 
 export type CollectionItem = Dictionary["home"]["collection"]["items"][number] & {

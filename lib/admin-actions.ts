@@ -4,6 +4,9 @@ import { db } from "@/lib/db"
 import { catalogAttribute, collection } from "@/lib/db/schema"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import type { LocalizedText } from "@/lib/site-settings"
+import { slugify } from "@/lib/slug"
+
+export { slugify }
 
 export type ActionResult<T = undefined> = T extends undefined
   ? { ok: true } | { ok: false; error: string }
@@ -26,17 +29,6 @@ export async function revalidateAdmin() {
 }
 
 export const VIRTUAL_CATALOG_SLUGS = new Set(["all-gowns", "all-ao-dai"])
-
-export function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
 
 export function toLocalized(vi: string, en = ""): LocalizedText {
   return { vi: sanitizePlainText(vi), en: sanitizePlainText(en) }

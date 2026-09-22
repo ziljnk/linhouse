@@ -5,6 +5,7 @@ import Image from "next/image"
 import { X } from "lucide-react"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { submitAppointmentAction } from "@/app/[locale]/booking/actions"
+import { CountryCodeSelect } from "@/components/country-code-select"
 import {
   Dialog,
   DialogClose,
@@ -17,10 +18,23 @@ import { DateTimePicker24h } from "@/components/ui/date-time-picker"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { DEFAULT_COUNTRY_ISO } from "@/lib/country-dial-codes"
 
 const fieldClass =
   "h-11 rounded-none border-charcoal/20 bg-white shadow-none placeholder:text-muted-foreground/80 focus-visible:border-burgundy focus-visible:ring-0"
+
+export type BookingContactMethodOption = {
+  id: string
+  label: string
+}
 
 export function BookAppointmentDialog({
   open,
@@ -29,6 +43,7 @@ export function BookAppointmentDialog({
   brand,
   booking,
   storeAddress,
+  contactMethods = [],
   product,
 }: {
   open: boolean
@@ -37,6 +52,7 @@ export function BookAppointmentDialog({
   brand: Dictionary["brand"]
   booking: Dictionary["booking"]
   storeAddress: string
+  contactMethods?: BookingContactMethodOption[]
   product?: { slug: string; name: string }
 }) {
   const formRef = useRef<HTMLFormElement>(null)
@@ -44,6 +60,10 @@ export function BookAppointmentDialog({
   const [submitted, setSubmitted] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [datetime, setDatetime] = useState("")
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_ISO)
+  const [contactMethod, setContactMethod] = useState(
+    contactMethods[0]?.id ?? ""
+  )
 
   useEffect(() => {
     if (open) return
@@ -51,13 +71,20 @@ export function BookAppointmentDialog({
     setError("")
     setSubmitted(false)
     setDatetime("")
-  }, [open])
+    setCountryCode(DEFAULT_COUNTRY_ISO)
+    setContactMethod(contactMethods[0]?.id ?? "")
+  }, [open, contactMethods])
 
   useEffect(() => {
     if (!submitted) return
     const timer = window.setTimeout(() => onOpenChange(false), 2500)
     return () => window.clearTimeout(timer)
   }, [submitted, onOpenChange])
+
+  const contactMethodItems = contactMethods.map((method) => ({
+    value: method.id,
+    label: method.label,
+  }))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,29 +198,74 @@ export function BookAppointmentDialog({
                   className={fieldClass}
                 />
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="flex h-11 items-stretch border border-charcoal/20 bg-white focus-within:border-burgundy">
+                  <CountryCodeSelect
+                    locale={locale}
+                    value={countryCode}
+                    onChange={setCountryCode}
+                    searchPlaceholder={booking.searchCountry}
+                    emptyText={booking.noCountry}
+                    ariaLabel={booking.countryCode}
+                  />
+                  <span className="w-px shrink-0 self-stretch bg-charcoal/20" />
                   <Input
                     required
                     type="tel"
                     name="phone"
                     inputMode="tel"
-                    autoComplete="tel"
+                    autoComplete="tel-national"
                     maxLength={40}
                     placeholder={booking.phone}
                     aria-label={booking.phone}
-                    className={fieldClass}
-                  />
-                  <Input
-                    required
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    maxLength={254}
-                    placeholder={booking.email}
-                    aria-label={booking.email}
-                    className={fieldClass}
+                    className="h-full rounded-none border-0 bg-transparent shadow-none placeholder:text-muted-foreground/80 focus-visible:border-0 focus-visible:ring-0"
                   />
                 </div>
+                <Input
+                  required
+                  type="email"
+                  name="email"
+                  autoComplete="email"
+                  maxLength={254}
+                  placeholder={booking.email}
+                  aria-label={booking.email}
+                  className={fieldClass}
+                />
+
+                {contactMethodItems.length > 0 ? (
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold text-charcoal">
+                      {booking.contactMethod}
+                      <span className="text-burgundy"> *</span>
+                    </Label>
+                    <input type="hidden" name="contactMethod" value={contactMethod} />
+                    <Select
+                      value={contactMethod || null}
+                      onValueChange={(next) => setContactMethod(next ?? "")}
+                      items={contactMethodItems}
+                    >
+                      <SelectTrigger
+                        className={`${fieldClass} w-full justify-between px-3`}
+                        aria-label={booking.contactMethod}
+                      >
+                        <SelectValue placeholder={booking.contactMethod} />
+                      </SelectTrigger>
+                      <SelectContent
+                        alignItemWithTrigger={false}
+                        className="w-(--anchor-width)"
+                      >
+                        {contactMethodItems.map((method) => (
+                          <SelectItem
+                            key={method.value}
+                            value={method.value}
+                            label={method.label}
+                          >
+                            {method.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
 
                 <div className="mt-1 space-y-2.5">
                   <Label className="text-sm font-semibold text-charcoal">

@@ -24,16 +24,7 @@ export type AdminCollectionListItem = {
 
 export const COLLECTION_STATUS_LABELS = CONTENT_LIST_FILTER_LABELS
 
-export function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
+export { slugify } from "@/lib/slug"
 
 export function collectionSlug(item: CollectionItem) {
   return item.href.replace("/catalog/", "")

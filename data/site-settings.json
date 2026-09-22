@@ -7,6 +7,24 @@
   "notifications": {
     "emails": []
   },
+  "contactMethods": [
+    {
+      "id": "phone",
+      "label": { "vi": "Điện thoại", "en": "Phone" }
+    },
+    {
+      "id": "zalo",
+      "label": { "vi": "Zalo", "en": "Zalo" }
+    },
+    {
+      "id": "whatsapp",
+      "label": { "vi": "WhatsApp", "en": "WhatsApp" }
+    },
+    {
+      "id": "sms",
+      "label": { "vi": "Tin nhắn SMS", "en": "SMS" }
+    }
+  ],
   "address": {
     "vi": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     "en": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",

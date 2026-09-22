@@ -19,6 +19,7 @@ import { isLiveContent } from "@/lib/content-schedule"
 import {
   parseCatalogSort,
   parseProductName,
+  parsePurchaseOptions,
   productSlug,
   type CatalogFilterGroup,
   type CatalogProduct,
@@ -43,6 +44,7 @@ import {
 import { isSearchableQuery, normalizeSearchQuery } from "@/lib/search-query"
 import { getSiteSettings } from "@/lib/site-settings-store"
 import {
+  bookingContactMethods,
   localizedValue,
   type LocalizedText,
   type SiteSettings,
@@ -594,6 +596,7 @@ function mapProducts(
       kind: row.kind,
       priceVnd: row.priceVnd,
       priceDisplay: row.priceDisplay,
+      purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
       description: textOf(row.description, locale),
       seoTitle: textOf(row.seoTitle, locale),
       seoDescription: textOf(row.seoDescription, locale),
@@ -1079,6 +1082,7 @@ export function withStorefrontContact(
       zaloPhone: settings.contact.zalo || dict.social.zaloPhone,
     },
     storeAddress: address || dict.footer.company.address,
+    contactMethods: bookingContactMethods(settings, locale),
   }
 }
 

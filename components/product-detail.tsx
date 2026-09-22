@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Check } from "lucide-react"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ProductBookingCta } from "@/components/product-booking-cta"
 import { ProductFavoriteCta } from "@/components/product-favorite-cta"
@@ -66,6 +67,7 @@ export function ProductDetail({
   collections: collectionItems,
   groups,
   dict,
+  contactMethods,
 }: {
   locale: Locale
   product: CatalogProduct
@@ -73,6 +75,7 @@ export function ProductDetail({
   collections: CollectionItem[]
   groups: CatalogFilterGroup[]
   dict: Dictionary
+  contactMethods: { id: string; label: string }[]
 }) {
   const copy = dict.productPage
   const { code, title, shortName } = parseProductName(product.name)
@@ -150,6 +153,24 @@ export function ProductDetail({
               {formatProductPriceVnd(product.priceVnd)}
             </p>
           ) : null}
+          {product.purchaseOptions && product.purchaseOptions.length > 0 ? (
+            <ul className="mt-6 flex flex-col gap-2.5">
+              {product.purchaseOptions.map((option) => (
+                <li
+                  key={option}
+                  className="flex items-center gap-3 text-sm font-light tracking-[0.02em] text-charcoal"
+                >
+                  <span
+                    aria-hidden
+                    className="flex size-4 shrink-0 items-center justify-center border border-charcoal/40"
+                  >
+                    <Check className="size-3" strokeWidth={2.5} />
+                  </span>
+                  {copy.purchaseOptions[option]}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <p className="mt-8 text-sm leading-relaxed font-light text-charcoal/80">
             {lead}
@@ -201,6 +222,7 @@ export function ProductDetail({
               brand={dict.brand}
               booking={dict.booking}
               storeAddress={dict.footer.company.address}
+              contactMethods={contactMethods}
               product={{
                 slug: productSlug(product),
                 name: product.name,

@@ -68,6 +68,7 @@ export default async function ProductPage({
           productPage: storefront.productPage,
           footer: contact.footer,
         }}
+        contactMethods={contact.contactMethods}
       />
     </main>
   )

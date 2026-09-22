@@ -10,6 +10,12 @@ import { appointment, product } from "@/lib/db/schema"
 import { sendAppointmentNotification } from "@/lib/mail"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import {
+  formatInternationalPhone,
+  findCountryDialCode,
+  DEFAULT_COUNTRY_ISO,
+} from "@/lib/country-dial-codes"
+import {
+  bookingContactMethodLabel,
   bookingNotificationEmails,
   isValidEmail,
   type SiteSettings,
@@ -30,6 +36,7 @@ const ERRORS = {
     email: "Email không hợp lệ.",
     phone: "Số điện thoại không hợp lệ.",
     store: "Cửa hàng không hợp lệ.",
+    contactMethod: "Vui lòng chọn phương thức liên lạc.",
     date: "Ngày giờ hẹn không hợp lệ.",
     past: "Vui lòng chọn thời gian từ hiện tại trở đi.",
     rate: "Bạn đã gửi quá nhiều. Vui lòng thử lại sau.",
@@ -40,6 +47,7 @@ const ERRORS = {
     email: "Please enter a valid email.",
     phone: "Please enter a valid phone number.",
     store: "Please choose a valid store.",
+    contactMethod: "Please choose a contact method.",
     date: "Please choose a valid appointment date and time.",
     past: "Please choose a time from now onward.",
     rate: "Too many requests. Please try again later.",
@@ -65,6 +73,8 @@ export type AppointmentInput = {
   preferredTime: string
   message: string
   locale: Locale
+  countryCode: string
+  contactMethod: string
   product: AppointmentProduct | null
 }
 
@@ -232,13 +242,18 @@ async function resolveAppointmentProduct(
 }
 
 function appointmentRecordMessage(input: AppointmentInput) {
-  if (!input.product) return input.message
-
-  const label = input.product.code
-    ? `${input.product.name} (${input.product.code})`
-    : input.product.name
-  const productBlock = `[Sản phẩm] ${label}\n${input.product.url}`
-  return [input.message, productBlock].filter(Boolean).join("\n\n")
+  const blocks: string[] = []
+  if (input.contactMethod) {
+    blocks.push(`[Phương thức liên lạc] ${input.contactMethod}`)
+  }
+  if (input.message) blocks.push(input.message)
+  if (input.product) {
+    const label = input.product.code
+      ? `${input.product.name} (${input.product.code})`
+      : input.product.name
+    blocks.push(`[Sản phẩm] ${label}\n${input.product.url}`)
+  }
+  return blocks.join("\n\n")
 }
 
 function parseAppointmentForm(
@@ -263,9 +278,16 @@ function parseAppointmentForm(
     preferredTime: time,
     message: readField(formData, "message").slice(0, 2000),
     locale,
+    countryCode: DEFAULT_COUNTRY_ISO,
+    contactMethod: readField(formData, "contactMethod").slice(0, 40),
     productSlug: parseProductSlug(formData),
     productName: readField(formData, "productName").slice(0, 255),
   }
+
+  const country = findCountryDialCode(readField(formData, "countryCode"))
+    ?? findCountryDialCode(DEFAULT_COUNTRY_ISO)
+  data.countryCode = country?.iso ?? DEFAULT_COUNTRY_ISO
+  data.phone = formatInternationalPhone(country?.dial ?? "84", data.phone).slice(0, 40)
 
   if (
     data.name.length < 2 ||
@@ -321,6 +343,18 @@ export async function submitAppointment(
       )
     }
 
+    const allowedMethods = settings.contactMethods
+    let contactMethod = ""
+    if (allowedMethods.length > 0) {
+      contactMethod = bookingContactMethodLabel(
+        settings,
+        parsed.data.contactMethod
+      )
+      if (!contactMethod) {
+        return errorFor(parsed.data.locale, "contactMethod")
+      }
+    }
+
     const resolvedProduct = await resolveAppointmentProduct(
       parsed.data.productSlug,
       parsed.data.productName,
@@ -338,6 +372,8 @@ export async function submitAppointment(
         preferredTime: parsed.data.preferredTime,
         message: parsed.data.message,
         locale: parsed.data.locale,
+        countryCode: parsed.data.countryCode,
+        contactMethod,
         product: resolvedProduct,
       },
       settings

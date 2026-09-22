@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
-import { relations } from "drizzle-orm"
+import { relations, sql } from "drizzle-orm"
+import type { ProductPurchaseOption } from "@/lib/catalog"
 import {
   boolean,
   char,
@@ -146,6 +147,10 @@ export const product = mysqlTable(
     publishedAt: timestamptz("published_at"),
     sortOrder: int("sort_order").notNull().default(0),
     tags: json("tags").$type<string[]>().notNull().$defaultFn(() => []),
+    purchaseOptions: json("purchase_options")
+      .$type<ProductPurchaseOption[]>()
+      .notNull()
+      .default(sql`(JSON_ARRAY())`),
     seoTitle: json("seo_title").$type<LocalizedText>().notNull(),
     seoDescription: json("seo_description").$type<LocalizedText>().notNull(),
     seoKeywords: json("seo_keywords").$type<LocalizedText>().notNull(),

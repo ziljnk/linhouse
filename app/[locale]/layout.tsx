@@ -84,6 +84,7 @@ export default async function LocaleLayout({
             brand={contact.brand}
             booking={dict.booking}
             storeAddress={contact.storeAddress}
+            contactMethods={contact.contactMethods}
           />
           {children}
           <AnalyticsTracker />

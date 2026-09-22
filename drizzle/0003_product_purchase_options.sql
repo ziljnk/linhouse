@@ -1,0 +1,1 @@
+ALTER TABLE `product` ADD `purchase_options` json DEFAULT (JSON_ARRAY()) NOT NULL;

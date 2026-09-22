@@ -5,6 +5,11 @@ export type LocaleCode = "vi" | "en"
 
 export type LocalizedText = Record<LocaleCode, string>
 
+export type BookingContactMethod = {
+  id: string
+  label: LocalizedText
+}
+
 export type SiteSettings = {
   contact: {
     hotline: string
@@ -14,6 +19,7 @@ export type SiteSettings = {
   notifications: {
     emails: string[]
   }
+  contactMethods: BookingContactMethod[]
   address: {
     vi: string
     en: string
@@ -42,6 +48,12 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   notifications: {
     emails: [],
   },
+  contactMethods: [
+    { id: "phone", label: { vi: "Điện thoại", en: "Phone" } },
+    { id: "zalo", label: { vi: "Zalo", en: "Zalo" } },
+    { id: "whatsapp", label: { vi: "WhatsApp", en: "WhatsApp" } },
+    { id: "sms", label: { vi: "Tin nhắn SMS", en: "SMS" } },
+  ],
   address: {
     vi: "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     en: "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
@@ -96,6 +108,56 @@ function asLocalizedText(
   }
 }
 
+export const MAX_CONTACT_METHODS = 20
+
+function slugifyContactMethodId(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replaceAll("đ", "d")
+    .replaceAll("Đ", "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40)
+}
+
+function uniqueContactMethodId(base: string, used: Set<string>) {
+  const fallback = base || "method"
+  if (!used.has(fallback)) return fallback
+  let index = 2
+  while (used.has(`${fallback}-${index}`)) index += 1
+  return `${fallback}-${index}`
+}
+
+function asContactMethods(value: unknown): BookingContactMethod[] {
+  if (!Array.isArray(value)) return DEFAULT_SITE_SETTINGS.contactMethods
+
+  const used = new Set<string>()
+  const methods: BookingContactMethod[] = []
+
+  for (const item of value) {
+    const record = asRecord(item)
+    const label = asLocalizedText(record.label, { vi: "", en: "" })
+    const rawId = asString(record.id) || label.vi || label.en
+    const baseId = slugifyContactMethodId(rawId)
+    if (!baseId || (!label.vi && !label.en)) continue
+
+    const id = uniqueContactMethodId(baseId, used)
+    used.add(id)
+    methods.push({
+      id,
+      label: {
+        vi: label.vi || label.en,
+        en: label.en || label.vi,
+      },
+    })
+    if (methods.length >= MAX_CONTACT_METHODS) break
+  }
+
+  return methods
+}
+
 export function normalizeSiteSettings(value: unknown): SiteSettings {
   const root = asRecord(value)
   const contact = asRecord(root.contact)
@@ -118,6 +180,7 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
     notifications: {
       emails: emails.length > 0 ? emails : legacyEmails,
     },
+    contactMethods: asContactMethods(root.contactMethods),
     address: {
       vi: asString(address.vi, defaults.address.vi),
       en: asString(address.en, defaults.address.en),
@@ -186,6 +249,7 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
     notifications: {
       emails: sanitizeNotificationEmails(input.notifications?.emails ?? []),
     },
+    contactMethods: asContactMethods(input.contactMethods),
     address: {
       vi: addressVi,
       en: trim(input.address.en),
@@ -295,6 +359,27 @@ export function validateNotificationEmails(
   }
 
   return { ok: true, data }
+}
+
+export function bookingContactMethods(
+  settings: SiteSettings,
+  locale: LocaleCode
+) {
+  return settings.contactMethods
+    .map((method) => ({
+      id: method.id,
+      label: localizedValue(method.label, locale),
+    }))
+    .filter((method) => method.label)
+}
+
+export function bookingContactMethodLabel(
+  settings: SiteSettings,
+  id: string
+) {
+  const method = settings.contactMethods.find((item) => item.id === id)
+  if (!method) return ""
+  return method.label.vi || method.label.en
 }
 
 export function bookingNotificationEmails(settings: SiteSettings) {

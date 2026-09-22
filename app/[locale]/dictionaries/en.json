@@ -171,6 +171,10 @@
     "subtitle": "Experience premium service from your very first appointment",
     "fullName": "Full name",
     "phone": "Phone number",
+    "countryCode": "Country code",
+    "searchCountry": "Search country or code",
+    "noCountry": "No country found",
+    "contactMethod": "Contact method",
     "email": "Email",
     "selectStore": "Select store",
     "date": "Appointment date and time",
@@ -542,6 +546,11 @@
     "neckline": "Neckline",
     "fabric": "Fabric",
     "collection": "Collection",
+    "purchaseOptions": {
+      "rent": "Available to Rent",
+      "made-to-order": "Made to Order",
+      "ready-to-purchase": "Ready to Purchase"
+    },
     "book": "Enquire",
     "addToWishlist": "Wishlist",
     "removeFromWishlist": "Remove from wishlist",

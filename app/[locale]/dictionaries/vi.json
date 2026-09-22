@@ -171,6 +171,10 @@
     "subtitle": "Trải nghiệm dịch vụ cao cấp ngay từ buổi hẹn đầu tiên",
     "fullName": "Họ và tên",
     "phone": "Số điện thoại",
+    "countryCode": "Mã quốc gia",
+    "searchCountry": "Tìm quốc gia hoặc mã",
+    "noCountry": "Không tìm thấy quốc gia",
+    "contactMethod": "Phương thức liên lạc",
     "email": "Email",
     "selectStore": "Chọn cửa hàng",
     "date": "Ngày và giờ hẹn",
@@ -542,6 +546,11 @@
     "neckline": "Kiểu cổ",
     "fabric": "Chất liệu",
     "collection": "Bộ sưu tập",
+    "purchaseOptions": {
+      "rent": "Có sẵn cho thuê",
+      "made-to-order": "May đo",
+      "ready-to-purchase": "Sẵn sàng mua"
+    },
     "book": "Liên hệ tư vấn",
     "addToWishlist": "Yêu thích",
     "removeFromWishlist": "Bỏ yêu thích",

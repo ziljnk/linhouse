@@ -39,8 +39,8 @@ export function isBotUserAgent(userAgent: string) {
 
 export function countryFromHeaders(headers: Headers) {
   const raw = (
-    headers.get("x-vercel-ip-country") ||
     headers.get("cf-ipcountry") ||
+    headers.get("x-vercel-ip-country") ||
     headers.get("x-country-code") ||
     "XX"
   )

@@ -28,16 +28,7 @@ export const BLOG_CATEGORIES = [
   { value: "Behind the scenes", label: "Behind the scenes" },
 ] as const
 
-export function slugify(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replaceAll("đ", "d")
-    .replaceAll("Đ", "d")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-}
+export { slugify } from "@/lib/slug"
 
 type SourceBlogPost = {
   slug: string
