@@ -47,10 +47,11 @@ type ImageUploaderProps = {
   images: UploadedImage[]
   onChange: (images: UploadedImage[]) => void
   maxFiles?: number
-  aspect?: "portrait" | "landscape"
+  aspect?: "portrait" | "landscape" | "wide"
   sortHint?: string
   sizeHint?: string
   showCoverBadge?: boolean
+  dropLabel?: string
 }
 
 function formatFileSize(bytes: number) {
@@ -90,8 +91,10 @@ export function createUploadedImageFromUrl(
   }
 }
 
-function aspectClass(aspect: "portrait" | "landscape") {
-  return aspect === "landscape" ? "aspect-video" : "aspect-3/4"
+function aspectClass(aspect: "portrait" | "landscape" | "wide") {
+  if (aspect === "portrait") return "aspect-3/4"
+  if (aspect === "wide") return "aspect-4/3"
+  return "aspect-video"
 }
 
 export function ImageUploader({
@@ -102,6 +105,7 @@ export function ImageUploader({
   sortHint = "Kéo thả để sắp xếp lại. Ảnh đầu tiên sẽ là ảnh bìa.",
   sizeHint,
   showCoverBadge = true,
+  dropLabel = "Kéo thả ảnh bìa vào đây, hoặc ",
 }: ImageUploaderProps) {
   const inputId = useId()
   const dndContextId = useId()
@@ -267,6 +271,7 @@ export function ImageUploader({
       inputId={inputId}
       isDraggingFiles={isDraggingFiles}
       compact={single}
+      dropLabel={dropLabel}
       maxFiles={maxFiles}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -374,6 +379,7 @@ function Dropzone({
   inputId,
   isDraggingFiles,
   compact,
+  dropLabel,
   maxFiles,
   onDragEnter,
   onDragOver,
@@ -383,6 +389,7 @@ function Dropzone({
   inputId: string
   isDraggingFiles: boolean
   compact: boolean
+  dropLabel: string
   maxFiles: number
   onDragEnter: (event: React.DragEvent<HTMLLabelElement>) => void
   onDragOver: (event: React.DragEvent<HTMLLabelElement>) => void
@@ -408,7 +415,7 @@ function Dropzone({
       </span>
       <span className="space-y-1">
         <span className="block text-sm font-medium">
-          {compact ? "Kéo thả ảnh bìa vào đây, hoặc " : "Kéo thả nhiều ảnh vào đây, hoặc "}
+          {compact ? dropLabel : "Kéo thả nhiều ảnh vào đây, hoặc "}
           <span className="text-primary underline-offset-4 hover:underline">
             chọn tệp
           </span>
@@ -431,7 +438,7 @@ function SingleImagePreview({
 }: {
   image: UploadedImage
   inputId: string
-  aspect: "portrait" | "landscape"
+  aspect: "portrait" | "landscape" | "wide"
   onRemove: () => void
 }) {
   return (
@@ -484,7 +491,7 @@ function SortableImageTile({
 }: {
   image: UploadedImage
   index: number
-  aspect: "portrait" | "landscape"
+  aspect: "portrait" | "landscape" | "wide"
   showCoverBadge: boolean
   onRemove: (id: string) => void
 }) {
@@ -541,7 +548,7 @@ function ImageTilePreview({
   isCover,
 }: {
   image: UploadedImage
-  aspect: "portrait" | "landscape"
+  aspect: "portrait" | "landscape" | "wide"
   isCover: boolean
 }) {
   return (

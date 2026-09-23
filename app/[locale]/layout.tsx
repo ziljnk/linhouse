@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist_Mono, Montserrat } from "next/font/google"
+import { Geist_Mono, Google_Sans_Flex } from "next/font/google"
 import { notFound } from "next/navigation"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
@@ -17,9 +17,10 @@ import {
 
 export const revalidate = 60
 
-const montserrat = Montserrat({
+const googleSansFlex = Google_Sans_Flex({
   subsets: ["latin", "vietnamese"],
-  variable: "--font-montserrat",
+  variable: "--font-google-sans-flex",
+  adjustFontFallback: false,
 })
 
 const geistMono = Geist_Mono({
@@ -71,30 +72,40 @@ export default async function LocaleLayout({
       className={cn(
         "h-full",
         "antialiased",
-        montserrat.variable,
+        googleSansFlex.variable,
         geistMono.variable,
         "font-sans"
       )}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-dvh flex-col">
         <TooltipProvider>
-          <SiteHeader
-            locale={locale}
-            nav={nav}
-            brand={contact.brand}
-            booking={dict.booking}
-            storeAddress={contact.storeAddress}
-            contactMethods={contact.contactMethods}
-          />
-          {children}
-          <AnalyticsTracker />
-          <SiteFooter footer={contact.footer} />
-          <SocialFloat
-            social={contact.social}
-            email={contact.footer.company.email}
-            phone={contact.footer.company.phone}
-            zalo={contact.social.zaloPhone}
-          />
+          <div className="flex min-h-dvh flex-1 flex-col">
+            <SiteHeader
+              locale={locale}
+              nav={nav}
+              brand={contact.brand}
+              booking={dict.booking}
+              storeAddress={contact.storeAddress}
+              contactMethods={contact.contactMethods}
+            />
+            <div className="flex flex-1 flex-col">{children}</div>
+            <AnalyticsTracker />
+            <SiteFooter
+              locale={locale}
+              footer={contact.footer}
+              shippingLabel={dict.shippingPolicy.title}
+              supportLabel={dict.customerSupport.title}
+              termsLabel={dict.termsOfUse.title}
+              privacyLabel={dict.privacyPolicy.title}
+              faqLink={{ label: nav.top.faq, href: `/${locale}/about#faq` }}
+            />
+            <SocialFloat
+              social={contact.social}
+              email={contact.footer.company.email}
+              phone={contact.footer.company.phone}
+              zalo={contact.social.zaloPhone}
+            />
+          </div>
         </TooltipProvider>
       </body>
     </html>

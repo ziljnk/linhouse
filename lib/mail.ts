@@ -5,8 +5,12 @@ import {
   buildAppointmentEmail,
   type AppointmentMailInput,
 } from "@/lib/appointment-email"
+import {
+  buildSupportEmail,
+  type SupportMailInput,
+} from "@/lib/support-email"
 
-export type { AppointmentMailInput }
+export type { AppointmentMailInput, SupportMailInput }
 
 type SmtpConfig = {
   host: string
@@ -19,7 +23,10 @@ type SmtpConfig = {
 
 const globalForMail = globalThis as unknown as {
   smtpTransporter?: Transporter
+  smtpTransporterVersion?: number
 }
+
+const SMTP_TRANSPORTER_VERSION = 2
 
 function smtpConfig(): SmtpConfig | null {
   const host = process.env.SMTP_HOST?.trim()
@@ -46,7 +53,12 @@ function smtpConfig(): SmtpConfig | null {
 }
 
 function getTransporter() {
-  if (globalForMail.smtpTransporter) return globalForMail.smtpTransporter
+  if (
+    globalForMail.smtpTransporter &&
+    globalForMail.smtpTransporterVersion === SMTP_TRANSPORTER_VERSION
+  ) {
+    return globalForMail.smtpTransporter
+  }
 
   const config = smtpConfig()
   if (!config) return null
@@ -55,24 +67,36 @@ function getTransporter() {
     host: config.host,
     port: config.port,
     secure: config.secure,
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
     auth: config.user
       ? { user: config.user, pass: config.pass ?? "" }
       : undefined,
   })
 
   globalForMail.smtpTransporter = transporter
+  globalForMail.smtpTransporterVersion = SMTP_TRANSPORTER_VERSION
   return transporter
 }
 
-export async function sendAppointmentNotification(input: {
+function headerSafe(value: string) {
+  return value.replace(/[\u0000-\u001F\u007F]/g, "").trim()
+}
+
+async function deliverMail(input: {
   to: string | string[]
-  appointment: AppointmentMailInput
-}): Promise<boolean> {
+  replyTo: string
+  subject: string
+  text: string
+  html: string
+  logLabel: string
+}) {
   const config = smtpConfig()
   const transporter = getTransporter()
 
   if (!config || !transporter) {
-    console.error("SMTP is not configured; skipped appointment email")
+    console.error(`SMTP is not configured; skipped ${input.logLabel}`)
     return false
   }
 
@@ -80,23 +104,50 @@ export async function sendAppointmentNotification(input: {
     .map((email) => email.trim())
     .filter(Boolean)
 
-  if (recipients.length === 0) {
-    return false
-  }
+  if (recipients.length === 0) return false
 
   try {
-    const { subject, text, html } = buildAppointmentEmail(input.appointment)
     await transporter.sendMail({
       from: config.from,
       to: recipients,
-      replyTo: input.appointment.email.replace(/[\u0000-\u001F\u007F]/g, ""),
-      subject,
-      text,
-      html,
+      replyTo: headerSafe(input.replyTo),
+      subject: input.subject,
+      text: input.text,
+      html: input.html,
     })
     return true
   } catch (error) {
-    console.error("Failed to send appointment email", error)
+    console.error(`Failed to send ${input.logLabel}`, error)
     return false
   }
+}
+
+export async function sendAppointmentNotification(input: {
+  to: string | string[]
+  appointment: AppointmentMailInput
+}): Promise<boolean> {
+  const { subject, text, html } = buildAppointmentEmail(input.appointment)
+  return deliverMail({
+    to: input.to,
+    replyTo: input.appointment.email,
+    subject,
+    text,
+    html,
+    logLabel: "appointment email",
+  })
+}
+
+export async function sendSupportNotification(input: {
+  to: string | string[]
+  message: SupportMailInput
+}): Promise<boolean> {
+  const { subject, text, html } = buildSupportEmail(input.message)
+  return deliverMail({
+    to: input.to,
+    replyTo: input.message.email,
+    subject,
+    text,
+    html,
+    logLabel: "support email",
+  })
 }

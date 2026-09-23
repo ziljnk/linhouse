@@ -47,18 +47,18 @@ export function TestimonialSection({
           {slides.map((slide) => (
             <article
               key={slide.src}
-              className="relative aspect-3/4 w-[min(78vw,360px)] shrink-0 overflow-hidden rounded-2xl bg-ivory shadow-[0_18px_50px_rgba(43,36,32,0.18)]"
+              className="relative aspect-3/4 w-[min(62vw,240px)] shrink-0 overflow-hidden rounded-2xl bg-ivory shadow-[0_18px_50px_rgba(43,36,32,0.18)]"
             >
               <OptimizedImage
                 src={slide.src}
                 alt={slide.alt}
                 draggable={false}
-                sizes="360px"
+                sizes="240px"
                 className="h-full w-full object-cover"
               />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/50 to-transparent px-5 pt-20 pb-5 text-ivory">
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 via-black/50 to-transparent px-4 pt-14 pb-4 text-ivory">
                 {slide.title ? (
-                  <p className="font-heading text-lg font-medium tracking-wide">
+                  <p className="font-heading text-base font-medium tracking-wide">
                     {slide.title}
                   </p>
                 ) : null}

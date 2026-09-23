@@ -56,9 +56,9 @@ export function HeroSection({
       <div className="pointer-events-none absolute inset-0 bg-linear-to-r from-ivory from-12% via-ivory/70 via-42% to-transparent to-72% lg:hidden" />
 
       <div className="relative z-10 flex min-h-128 items-center px-6 py-16 pb-28 sm:min-h-144 sm:px-10 lg:min-h-[min(68vh,42rem)] lg:px-16 xl:px-24">
-        <ScrollRevealGroup className="max-w-xl" stagger={0.14} delay={0.08}>
+        <ScrollRevealGroup className="@container w-full max-w-xl" stagger={0.14} delay={0.08}>
           <ScrollRevealItem>
-            <h1 className="font-heading text-4xl leading-[1.15] font-medium text-burgundy-deep sm:text-5xl xl:text-6xl">
+            <h1 className="font-heading text-[clamp(1.125rem,7.6cqi,2.75rem)] leading-[1.15] font-medium whitespace-nowrap text-burgundy-deep">
               {copy.headline}
             </h1>
           </ScrollRevealItem>

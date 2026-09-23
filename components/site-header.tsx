@@ -61,7 +61,6 @@ function navSections(nav: Dictionary["nav"]) {
     { title: nav.collection, columns: nav.collectionColumns },
     { title: nav.bridal, columns: nav.bridalColumns },
     { title: nav.aodai, columns: nav.aodaiColumns },
-    { title: nav.services, columns: [{ title: nav.services, links: nav.serviceItems }] },
   ]
 }
 
@@ -123,6 +122,7 @@ function HeaderIcons({
     <div className="flex items-center justify-end gap-1 sm:gap-3">
       <HeaderSearch locale={locale} nav={nav} />
       <HeaderWishlist locale={locale} nav={nav} />
+      <LanguageSwitcher locale={locale} />
     </div>
   )
 }
@@ -210,6 +210,17 @@ function MobileNav({
             >
               {nav.home}
             </SheetClose>
+            <SheetClose
+              nativeButton={false}
+              render={
+                <Link
+                  href={`/${locale}/about`}
+                  className="block rounded-none py-3.5 text-[12.5px] font-medium tracking-[0.14em] text-charcoal uppercase hover:text-burgundy"
+                />
+              }
+            >
+              {nav.about}
+            </SheetClose>
           </nav>
 
           <Accordion className="px-4">
@@ -255,24 +266,6 @@ function MobileNav({
               </AccordionItem>
             ))}
           </Accordion>
-
-          <nav className="flex flex-col gap-1 border-t px-4 py-4 text-sm text-muted-foreground">
-            <SheetClose nativeButton={false} render={<Link href="#footer" className="py-1.5 hover:text-burgundy" />}>
-              {nav.top.contact}
-            </SheetClose>
-            <SheetClose nativeButton={false} render={<Link href={`/${locale}#reviews`} className="py-1.5 hover:text-burgundy" />}>
-              {nav.top.reviews}
-            </SheetClose>
-            <SheetClose nativeButton={false} render={<Link href="#footer" className="py-1.5 hover:text-burgundy" />}>
-              {nav.top.shipping}
-            </SheetClose>
-            <SheetClose nativeButton={false} render={<Link href="#footer" className="py-1.5 hover:text-burgundy" />}>
-              {nav.top.faq}
-            </SheetClose>
-            <SheetClose nativeButton={false} render={<Link href="#footer" className="py-1.5 hover:text-burgundy" />}>
-              {nav.top.services}
-            </SheetClose>
-          </nav>
         </div>
 
         <div className="border-t px-4 py-3">
@@ -366,34 +359,6 @@ export function SiteHeader({
     <header className="sticky top-0 z-40 w-full border-b bg-background [overflow-anchor:none]">
       <div
         className={cn(
-          "hidden overflow-hidden border-b text-xs tracking-wide text-muted-foreground transition-[max-height,opacity] duration-300 lg:block",
-          collapsed ? "max-h-0 border-transparent opacity-0" : "max-h-12 opacity-100"
-        )}
-      >
-        <div className="flex items-center justify-between px-6 py-2">
-          <nav className="flex items-center gap-4">
-            <Link href="#footer" className="hover:text-burgundy">
-              {nav.top.contact}
-            </Link>
-            <Link href={`/${locale}#reviews`} className="hover:text-burgundy">
-              {nav.top.reviews}
-            </Link>
-            <Link href="#footer" className="hover:text-burgundy">
-              {nav.top.shipping}
-            </Link>
-            <Link href="#footer" className="hover:text-burgundy">
-              {nav.top.faq}
-            </Link>
-            <Link href="#footer" className="hover:text-burgundy">
-              {nav.top.services}
-            </Link>
-          </nav>
-          <LanguageSwitcher locale={locale} />
-        </div>
-      </div>
-
-      <div
-        className={cn(
           "hidden overflow-hidden text-center transition-[max-height,padding,opacity] duration-300 lg:block",
           collapsed ? "max-h-0 py-0 opacity-0" : "max-h-56 px-6 py-5 opacity-100"
         )}
@@ -467,6 +432,14 @@ export function SiteHeader({
                   className={triggerClass}
                 >
                   {nav.home}
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  render={<Link href={`/${locale}/about`} />}
+                  className={triggerClass}
+                >
+                  {nav.about}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               {navSections(nav).map((section) => (

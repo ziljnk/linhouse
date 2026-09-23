@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 import {
   Bell,
   Images,
+  FileText,
   LayoutDashboard,
   Library,
   LogOut,
@@ -37,6 +38,7 @@ const navItems = [
   { title: "Danh mục", href: "/admin/catalog", icon: Library },
   { title: "Câu chuyện cô dâu", href: "/admin/testimonials", icon: Quote },
   { title: "Blog", href: "/admin/blog", icon: Newspaper },
+  { title: "Nội dung", href: "/admin/content", icon: FileText },
 ]
 
 const systemItems = [

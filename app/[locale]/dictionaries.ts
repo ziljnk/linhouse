@@ -9,10 +9,16 @@ export type Locale = keyof typeof dictionaries
  
 export const hasLocale = (locale: string): locale is Locale =>
   locale in dictionaries
- 
-export const getDictionary = async (locale: Locale) => dictionaries[locale]()
 
-export type Dictionary = Awaited<ReturnType<typeof getDictionary>>
+type DictionaryJson = Awaited<ReturnType<(typeof dictionaries)[Locale]>>
+
+export type Dictionary = DictionaryJson
+
+export const getDictionary = async (locale: Locale): Promise<Dictionary> => {
+  const base = await dictionaries[locale]()
+  const { applyStoredSiteContent } = await import("@/lib/site-content")
+  return applyStoredSiteContent(base, locale)
+}
 
 export function findCategoryLabel(dict: Dictionary, slug: string) {
   const href = `/catalog/${slug}`

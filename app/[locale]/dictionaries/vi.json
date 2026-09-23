@@ -9,6 +9,7 @@
     "bookPlaceholder": "Để lại SĐT",
     "bookSubmit": "Đặt lịch hẹn",
     "home": "Trang chủ",
+    "about": "Giới thiệu",
     "newIn": "Khám phá",
     "collection": "Collection",
     "bridal": "Váy cưới Bridal",
@@ -535,6 +536,8 @@
     "sortNameDesc": "Tên Z–A",
     "empty": "Không có mẫu váy phù hợp với bộ lọc.",
     "loadMore": "Xem thêm",
+    "readMore": "Xem thêm",
+    "showLess": "Thu gọn",
     "otherCollections": "Bộ sưu tập khác",
     "prevImage": "Ảnh trước",
     "nextImage": "Ảnh tiếp"
@@ -569,6 +572,159 @@
     "home": "Trang chủ",
     "thumbnail": "Xem ảnh {n}"
   },
+  "aboutPage": {
+    "metaTitle": "Về chúng tôi",
+    "metaDescription": "LINHouse thiết kế và hoàn thiện váy cưới big size cùng áo dài bằng tay tại TP. Hồ Chí Minh — dựng quanh cô dâu, không quanh một size mẫu.",
+    "title": "Về chúng tôi",
+    "heroAlt": "Cô dâu LINHouse trong ánh sáng atelier",
+    "eyebrow": "Atelier",
+    "headline": "Từ buổi thử váy đầu tiên đến chiếc váy giống chính bạn.",
+    "body": "LINHouse dành cho những cô dâu muốn sự hiện diện của couture mà không phải vừa một size mẫu. Chúng tôi thiết kế, cắt và hoàn thiện váy cưới cùng áo dài tại atelier ở TP. Hồ Chí Minh — cho lễ đường, cho ảnh, và cho khoảnh khắc cô ấy nhìn thấy mình trong chiếc váy.",
+    "valuesCta": "Giá trị của chúng tôi",
+    "statement": "Tay nghề. Cô dâu. Atelier.",
+    "pillarsImageAlt": "Ren hoàn thiện thủ công trên váy LINHouse",
+    "pillars": [
+      {
+        "label": "Mục đích",
+        "title": "Chiếc váy được dựng quanh cô ấy.",
+        "body": "Chúng tôi bắt đầu từ tỷ lệ của cô ấy, buổi lễ, và cách cô ấy muốn di chuyển. Chiếc váy đi theo."
+      },
+      {
+        "label": "Tay nghề",
+        "title": "Từng đường chỉ đều có chủ đích.",
+        "body": "Dáng váy, chất liệu và độ phủ được chốt trong cuộc trò chuyện, rồi cắt và hoàn thiện bằng tay."
+      },
+      {
+        "label": "Lời hứa",
+        "title": "Được chăm sóc từ đầu đến cuối.",
+        "body": "Số đo, ảnh tiến độ và giao hàng toàn cầu đều nằm trong tin nhắn — không gì bị sót trong một cuộc gọi vội."
+      }
+    ],
+    "journeyTitle": "Hành trình\nvẫn đang chuyển động.",
+    "milestones": [
+      {
+        "year": "2021",
+        "title": "Được lắng nghe trước mũi cắt đầu tiên",
+        "body": "WhatsApp, Zalo hoặc Messenger. Dáng váy, chất liệu và mọi thay đổi được xác nhận bằng ảnh, theo nhịp của cô ấy.",
+        "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "Tay áo ren và nhẫn cưới"
+      },
+      {
+        "year": "2023",
+        "title": "Áo dài, cạnh váy cưới",
+        "body": "Áo dài lễ, cắt với cùng sự chăm chút cho tỷ lệ, độ phủ và sự hiện diện.",
+        "image": "https://images.unsplash.com/photo-1591604466107-ec97de577aff?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "Cô dâu trong váy ren"
+      },
+      {
+        "year": "2024",
+        "title": "Sau lễ đường",
+        "body": "Dòng After Party: chiếc váy thứ hai cho những giờ sau lối đi, vẫn may theo cô ấy.",
+        "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "Cặp đôi sau lễ cưới"
+      },
+      {
+        "year": "2025",
+        "title": "Silk Route",
+        "body": "Những đường cột trầm hơn. Lụa được chọn trong cuộc trò chuyện, hoàn thiện bằng tay tại TP. Hồ Chí Minh.",
+        "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "Cô dâu trong váy lụa ôm dáng"
+      },
+      {
+        "year": "2026",
+        "title": "Mùa xuân, vẫn chuyển động",
+        "body": "Dáng mới, độ phồng mới, và cùng một nguyên tắc: chiếc váy được dựng quanh cô dâu, không quanh một size mẫu.",
+        "image": "/hero/bridal.webp",
+        "imageAlt": "Váy ball gown mùa xuân LINHouse"
+      }
+    ],
+    "faq": {
+      "eyebrow": "Câu hỏi thường gặp",
+      "title": "Có câu hỏi?\nChúng tôi có câu trả lời.",
+      "items": [
+        {
+          "question": "Váy LINHouse được may cho ai?",
+          "answer": "Chúng tôi bắt đầu từ cô dâu big size. Mỗi váy cưới và áo dài được cắt theo tỷ lệ của cô ấy, buổi lễ, và cách cô ấy muốn di chuyển — không theo một size mẫu."
+        },
+        {
+          "question": "Tôi có thể đặt váy khi không đến atelier không?",
+          "answer": "Có. Chúng tôi gửi hướng dẫn tự đo kèm ảnh. Dáng váy, chất liệu, độ phủ và mọi thay đổi được xác nhận qua WhatsApp, Zalo hoặc Messenger, bằng tin nhắn."
+        },
+        {
+          "question": "Buổi thử váy diễn ra ở đâu?",
+          "answer": "Tại atelier 45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, TP. Hồ Chí Minh. Nếu bạn ở nước ngoài, buổi thử diễn ra qua ảnh và tin nhắn, theo nhịp của bạn."
+        },
+        {
+          "question": "LINHouse có may áo dài không?",
+          "answer": "Có. Áo dài lễ được cắt tại cùng atelier, với cùng sự chăm chút cho tỷ lệ, độ phủ và sự hiện diện."
+        },
+        {
+          "question": "Váy được giao như thế nào?",
+          "answer": "Váy được cắt và hoàn thiện bằng tay tại TP. Hồ Chí Minh. Chúng tôi gửi ảnh tiến độ, rồi đóng gói, bảo hiểm và theo dõi đến tận cửa, giấy tờ hải quan do chúng tôi lo liệu."
+        },
+        {
+          "question": "Làm sao để đặt lịch tư vấn?",
+          "answer": "Để lại số điện thoại, chuyên viên sẽ gọi để đặt lịch thử váy hoặc tư vấn thiết kế. Bạn cũng có thể gọi 0902 678 114."
+        }
+      ]
+    }
+  },
+  "shippingPolicy": {
+    "metaTitle": "Chính sách giao hàng",
+    "metaDescription": "LINHouse giao váy cưới và áo dài trong nước và quốc tế từ atelier tại TP. Hồ Chí Minh — đóng gói, bảo hiểm và theo dõi đến tận nơi.",
+    "title": "Chính sách giao hàng",
+    "intro": "Mỗi chiếc váy được hoàn thiện tại atelier LINHouse ở TP. Hồ Chí Minh, rồi đóng gói và gửi đến bạn. Dưới đây là cách chúng tôi giao hàng.",
+    "sections": [
+      {
+        "title": "Phạm vi giao hàng",
+        "body": "Chúng tôi giao váy cưới và áo dài trên toàn Việt Nam và ra nước ngoài. Đơn quốc tế được chuẩn bị kèm giấy tờ hải quan do LINHouse lo liệu."
+      },
+      {
+        "title": "Thời gian giao hàng",
+        "body": "Thời gian tính từ khi váy hoàn thiện và bạn xác nhận giao hàng. Nội thành TP. Hồ Chí Minh thường từ 1–3 ngày làm việc. Các tỉnh thành khác thường từ 2–5 ngày làm việc. Đơn quốc tế thường từ 5–15 ngày làm việc, tùy quốc gia và thủ tục hải quan. Mùa lễ và mùa cưới có thể cần thêm thời gian — chúng tôi báo trước khi gửi."
+      },
+      {
+        "title": "Phí vận chuyển",
+        "body": "Phí được báo rõ trước khi gửi, theo địa chỉ và hình thức vận chuyển. Đơn quốc tế có thể phát sinh thuế hoặc phí hải quan tại nước nhận; khoản này do người nhận chi trả nếu phát sinh."
+      },
+      {
+        "title": "Đóng gói, bảo hiểm và theo dõi",
+        "body": "Váy được gấp và đóng trong hộp cứng, có bảo hiểm theo giá trị đơn. Sau khi gửi, bạn nhận mã theo dõi để xem hành trình đến tận cửa."
+      },
+      {
+        "title": "Khi nhận hàng",
+        "body": "Vui lòng kiểm tra kiện khi nhận. Nếu hộp móp, ướt hoặc thiếu phụ kiện, chụp ảnh và nhắn cho chúng tôi trong 48 giờ qua hotline hoặc email trên website. Chúng tôi xử lý cùng đơn vị vận chuyển."
+      }
+    ]
+  },
+  "customerSupport": {
+    "metaTitle": "Hỗ trợ khách hàng",
+    "metaDescription": "Gửi tin nhắn cho LINHouse. Atelier sẽ phản hồi qua email.",
+    "title": "Hỗ trợ khách hàng",
+    "intro": "Để lại lời nhắn. Chúng tôi sẽ trả lời qua email bạn đã nhập.",
+    "name": "Họ và tên",
+    "email": "Email",
+    "message": "Nội dung",
+    "submit": "Gửi",
+    "sending": "Đang gửi",
+    "success": "Chúng tôi đã nhận tin nhắn và sẽ phản hồi qua email.",
+    "error": "Không gửi được. Vui lòng thử lại.",
+    "required": "Vui lòng điền đầy đủ thông tin.",
+    "invalidEmail": "Email không hợp lệ.",
+    "rateLimit": "Bạn đã gửi quá nhiều. Vui lòng thử lại sau."
+  },
+  "termsOfUse": {
+    "metaTitle": "Điều khoản sử dụng",
+    "metaDescription": "Điều khoản sử dụng website và dịch vụ may đo, cho thuê và mua váy cưới, áo dài của LINHouse.",
+    "title": "Điều khoản sử dụng",
+    "body": "<h2>Phạm vi áp dụng</h2><p>Các điều khoản này áp dụng khi bạn truy cập website LINHouse, đặt lịch tư vấn, thuê hoặc đặt may váy cưới và áo dài. Việc tiếp tục sử dụng website nghĩa là bạn đồng ý với các điều khoản này.</p><h2>Dịch vụ</h2><p>LINHouse thiết kế, may đo, cho thuê và bán váy cưới cùng áo dài tại atelier ở TP. Hồ Chí Minh, và giao trong nước cũng như quốc tế. Ảnh, mô tả và thời gian trên website để bạn tham khảo. Mẫu, số đo, chất liệu và ngày hoàn thiện được chốt khi tư vấn.</p><h2>Đặt hàng và thanh toán</h2><p>Đơn được xác nhận sau khi hai bên thống nhất mẫu, số đo, thời gian và cách thanh toán. Giá có thể thay đổi theo chất liệu, chỉnh sửa và phí vận chuyển. Khoản đã thanh toán được ghi trên biên nhận LINHouse gửi cho bạn.</p><h2>Thay đổi và hủy</h2><p>Váy đã cắt vải hoặc đang may có thể không hủy toàn bộ. Nếu có khoản được giữ lại, chúng tôi báo trước khi bạn xác nhận hủy hoặc đổi mẫu.</p><h2>Giao nhận</h2><p>Thời gian giao tính từ khi váy hoàn thiện và bạn xác nhận địa chỉ. Bạn vui lòng kiểm tra kiện khi nhận và báo cho chúng tôi trong 48 giờ nếu hộp móp, ướt hoặc thiếu phụ kiện.</p><h2>Nội dung trên website</h2><p>Ảnh, mẫu thiết kế và bài viết thuộc LINHouse. Không sao chép để kinh doanh khi chưa có chấp thuận bằng văn bản.</p><h2>Liên hệ</h2><p>Câu hỏi về điều khoản, liên hệ hotline 0902 678 114 hoặc email info@linhouse.com.vn. Địa chỉ atelier: 45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, TP. Hồ Chí Minh.</p>"
+  },
+  "privacyPolicy": {
+    "metaTitle": "Chính sách bảo mật",
+    "metaDescription": "Cách LINHouse thu thập, dùng và bảo vệ thông tin cá nhân khi bạn đặt lịch, nhắn tin hoặc đặt váy.",
+    "title": "Chính sách bảo mật",
+    "body": "<h2>Thông tin chúng tôi nhận</h2><p>Khi bạn đặt lịch, gửi tin nhắn hoặc đặt váy, chúng tôi có thể nhận họ tên, số điện thoại, email, địa chỉ giao hàng, số đo và nội dung bạn gửi.</p><h2>Chúng tôi dùng thông tin để làm gì</h2><p>Thông tin dùng để tư vấn, may đo, giao hàng, chăm sóc sau khi nhận váy và trả lời yêu cầu của bạn. LINHouse không bán dữ liệu cá nhân.</p><h2>Chia sẻ và lưu trữ</h2><p>Chúng tôi chỉ chia sẻ thông tin với đơn vị vận chuyển hoặc đối tác cần thiết để giao váy, và khi pháp luật yêu cầu. Dữ liệu được lưu để hoàn tất đơn và nghĩa vụ lưu trữ theo quy định.</p><h2>Quyền của bạn</h2><p>Bạn có thể yêu cầu xem, sửa hoặc xóa thông tin cá nhân qua hotline hoặc email trên website. Một số thông tin có thể được giữ nếu cần cho đơn đã phát sinh hoặc nghĩa vụ pháp lý.</p><h2>Liên hệ</h2><p>LINHouse, 45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, TP. Hồ Chí Minh. Hotline 0902 678 114. Email info@linhouse.com.vn.</p>"
+  },
   "footer": {
     "company": {
       "title": "Thông tin công ty",
@@ -591,17 +747,10 @@
     },
     "customerService": "Dịch vụ khách hàng",
     "customerServiceLinks": [
-      "Thông tin hỗ trợ khách hàng",
-      "Hướng dẫn chọn size",
-      "Chính sách bảo hành",
-      "Chính sách thanh toán"
-    ],
-    "support": "Hỗ trợ khách hàng",
-    "supportLinks": [
+      "Chính sách giao hàng",
       "Hỗ trợ khách hàng",
       "Hướng dẫn mua hàng",
-      "Vận chuyển",
-      "Chính sách đổi trả"
+      "Vận chuyển"
     ],
     "legal": "Điều khoản - Chính sách",
     "legalLinks": ["Điều khoản sử dụng", "Chính sách bảo mật"],

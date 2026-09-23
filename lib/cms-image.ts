@@ -5,6 +5,7 @@ export const CMS_IMAGE_TYPES = [
   "collections",
   "blog",
   "testimonials",
+  "about",
 ] as const
 
 export type CmsImageVariantWidth = (typeof CMS_IMAGE_VARIANT_WIDTHS)[number]

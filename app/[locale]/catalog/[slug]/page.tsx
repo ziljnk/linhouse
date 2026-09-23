@@ -70,7 +70,11 @@ export default async function CatalogPage({
 
     return (
       <main className="overflow-x-clip bg-ivory">
-        <CollectionHero collection={collection} />
+        <CollectionHero
+          collection={collection}
+          readMoreLabel={dict.catalogPage.readMore}
+          showLessLabel={dict.catalogPage.showLess}
+        />
         {galleryItems.length > 0 ? (
           <CollectionGallery
             items={galleryItems}

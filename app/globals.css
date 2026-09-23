@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-montserrat);
+  --font-sans: var(--font-google-sans-flex, var(--font-montserrat));
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-montserrat);
+  --font-heading: var(--font-google-sans-flex, var(--font-montserrat));
   --color-burgundy: var(--burgundy);
   --color-burgundy-deep: var(--burgundy-deep);
   --color-ivory: var(--ivory);

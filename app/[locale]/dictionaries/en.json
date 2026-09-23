@@ -9,6 +9,7 @@
     "bookPlaceholder": "Phone number",
     "bookSubmit": "Book now",
     "home": "Home",
+    "about": "About",
     "newIn": "Discover",
     "collection": "Collection",
     "bridal": "Bridal gowns",
@@ -535,6 +536,8 @@
     "sortNameDesc": "Name: Z–A",
     "empty": "No gowns match these filters.",
     "loadMore": "Load more",
+    "readMore": "Read more",
+    "showLess": "Show less",
     "otherCollections": "Other collections",
     "prevImage": "Previous image",
     "nextImage": "Next image"
@@ -569,6 +572,159 @@
     "home": "Home",
     "thumbnail": "View image {n}"
   },
+  "aboutPage": {
+    "metaTitle": "About us",
+    "metaDescription": "LINHouse designs and finishes plus-size wedding gowns and áo dài by hand in Ho Chi Minh City — built around the bride, not a sample size.",
+    "title": "About us",
+    "heroAlt": "LINHouse bride in the atelier light",
+    "eyebrow": "Atelier",
+    "headline": "From the first fitting to a gown that feels like you.",
+    "body": "LINHouse is for brides who want couture presence without being asked to fit a sample size. We design, cut, and finish wedding gowns and áo dài in our Ho Chi Minh City atelier — for the ceremony, the portraits, and the moment she finally sees herself in the dress.",
+    "valuesCta": "Our values",
+    "statement": "Craft. Bride. Atelier.",
+    "pillarsImageAlt": "Hand-finished lace on a LINHouse gown",
+    "pillars": [
+      {
+        "label": "Purpose",
+        "title": "A gown built around her.",
+        "body": "We start with her proportions, her ceremony, and the way she wants to move. The dress follows."
+      },
+      {
+        "label": "Craft",
+        "title": "Every seam is considered.",
+        "body": "Silhouette, fabric, and coverage are decided in conversation, then cut and finished by hand."
+      },
+      {
+        "label": "Promise",
+        "title": "Looked after, start to finish.",
+        "body": "Measurements, progress photos, and worldwide shipping stay in writing — so nothing is lost in a rushed call."
+      }
+    ],
+    "journeyTitle": "Our journey\nin motion.",
+    "milestones": [
+      {
+        "year": "2021",
+        "title": "Heard before the first cut",
+        "body": "WhatsApp, Zalo, or Messenger. Silhouette, fabric, and every change confirmed in photos, at her pace.",
+        "image": "https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "Lace sleeve and a wedding ring"
+      },
+      {
+        "year": "2023",
+        "title": "Áo dài, beside the gown",
+        "body": "Ceremonial áo dài, cut with the same attention to proportion, coverage, and presence.",
+        "image": "https://images.unsplash.com/photo-1591604466107-ec97de577aff?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "A bride in a lace gown"
+      },
+      {
+        "year": "2024",
+        "title": "After the ceremony",
+        "body": "The After Party line: a second dress for the hours after the aisle, still cut to her.",
+        "image": "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "A couple after the ceremony"
+      },
+      {
+        "year": "2025",
+        "title": "Silk Route",
+        "body": "Quieter columns. Silk chosen in conversation, finished by hand in Ho Chi Minh City.",
+        "image": "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?auto=format&fit=crop&w=1400&q=80",
+        "imageAlt": "A bride in a silk column gown"
+      },
+      {
+        "year": "2026",
+        "title": "Spring, still moving",
+        "body": "New volume, fresh silhouettes, and the same rule: the gown is built around the bride, not a sample size.",
+        "image": "/hero/bridal.webp",
+        "imageAlt": "LINHouse spring ball gown"
+      }
+    ],
+    "faq": {
+      "eyebrow": "Frequently asked questions",
+      "title": "Have questions?\nWe have answers.",
+      "items": [
+        {
+          "question": "Who is a LINHouse gown made for?",
+          "answer": "We start with plus-size brides. Every gown and áo dài is cut around her proportions, her ceremony, and the way she wants to move — not around a sample size."
+        },
+        {
+          "question": "Can I order without visiting the atelier?",
+          "answer": "Yes. We send a simple photo guide for measurements. Silhouette, fabric, coverage, and any changes are confirmed over WhatsApp, Zalo, or Messenger, in writing."
+        },
+        {
+          "question": "Where do fittings happen?",
+          "answer": "In person at 45 Nguyen Trong Tuyen, Phu Nhuan, Ho Chi Minh City. If you are abroad, the fitting stays in photos and messages, at your pace."
+        },
+        {
+          "question": "Do you make áo dài as well as wedding gowns?",
+          "answer": "Yes. Ceremonial áo dài is cut in the same atelier, with the same attention to proportion, coverage, and presence."
+        },
+        {
+          "question": "How does shipping work?",
+          "answer": "The gown is cut and finished by hand in Ho Chi Minh City. We send progress photos, then pack, insure, and track it to your door, with customs paperwork handled by us."
+        },
+        {
+          "question": "How do I book a consultation?",
+          "answer": "Leave your phone number and a specialist will call to book a fitting or a design consultation. You can also reach us on 0902 678 114."
+        }
+      ]
+    }
+  },
+  "shippingPolicy": {
+    "metaTitle": "Shipping policy",
+    "metaDescription": "LINHouse ships wedding gowns and áo dài across Vietnam and worldwide from our Ho Chi Minh City atelier — packed, insured, and tracked to your door.",
+    "title": "Shipping policy",
+    "intro": "Each gown is finished at the LINHouse atelier in Ho Chi Minh City, then packed and sent to you. This is how delivery works.",
+    "sections": [
+      {
+        "title": "Where we ship",
+        "body": "We deliver wedding gowns and áo dài throughout Vietnam and internationally. International orders include customs paperwork prepared by LINHouse."
+      },
+      {
+        "title": "Delivery times",
+        "body": "Timing starts once the gown is finished and you confirm shipment. Within Ho Chi Minh City, delivery is usually 1–3 business days. Other provinces are usually 2–5 business days. International orders are usually 5–15 business days, depending on the country and customs. Holiday and wedding seasons can take longer — we tell you before the parcel leaves."
+      },
+      {
+        "title": "Shipping fees",
+        "body": "The fee is confirmed before we ship, based on the address and the shipping method. International orders may incur import tax or customs charges in the destination country; those charges are paid by the recipient if they arise."
+      },
+      {
+        "title": "Packing, insurance, and tracking",
+        "body": "The gown is folded and packed in a rigid box, insured for the order value. After dispatch you receive a tracking number so you can follow it to your door."
+      },
+      {
+        "title": "When the parcel arrives",
+        "body": "Please check the parcel on delivery. If the box is crushed, wet, or missing accessories, photograph it and message us within 48 hours on the hotline or email listed on the site. We handle it with the carrier."
+      }
+    ]
+  },
+  "customerSupport": {
+    "metaTitle": "Customer support",
+    "metaDescription": "Send a message to LINHouse. The atelier replies by email.",
+    "title": "Customer support",
+    "intro": "Leave a message. We will reply to the email you enter.",
+    "name": "Full name",
+    "email": "Email",
+    "message": "Message",
+    "submit": "Send",
+    "sending": "Sending",
+    "success": "We received your message and will reply by email.",
+    "error": "Could not send your message. Please try again.",
+    "required": "Please fill in all required fields.",
+    "invalidEmail": "Please enter a valid email.",
+    "rateLimit": "Too many requests. Please try again later."
+  },
+  "termsOfUse": {
+    "metaTitle": "Terms of use",
+    "metaDescription": "Terms for using the LINHouse website and for bridal gown and áo dài orders, rentals, and made-to-measure work.",
+    "title": "Terms of use",
+    "body": "<h2>Scope</h2><p>These terms apply when you visit the LINHouse website, book a consultation, rent a gown, or order a made-to-measure bridal gown or áo dài. Continuing to use the site means you accept these terms.</p><h2>Services</h2><p>LINHouse designs, makes, rents, and sells bridal gowns and áo dài from our Ho Chi Minh City atelier, and ships within Vietnam and abroad. Photos, descriptions, and timings on the site are a guide. The design, measurements, fabric, and completion date are confirmed during consultation.</p><h2>Orders and payment</h2><p>An order is confirmed once both sides agree the design, measurements, timing, and payment. The price can change with fabric, alterations, and shipping. Amounts paid are recorded on the receipt LINHouse sends you.</p><h2>Changes and cancellation</h2><p>A gown already cut or in production may not be cancelled in full. If any amount is retained, we tell you before you confirm a cancellation or a design change.</p><h2>Delivery</h2><p>Delivery time starts once the gown is finished and you confirm the address. Please check the parcel on arrival and tell us within 48 hours if the box is crushed, wet, or missing pieces.</p><h2>Site content</h2><p>Photographs, designs, and writing on the site belong to LINHouse. Do not copy them for commercial use without written consent.</p><h2>Contact</h2><p>Questions about these terms: hotline 0902 678 114 or info@linhouse.com.vn. Atelier: 45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City.</p>"
+  },
+  "privacyPolicy": {
+    "metaTitle": "Privacy policy",
+    "metaDescription": "How LINHouse collects, uses, and protects personal information when you book, message us, or order a gown.",
+    "title": "Privacy policy",
+    "body": "<h2>Information we receive</h2><p>When you book an appointment, send a message, or order a gown, we may receive your name, phone number, email, delivery address, measurements, and the message you send.</p><h2>How we use it</h2><p>We use this information to advise you, make or rent the gown, ship it, follow up after delivery, and answer your requests. LINHouse does not sell personal data.</p><h2>Sharing and storage</h2><p>We share information only with a carrier or partner needed to deliver the gown, and when the law requires it. Data is kept to complete the order and to meet record-keeping duties.</p><h2>Your choices</h2><p>You can ask to see, correct, or delete your personal information through the hotline or email on the site. Some details may be kept when an order already exists or the law requires it.</p><h2>Contact</h2><p>LINHouse, 45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City. Hotline 0902 678 114. Email info@linhouse.com.vn.</p>"
+  },
   "footer": {
     "company": {
       "title": "Company",
@@ -591,17 +747,10 @@
     },
     "customerService": "Customer service",
     "customerServiceLinks": [
-      "Customer support information",
-      "Size guide",
-      "Warranty policy",
-      "Payment policy"
-    ],
-    "support": "Help",
-    "supportLinks": [
+      "Shipping policy",
       "Customer support",
       "How to order",
-      "Shipping",
-      "Returns"
+      "Shipping"
     ],
     "legal": "Terms & policies",
     "legalLinks": ["Terms of use", "Privacy policy"],

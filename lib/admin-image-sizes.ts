@@ -9,5 +9,7 @@ export const ADMIN_IMAGE_SIZE_HINTS = {
   blogCover:
     "Tỷ lệ 3:4. Nên dùng 1600×2134 px (tối thiểu 1200×1600). Ảnh bìa hiện dạng dọc trên danh sách bài viết, trang chủ và trang chi tiết.",
   testimonial:
-    "Tỷ lệ 3:4. Nên dùng 1200×1600 px (tối thiểu 900×1200) để nét trên màn hình retina. Ảnh hiện tối đa 360px trên slider trang chủ.",
+    "Tỷ lệ 3:4. Nên dùng 1200×1600 px (tối thiểu 900×1200) để nét trên màn hình retina. Ảnh hiện tối đa 240px trên slider trang chủ.",
+  aboutMilestone:
+    "Tỷ lệ 4:3. Nên dùng 1600×1200 px (tối thiểu 1200×900). Ảnh hiện lớn cạnh nội dung mốc năm trên trang giới thiệu.",
 } as const

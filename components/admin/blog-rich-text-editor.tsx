@@ -188,11 +188,17 @@ function EditorToolbar({ editor }: { editor: Editor }) {
 }
 
 export function BlogRichTextEditor({
+  id,
   initialContent = "",
   onChange,
+  placeholder = "Viết nội dung bài viết...",
+  label = "Nội dung bài viết",
 }: {
+  id?: string
   initialContent?: string
   onChange?: (html: string) => void
+  placeholder?: string
+  label?: string
 }) {
   const editor = useEditor({
     immediatelyRender: false,
@@ -206,14 +212,15 @@ export function BlogRichTextEditor({
         },
       }),
       Placeholder.configure({
-        placeholder: "Viết nội dung bài viết...",
+        placeholder,
       }),
     ],
     content: initialContent,
     editorProps: {
       attributes: {
         class: EDITOR_CLASS,
-        "aria-label": "Nội dung bài viết",
+        "aria-label": label,
+        ...(id ? { id } : {}),
       },
     },
     onUpdate: ({ editor: instance }) => {

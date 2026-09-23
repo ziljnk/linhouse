@@ -29,6 +29,13 @@
       "when": 1790061573842,
       "tag": "0003_product_purchase_options",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1790150000000,
+      "tag": "0004_about_media_type",
+      "breakpoints": true
     }
   ]
 }
