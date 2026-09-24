@@ -9,7 +9,7 @@ export function ShippingPolicyPage({ copy }: { copy: Dictionary["shippingPolicy"
             {copy.title}
           </h1>
           {copy.intro ? (
-            <p className="mx-auto mt-6 max-w-2xl text-center text-sm leading-relaxed font-light text-charcoal/70 sm:text-[15px]">
+            <p className="mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
               {copy.intro}
             </p>
           ) : null}
@@ -26,7 +26,7 @@ export function ShippingPolicyPage({ copy }: { copy: Dictionary["shippingPolicy"
                     </h2>
                   ) : null}
                   {section.body ? (
-                    <p className="mt-3 text-sm leading-relaxed font-light whitespace-pre-line text-charcoal/75 sm:text-[15px]">
+                    <p className="mt-3 text-base leading-relaxed font-light whitespace-pre-line text-charcoal/75 sm:text-lg">
                       {section.body}
                     </p>
                   ) : null}

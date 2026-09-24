@@ -15,7 +15,7 @@ export function CustomerSupportPage({
           <h1 className="text-center font-heading text-3xl font-medium tracking-[0.16em] text-burgundy-deep uppercase sm:text-4xl">
             {copy.title}
           </h1>
-          <p className="mx-auto mt-6 max-w-lg text-center text-sm leading-relaxed font-light text-charcoal/70 sm:text-[15px]">
+          <p className="mx-auto mt-6 max-w-lg text-center text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
             {copy.intro}
           </p>
           <div className="mt-12">

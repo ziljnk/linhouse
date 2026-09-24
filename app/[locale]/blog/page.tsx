@@ -39,7 +39,7 @@ export default async function BlogIndexPage({
               {storefront.blogTitle}
             </h1>
             {copy.description ? (
-              <p className="mx-auto mt-4 max-w-2xl text-center text-sm font-light text-charcoal/60 sm:text-[15px]">
+              <p className="mx-auto mt-4 max-w-2xl text-center text-base font-light text-charcoal/60 sm:text-lg">
                 {copy.description}
               </p>
             ) : null}

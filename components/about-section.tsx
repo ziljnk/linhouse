@@ -19,7 +19,7 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
           <h2 className="mt-4 font-heading text-3xl leading-[1.2] font-medium text-burgundy-deep sm:text-4xl lg:text-[2.75rem]">
             {copy.headline}
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed font-light text-charcoal/75 sm:text-[15px]">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
             {copy.body}
           </p>
         </ScrollReveal>
@@ -42,7 +42,7 @@ export function AboutSection({ copy }: { copy: Dictionary["home"]["about"] }) {
                   {step.title}
                 </span>
               </h3>
-              <p className="mt-4 text-sm leading-relaxed font-light text-charcoal/70">
+              <p className="mt-4 text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
                 {step.body}
               </p>
             </ScrollRevealItem>

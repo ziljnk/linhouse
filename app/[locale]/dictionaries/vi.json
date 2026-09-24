@@ -697,6 +697,13 @@
       }
     ]
   },
+  "reviewsPage": {
+    "metaTitle": "Đánh giá khách hàng",
+    "metaDescription": "Lời nhận xét của cô dâu về váy cưới và áo dài may đo tại LINHouse.",
+    "title": "Đánh giá khách hàng",
+    "intro": "Những lời cô dâu gửi lại sau ngày cưới.",
+    "empty": "Chưa có đánh giá."
+  },
   "customerSupport": {
     "metaTitle": "Hỗ trợ khách hàng",
     "metaDescription": "Gửi tin nhắn cho LINHouse. Atelier sẽ phản hồi qua email.",
@@ -749,8 +756,7 @@
     "customerServiceLinks": [
       "Chính sách giao hàng",
       "Hỗ trợ khách hàng",
-      "Hướng dẫn mua hàng",
-      "Vận chuyển"
+      "Hướng dẫn mua hàng"
     ],
     "legal": "Điều khoản - Chính sách",
     "legalLinks": ["Điều khoản sử dụng", "Chính sách bảo mật"],

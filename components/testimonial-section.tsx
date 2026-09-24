@@ -1,15 +1,18 @@
 "use client"
 
 import { useMemo } from "react"
-import type { Dictionary } from "@/app/[locale]/dictionaries"
+import Link from "next/link"
+import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { InfiniteSlider } from "@/components/motion-primitives/infinite-slider"
 import { ProgressiveBlur } from "@/components/motion-primitives/progressive-blur"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 
 export function TestimonialSection({
+  locale,
   copy,
 }: {
+  locale: Locale
   copy: Dictionary["home"]["testimonials"]
 }) {
   const slides = useMemo(
@@ -45,9 +48,10 @@ export function TestimonialSection({
           className="w-full py-4"
         >
           {slides.map((slide) => (
-            <article
+            <Link
               key={slide.src}
-              className="relative aspect-3/4 w-[min(62vw,240px)] shrink-0 overflow-hidden rounded-2xl bg-ivory shadow-[0_18px_50px_rgba(43,36,32,0.18)]"
+              href={`/${locale}/reviews`}
+              className="relative block aspect-3/4 w-[min(62vw,240px)] shrink-0 overflow-hidden rounded-2xl bg-ivory shadow-[0_18px_50px_rgba(43,36,32,0.18)]"
             >
               <OptimizedImage
                 src={slide.src}
@@ -73,7 +77,7 @@ export function TestimonialSection({
                   </p>
                 ) : null}
               </div>
-            </article>
+            </Link>
           ))}
         </InfiniteSlider>
         <ProgressiveBlur

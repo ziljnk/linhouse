@@ -61,6 +61,7 @@ function navSections(nav: Dictionary["nav"]) {
     { title: nav.collection, columns: nav.collectionColumns },
     { title: nav.bridal, columns: nav.bridalColumns },
     { title: nav.aodai, columns: nav.aodaiColumns },
+    { title: nav.services, columns: [{ title: nav.services, links: nav.serviceItems }] },
   ]
 }
 
@@ -88,11 +89,7 @@ function MegaColumns({
                 <NavigationMenuLink
                   render={
                     <Link
-                      href={
-                        link.href.startsWith("#")
-                          ? link.href
-                          : `/${locale}${link.href}`
-                      }
+                      href={navHref(locale, link.href)}
                     />
                   }
                   className={cn(
@@ -128,7 +125,17 @@ function HeaderIcons({
 }
 
 function navHref(locale: Locale, href: string) {
-  return href.startsWith("#") ? href : `/${locale}${href}`
+  if (
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("http://") ||
+    href.startsWith("https://")
+  ) {
+    return href
+  }
+  const path = href.startsWith("/") ? href : `/${href}`
+  return `/${locale}${path}`
 }
 
 function MobileNav({
@@ -266,6 +273,24 @@ function MobileNav({
               </AccordionItem>
             ))}
           </Accordion>
+
+          <nav className="flex flex-col gap-1 border-t px-4 py-4 text-sm text-muted-foreground">
+            <SheetClose nativeButton={false} render={<Link href={`/${locale}/support`} className="py-1.5 hover:text-burgundy" />}>
+              {nav.top.contact}
+            </SheetClose>
+            <SheetClose nativeButton={false} render={<Link href={`/${locale}/reviews`} className="py-1.5 hover:text-burgundy" />}>
+              {nav.top.reviews}
+            </SheetClose>
+            <SheetClose nativeButton={false} render={<Link href={`/${locale}/shipping`} className="py-1.5 hover:text-burgundy" />}>
+              {nav.top.shipping}
+            </SheetClose>
+            <SheetClose nativeButton={false} render={<Link href={`/${locale}/about#faq`} className="py-1.5 hover:text-burgundy" />}>
+              {nav.top.faq}
+            </SheetClose>
+            <SheetClose nativeButton={false} render={<Link href="#footer" className="py-1.5 hover:text-burgundy" />}>
+              {nav.top.services}
+            </SheetClose>
+          </nav>
         </div>
 
         <div className="border-t px-4 py-3">
@@ -357,6 +382,31 @@ export function SiteHeader({
   return (
     <>
     <header className="sticky top-0 z-40 w-full border-b bg-background [overflow-anchor:none]">
+      <div
+        className={cn(
+          "hidden overflow-hidden border-b text-xs tracking-wide text-muted-foreground transition-[max-height,opacity] duration-300 lg:block",
+          collapsed ? "max-h-0 border-transparent opacity-0" : "max-h-12 opacity-100"
+        )}
+      >
+        <nav className="flex items-center gap-4 px-6 py-2">
+          <Link href={`/${locale}/support`} className="hover:text-burgundy">
+            {nav.top.contact}
+          </Link>
+          <Link href={`/${locale}/reviews`} className="hover:text-burgundy">
+            {nav.top.reviews}
+          </Link>
+          <Link href={`/${locale}/shipping`} className="hover:text-burgundy">
+            {nav.top.shipping}
+          </Link>
+          <Link href={`/${locale}/about#faq`} className="hover:text-burgundy">
+            {nav.top.faq}
+          </Link>
+          <Link href="#footer" className="hover:text-burgundy">
+            {nav.top.services}
+          </Link>
+        </nav>
+      </div>
+
       <div
         className={cn(
           "hidden overflow-hidden text-center transition-[max-height,padding,opacity] duration-300 lg:block",

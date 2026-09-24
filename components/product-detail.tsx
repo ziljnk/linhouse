@@ -172,11 +172,11 @@ export function ProductDetail({
             </ul>
           ) : null}
 
-          <p className="mt-8 text-sm leading-relaxed font-light text-charcoal/80">
+          <p className="mt-8 text-base leading-relaxed font-light text-charcoal/80 sm:text-lg">
             {lead}
           </p>
           {product.description ? null : (
-            <p className="mt-4 text-sm leading-relaxed font-light text-charcoal/80">
+            <p className="mt-4 text-base leading-relaxed font-light text-charcoal/80 sm:text-lg">
               {copy.body}
             </p>
           )}
@@ -241,7 +241,7 @@ export function ProductDetail({
             <h2 className="text-[11px] tracking-[0.18em] text-gold uppercase">
               {copy.details}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed font-light text-charcoal/75">
+            <p className="mt-3 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
               {[title, specSummary].filter(Boolean).join(". ")}.
             </p>
           </section>
@@ -250,7 +250,7 @@ export function ProductDetail({
             <h2 className="text-[11px] tracking-[0.18em] text-gold uppercase">
               {copy.careTitle}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed font-light text-charcoal/75">
+            <p className="mt-3 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
               {copy.care}
             </p>
           </section>
@@ -259,7 +259,7 @@ export function ProductDetail({
             <h2 className="text-[11px] tracking-[0.18em] text-gold uppercase">
               {copy.shippingTitle}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed font-light text-charcoal/75">
+            <p className="mt-3 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
               {copy.shipping}
             </p>
           </section>
@@ -268,7 +268,7 @@ export function ProductDetail({
             <h2 className="text-[11px] tracking-[0.18em] text-gold uppercase">
               {copy.madeToMeasureTitle}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed font-light text-charcoal/75">
+            <p className="mt-3 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
               {copy.madeToMeasure}
             </p>
           </section>

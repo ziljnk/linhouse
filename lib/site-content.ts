@@ -104,6 +104,25 @@ function record(value: unknown): Record<string, unknown> {
   return {}
 }
 
+function serviceMenuHref(value: unknown, fallback: string) {
+  const data = record(value)
+  const vi = typeof data.vi === "string" ? data.vi.trim() : ""
+  const en = typeof data.en === "string" ? data.en.trim() : ""
+  const href = vi || en || fallback
+  return isServiceMenuHref(href) ? href : fallback
+}
+
+function isServiceMenuHref(href: string) {
+  return (
+    href.startsWith("/") ||
+    href.startsWith("#") ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:") ||
+    href.startsWith("http://") ||
+    href.startsWith("https://")
+  )
+}
+
 function localizedText(value: unknown, locale: Locale, fallback: string) {
   const data = record(value)
   const primary = data[locale]
@@ -162,6 +181,8 @@ const RETIRED_FOOTER_LINKS = new Set([
   "warranty policy",
   "chính sách đổi trả",
   "returns",
+  "vận chuyển",
+  "shipping",
 ])
 
 function keptFooterLines(value: unknown) {
@@ -319,8 +340,22 @@ export function contentModel() {
   put("nav.top.faq", viDict.nav.top.faq, enDict.nav.top.faq)
   put("nav.top.services", viDict.nav.top.services, enDict.nav.top.services)
 
+  const serviceMenuFields: ContentField[] = []
   viDict.nav.serviceItems.forEach((item, index) => {
-    put(`nav.service.${index}.label`, item.label, enDict.nav.serviceItems[index]?.label ?? "")
+    const enItem = enDict.nav.serviceItems[index]
+    const labelKey = `nav.service.${index}.label`
+    const hrefKey = `nav.service.${index}.href`
+    put(labelKey, item.label, enItem?.label ?? "")
+    put(hrefKey, item.href, enItem?.href ?? item.href)
+    const group = `Mục ${index + 1}`
+    serviceMenuFields.push(
+      field(labelKey, "Tên trên menu", { group }),
+      field(hrefKey, "Liên kết", {
+        group,
+        maxLength: 500,
+        hint: "Đường dẫn trong site như /about, neo như #footer, hoặc URL đầy đủ. Để trống sẽ dùng liên kết mặc định.",
+      })
+    )
   })
 
   put("about.metaTitle", viDict.aboutPage.metaTitle, enDict.aboutPage.metaTitle)
@@ -485,6 +520,13 @@ export function contentModel() {
   put("product.body", viDict.productPage.body, enDict.productPage.body)
 
   const sections: ContentSection[] = [
+    {
+      id: "services-menu",
+      title: "Menu Our services",
+      description:
+        "Ba mục trong menu Our services trên header. Tên có bản tiếng Việt và tiếng Anh. Liên kết dùng giá trị tiếng Việt nếu có, nếu không thì dùng tiếng Anh.",
+      fields: serviceMenuFields,
+    },
     {
       id: "shipping",
       title: "Chính sách giao hàng",
@@ -888,6 +930,10 @@ function overlayStored(defaults: Record<string, ContentPair>, copy: CopyMap) {
   const serviceLabels = Array.isArray(nav.serviceItemLabels) ? nav.serviceItemLabels : []
   serviceLabels.forEach((label, index) => {
     setPair(`nav.service.${index}.label`, label)
+  })
+  const serviceHrefs = Array.isArray(nav.serviceItemHrefs) ? nav.serviceItemHrefs : []
+  serviceHrefs.forEach((href, index) => {
+    setPair(`nav.service.${index}.href`, href)
   })
   setPair("nav.about", nav.about)
 
@@ -1392,8 +1438,9 @@ export function applySiteContent<T extends Dictionary>(
   next.nav.top.faq = localizedText(top.faq, locale, dict.nav.top.faq)
   next.nav.top.services = localizedText(top.services, locale, dict.nav.top.services)
   const serviceLabels = Array.isArray(nav.serviceItemLabels) ? nav.serviceItemLabels : []
+  const serviceHrefs = Array.isArray(nav.serviceItemHrefs) ? nav.serviceItemHrefs : []
   next.nav.serviceItems = dict.nav.serviceItems.map((item, index) => ({
-    href: item.href,
+    href: serviceMenuHref(serviceHrefs[index], item.href),
     label: localizedText(serviceLabels[index], locale, item.label),
   }))
   next.nav.about = localizedText(nav.about, locale, dict.nav.about)
@@ -2004,6 +2051,12 @@ export async function writeSiteContent(
             services: rawPair(storedTop.services),
           },
           about: pairAt(data, "nav.about"),
+          serviceItemLabels: viDict.nav.serviceItems.map((_, index) =>
+            pairAt(data, `nav.service.${index}.label`)
+          ),
+          serviceItemHrefs: viDict.nav.serviceItems.map((_, index) =>
+            pairAt(data, `nav.service.${index}.href`)
+          ),
         },
         booking: {
           title: pairAt(data, "booking.title"),

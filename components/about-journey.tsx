@@ -78,7 +78,7 @@ export function AboutJourney({
                 <h3 className="font-heading text-2xl font-semibold tracking-tight text-charcoal sm:text-[1.7rem]">
                   {milestone.title}
                 </h3>
-                <p className="mt-4 max-w-md text-sm leading-relaxed font-light text-charcoal/70 sm:text-[15px]">
+                <p className="mt-4 max-w-md text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
                   {milestone.body}
                 </p>
                 <p className="mt-8 font-heading text-[clamp(4.5rem,9vw,7.5rem)] leading-none font-semibold tracking-tighter text-charcoal">

@@ -1,7 +1,7 @@
 import { sanitizeRichTextHtml } from "@/lib/sanitize-content"
 
 const BODY_CLASS = [
-  "mt-10 text-sm leading-relaxed font-light text-charcoal/75 sm:text-[15px]",
+  "mt-10 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg",
   "[&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-charcoal",
   "[&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-medium",
   "[&_p]:my-3",

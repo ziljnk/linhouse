@@ -68,7 +68,7 @@ export function HeroSection({
             </p>
           </ScrollRevealItem>
           <ScrollRevealItem>
-            <p className="mt-6 max-w-md text-sm leading-relaxed font-light text-charcoal/75 sm:text-[15px]">
+            <p className="mt-6 max-w-md text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
               {copy.description}
             </p>
           </ScrollRevealItem>

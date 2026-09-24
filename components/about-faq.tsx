@@ -45,7 +45,7 @@ export function AboutFaq({ copy }: { copy: Dictionary["aboutPage"]["faq"] }) {
                   />
                 </span>
               </AccordionTrigger>
-              <AccordionContent className="max-w-lg pr-16 pb-2 text-sm leading-relaxed font-light text-charcoal/65 sm:text-[15px]">
+              <AccordionContent className="max-w-lg pr-16 pb-2 text-base leading-relaxed font-light text-charcoal/65 sm:text-lg">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>

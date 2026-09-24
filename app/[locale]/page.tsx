@@ -40,7 +40,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
       ) : null}
       <AboutSection copy={storefront.about} />
       {storefront.testimonials.items.length > 0 ? (
-        <TestimonialSection copy={storefront.testimonials} />
+        <TestimonialSection locale={locale} copy={storefront.testimonials} />
       ) : null}
       {storefront.blogPosts.length > 0 ? (
         <BlogSection

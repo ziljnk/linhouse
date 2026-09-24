@@ -697,6 +697,13 @@
       }
     ]
   },
+  "reviewsPage": {
+    "metaTitle": "Customer reviews",
+    "metaDescription": "Notes from brides about made-to-measure wedding gowns and áo dài at LINHouse.",
+    "title": "Customer reviews",
+    "intro": "Words brides sent back after the wedding day.",
+    "empty": "No reviews yet."
+  },
   "customerSupport": {
     "metaTitle": "Customer support",
     "metaDescription": "Send a message to LINHouse. The atelier replies by email.",
@@ -749,8 +756,7 @@
     "customerServiceLinks": [
       "Shipping policy",
       "Customer support",
-      "How to order",
-      "Shipping"
+      "How to order"
     ],
     "legal": "Terms & policies",
     "legalLinks": ["Terms of use", "Privacy policy"],

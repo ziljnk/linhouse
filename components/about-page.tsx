@@ -32,7 +32,7 @@ export function AboutPage({ copy }: { copy: Dictionary["aboutPage"] }) {
           <h2 className="mt-6 font-heading text-[clamp(2rem,4.6vw,3.35rem)] leading-[1.12] font-semibold tracking-[-0.03em] text-charcoal">
             {copy.headline}
           </h2>
-          <p className="mx-auto mt-6 max-w-md text-sm leading-relaxed font-light text-charcoal/70 sm:text-[15px]">
+          <p className="mx-auto mt-6 max-w-md text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
             {copy.body}
           </p>
           <a
@@ -74,7 +74,7 @@ export function AboutPage({ copy }: { copy: Dictionary["aboutPage"] }) {
                   <h2 className="mt-3 font-heading text-[1.65rem] leading-snug font-semibold tracking-tight text-charcoal sm:text-3xl">
                     {pillar.title}
                   </h2>
-                  <p className="mt-3 max-w-md text-sm leading-relaxed font-light text-charcoal/70">
+                  <p className="mt-3 max-w-md text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">
                     {pillar.body}
                   </p>
                 </article>

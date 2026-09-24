@@ -76,11 +76,11 @@ export default async function BlogPostPage({
         </div>
         {isHtml ? (
           <div
-            className="mt-10 text-sm leading-relaxed font-light text-charcoal/75 sm:text-[15px] [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-charcoal [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-medium [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:ps-5 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-charcoal/20 [&_blockquote]:ps-4 [&_a]:text-burgundy [&_a]:underline"
+            className="mt-10 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-charcoal [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-medium [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:ps-5 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-charcoal/20 [&_blockquote]:ps-4 [&_a]:text-burgundy [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: body }}
           />
         ) : (
-          <p className="mt-10 text-sm leading-relaxed font-light text-charcoal/75 sm:text-[15px]">
+          <p className="mt-10 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
             {body}
           </p>
         )}
