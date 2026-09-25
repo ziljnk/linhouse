@@ -36,7 +36,7 @@ export const CATALOG_SORT_VALUES = [
 
 export type CatalogFilterKey = (typeof CATALOG_FILTER_KEYS)[number]
 export type CatalogSort = (typeof CATALOG_SORT_VALUES)[number]
-export const DEFAULT_CATALOG_SORT: CatalogSort = "featured"
+export const DEFAULT_CATALOG_SORT: CatalogSort = "newest"
 
 export type CatalogProduct = Dictionary["catalog"][number] & {
   slug?: string
@@ -74,8 +74,8 @@ export function parseCatalogSort(value: unknown): CatalogSort {
 
 export function catalogSortOptions(copy: CatalogPageCopy) {
   return [
-    { value: "featured" as const, label: copy.sortFeatured },
     { value: "newest" as const, label: copy.sortNewest },
+    { value: "featured" as const, label: copy.sortFeatured },
     { value: "price-asc" as const, label: copy.sortPriceAsc },
     { value: "price-desc" as const, label: copy.sortPriceDesc },
     { value: "name-asc" as const, label: copy.sortNameAsc },

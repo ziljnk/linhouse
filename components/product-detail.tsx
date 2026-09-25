@@ -10,6 +10,7 @@ import {
   collectionLabel,
   formatProductPriceVnd,
   parseProductName,
+  PRODUCT_PURCHASE_OPTIONS,
   productGallery,
   productSlug,
   productSpecRows,
@@ -153,9 +154,10 @@ export function ProductDetail({
               {formatProductPriceVnd(product.priceVnd)}
             </p>
           ) : null}
-          {product.purchaseOptions && product.purchaseOptions.length > 0 ? (
-            <ul className="mt-6 flex flex-col gap-2.5">
-              {product.purchaseOptions.map((option) => (
+          <ul className="mt-6 flex flex-col gap-2.5">
+            {PRODUCT_PURCHASE_OPTIONS.map((option) => {
+              const selected = product.purchaseOptions?.includes(option) ?? false
+              return (
                 <li
                   key={option}
                   className="flex items-center gap-3 text-sm font-light tracking-[0.02em] text-charcoal"
@@ -164,13 +166,15 @@ export function ProductDetail({
                     aria-hidden
                     className="flex size-4 shrink-0 items-center justify-center border border-charcoal/40"
                   >
-                    <Check className="size-3" strokeWidth={2.5} />
+                    {selected ? (
+                      <Check className="size-3" strokeWidth={2.5} />
+                    ) : null}
                   </span>
                   {copy.purchaseOptions[option]}
                 </li>
-              ))}
-            </ul>
-          ) : null}
+              )
+            })}
+          </ul>
 
           <p className="mt-8 text-base leading-relaxed font-light text-charcoal/80 sm:text-lg">
             {lead}

@@ -217,17 +217,6 @@ function MobileNav({
             >
               {nav.home}
             </SheetClose>
-            <SheetClose
-              nativeButton={false}
-              render={
-                <Link
-                  href={`/${locale}/about`}
-                  className="block rounded-none py-3.5 text-[12.5px] font-medium tracking-[0.14em] text-charcoal uppercase hover:text-burgundy"
-                />
-              }
-            >
-              {nav.about}
-            </SheetClose>
           </nav>
 
           <Accordion className="px-4">
@@ -482,14 +471,6 @@ export function SiteHeader({
                   className={triggerClass}
                 >
                   {nav.home}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-              <NavigationMenuItem>
-                <NavigationMenuLink
-                  render={<Link href={`/${locale}/about`} />}
-                  className={triggerClass}
-                >
-                  {nav.about}
                 </NavigationMenuLink>
               </NavigationMenuItem>
               {navSections(nav).map((section) => (

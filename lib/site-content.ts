@@ -385,7 +385,6 @@ export function contentModel() {
       maxLength: MEDIUM,
       hint: "Hiện trong kết quả tìm kiếm.",
     }),
-    field("nav.about", "Tên trên menu", { group: "Trang" }),
     field("about.title", "Tiêu đề lớn", { group: "Ảnh đầu trang", maxLength: MEDIUM }),
     field("about.heroAlt", "Mô tả ảnh", { group: "Ảnh đầu trang", maxLength: MEDIUM }),
     field("about.eyebrow", "Nhãn nhỏ", { group: "Đoạn giới thiệu" }),
@@ -696,7 +695,7 @@ export function contentModel() {
       id: "about",
       title: "Giới thiệu",
       description:
-        "Chữ trên trang About. Có thể thêm hoặc xóa mốc năm và câu hỏi, và tải ảnh cho từng mốc. Tên trên menu là mục Giới thiệu ở thanh trên cùng.",
+        "Chữ trên trang About. Có thể thêm hoặc xóa mốc năm và câu hỏi, và tải ảnh cho từng mốc.",
       fields: aboutFields,
     },
     {
@@ -2050,7 +2049,6 @@ export async function writeSiteContent(
             faq: rawPair(storedTop.faq),
             services: rawPair(storedTop.services),
           },
-          about: pairAt(data, "nav.about"),
           serviceItemLabels: viDict.nav.serviceItems.map((_, index) =>
             pairAt(data, `nav.service.${index}.label`)
           ),
