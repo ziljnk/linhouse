@@ -38,6 +38,7 @@ export type ContentField = {
   hint?: string
   tooltip?: string
   group?: string
+  nameTokens?: { vi: { label: string; token: string }[]; en: { label: string; token: string }[] }
   multiline?: boolean
   lines?: boolean
   rich?: boolean
@@ -514,6 +515,8 @@ export function contentModel() {
     enDict.productPage.madeToMeasureTitle
   )
   put("product.madeToMeasure", viDict.productPage.madeToMeasure, enDict.productPage.madeToMeasure)
+  put("product.nameFormat", "[tên]", "[name]")
+  put("product.nameFormatAoDai", "[tên]", "[name]")
   put("product.lead", viDict.productPage.lead, enDict.productPage.lead)
   put("product.leadAoDai", viDict.productPage.leadAoDai, enDict.productPage.leadAoDai)
   put("product.body", viDict.productPage.body, enDict.productPage.body)
@@ -785,6 +788,20 @@ export function contentModel() {
           multiline: true,
           maxLength: LONG,
         }),
+        field("product.nameFormat", "Mẫu tên váy cưới", {
+          group: "Tên hiển thị",
+          maxLength: MEDIUM,
+          hint: "Bấm để chèn. Chữ ngoài dấu ngoặc giữ nguyên. Ví dụ: [tên] - [Dáng váy] [Chất liệu] big size wedding dress",
+          tooltip:
+            "Cách tên váy cưới hiện trên storefront. [tên] là tên nhập ở sản phẩm. Mỗi mục trong ngoặc vuông là giá trị bộ lọc của mẫu đó, theo nhãn nhóm ở trang Danh mục.",
+        }),
+        field("product.nameFormatAoDai", "Mẫu tên áo dài", {
+          group: "Tên hiển thị",
+          maxLength: MEDIUM,
+          hint: "Bấm để chèn. Chữ ngoài dấu ngoặc giữ nguyên.",
+          tooltip:
+            "Cách tên áo dài hiện trên storefront. [tên] là tên nhập ở sản phẩm. Mỗi mục trong ngoặc vuông là giá trị bộ lọc của mẫu đó.",
+        }),
         field("product.lead", "Đoạn mở đầu váy cưới", {
           group: "Mô tả mẫu",
           multiline: true,
@@ -857,6 +874,8 @@ function overlayStored(defaults: Record<string, ContentPair>, copy: CopyMap) {
   const madeToMeasure = record(copy["product.madeToMeasure"])
   setPair("product.madeToMeasureTitle", madeToMeasure.title)
   setPair("product.madeToMeasure", madeToMeasure.body)
+  setPair("product.nameFormat", copy["product.nameFormat"])
+  setPair("product.nameFormatAoDai", copy["product.nameFormatAoDai"])
   setPair("product.lead", copy["product.lead"])
   setPair("product.body", copy["product.body"])
 
@@ -1982,6 +2001,8 @@ export async function writeSiteContent(
         body: pairAt(data, "product.madeToMeasure"),
       },
     },
+    { key: "product.nameFormat", value: pairAt(data, "product.nameFormat") },
+    { key: "product.nameFormatAoDai", value: pairAt(data, "product.nameFormatAoDai") },
     { key: "product.lead", value: pairAt(data, "product.lead") },
     { key: "product.body", value: pairAt(data, "product.body") },
     {

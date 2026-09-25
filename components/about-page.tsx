@@ -71,7 +71,7 @@ export function AboutPage({ copy }: { copy: Dictionary["aboutPage"] }) {
                   className="border-t border-charcoal/15 py-7 first:pt-0 sm:py-8"
                 >
                   <p className="text-[13px] text-charcoal/45">{pillar.label}</p>
-                  <h2 className="mt-3 font-heading text-[1.65rem] leading-snug font-semibold tracking-tight text-charcoal sm:text-3xl">
+                  <h2 className="mt-3 font-heading text-[1.05rem] leading-snug font-medium text-charcoal sm:text-lg">
                     {pillar.title}
                   </h2>
                   <p className="mt-3 max-w-md text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">

@@ -18,7 +18,6 @@ import { VIRTUAL_CATALOG_SLUGS } from "@/lib/admin-actions"
 import { isLiveContent } from "@/lib/content-schedule"
 import {
   parseCatalogSort,
-  parseProductName,
   parsePurchaseOptions,
   productSlug,
   type CatalogFilterGroup,
@@ -27,6 +26,7 @@ import {
   type CollectionItem,
 } from "@/lib/catalog"
 import { db } from "@/lib/db"
+import { formatProductDisplayName, type ProductNameToken } from "@/lib/product-name-format"
 import { jsonLocalizedContains, textContains } from "@/lib/db/search-sql"
 import {
   attributeGroup,
@@ -60,6 +60,7 @@ export type StorefrontBlogPost = {
   content: string
   seoTitle: string
   seoDescription: string
+  seoKeywords: string
 }
 
 export type StorefrontHero = {
@@ -81,6 +82,14 @@ function isLocalizedText(value: unknown): value is LocalizedText {
 
 function asLocalized(value: LocalizedText | null | undefined): LocalizedText {
   return { vi: value?.vi ?? "", en: value?.en ?? "" }
+}
+
+export function seoKeywordList(value?: string) {
+  const keywords = (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+  return keywords.length ? keywords : undefined
 }
 
 function textOf(
@@ -116,20 +125,6 @@ function isLivePost() {
 
 function isLiveCollection() {
   return isLiveContent(collection.status, collection.publishedAt)
-}
-
-function productDisplayName(row: {
-  sortNumber: number
-  name: string
-  code: string
-  fullTitle: string
-}) {
-  const parts: string[] = []
-  if (row.sortNumber > 0) parts.push(`No.${row.sortNumber}`)
-  parts.push(row.name)
-  const rest = [row.code, row.fullTitle].filter(Boolean).join(" ")
-  if (rest) parts.push(rest)
-  return parts.join(" — ")
 }
 
 function formatBlogDate(date: Date | null, locale: Locale) {
@@ -169,25 +164,41 @@ function pricedFirst() {
   return sql`case when ${product.priceDisplay} = 'amount' and ${product.priceVnd} is not null then 0 else 1 end`
 }
 
+function newProductsFirst() {
+  return asc(product.isOld)
+}
+
 function catalogOrderBy(sort: CatalogSort): SQL[] {
   switch (sort) {
     case "newest":
       return [
+        newProductsFirst(),
         desc(product.publishedAt),
         desc(product.createdAt),
         asc(product.sortOrder),
       ]
     case "price-asc":
-      return [pricedFirst(), asc(product.priceVnd), asc(product.sortOrder)]
+      return [
+        newProductsFirst(),
+        pricedFirst(),
+        asc(product.priceVnd),
+        asc(product.sortOrder),
+      ]
     case "price-desc":
-      return [pricedFirst(), desc(product.priceVnd), asc(product.sortOrder)]
+      return [
+        newProductsFirst(),
+        pricedFirst(),
+        desc(product.priceVnd),
+        asc(product.sortOrder),
+      ]
     case "name-asc":
-      return [asc(product.name), asc(product.sortOrder)]
+      return [newProductsFirst(), asc(product.name), asc(product.sortOrder)]
     case "name-desc":
-      return [desc(product.name), asc(product.sortOrder)]
+      return [newProductsFirst(), desc(product.name), asc(product.sortOrder)]
     case "featured":
     default:
       return [
+        newProductsFirst(),
         asc(product.sortOrder),
         asc(product.sortNumber),
         asc(product.name),
@@ -343,7 +354,9 @@ async function hydrateCatalogProducts(
         .select({
           productId: productAttribute.productId,
           slug: catalogAttribute.slug,
+          label: catalogAttribute.label,
           groupSlug: attributeGroup.slug,
+          groupLabel: attributeGroup.label,
         })
         .from(productAttribute)
         .innerJoin(
@@ -357,6 +370,8 @@ async function hydrateCatalogProducts(
         .where(inArray(productAttribute.productId, ids)),
     ])
 
+  const formats = await loadProductNameFormats(locale)
+
   return mapProducts(
     {
       products,
@@ -364,7 +379,8 @@ async function hydrateCatalogProducts(
       productCollections,
       productAttributes,
     },
-    locale
+    locale,
+    formats
   )
 }
 
@@ -446,22 +462,25 @@ export async function searchStorefront({
   const matchProduct = or(
     textContains(product.name, pattern),
     textContains(product.code, pattern),
-    textContains(product.fullTitle, pattern),
     textContains(product.slug, pattern)
   )
 
   const [productRows, collectionRows, blogRows] = await Promise.all([
     db
       .select({
+        id: product.id,
         slug: product.slug,
         name: product.name,
-        code: product.code,
-        fullTitle: product.fullTitle,
-        sortNumber: product.sortNumber,
+        kind: product.kind,
       })
       .from(product)
       .where(and(isLiveProduct(), matchProduct))
-      .orderBy(asc(product.sortOrder), asc(product.sortNumber), asc(product.name))
+      .orderBy(
+        asc(product.isOld),
+        asc(product.sortOrder),
+        asc(product.sortNumber),
+        asc(product.name)
+      )
       .limit(SEARCH_LIMIT),
     db
       .select({
@@ -522,11 +541,37 @@ export async function searchStorefront({
     if (!imageBySlug.has(row.slug)) imageBySlug.set(row.slug, row.url)
   }
 
+  const productIds = productRows.map((row) => row.id)
+  const [formats, searchAttributes] = await Promise.all([
+    loadProductNameFormats(locale),
+    productIds.length === 0
+      ? Promise.resolve([])
+      : db
+          .select({
+            productId: productAttribute.productId,
+            slug: catalogAttribute.slug,
+            label: catalogAttribute.label,
+            groupSlug: attributeGroup.slug,
+            groupLabel: attributeGroup.label,
+          })
+          .from(productAttribute)
+          .innerJoin(
+            catalogAttribute,
+            eq(productAttribute.attributeId, catalogAttribute.id)
+          )
+          .innerJoin(attributeGroup, eq(catalogAttribute.groupId, attributeGroup.id))
+          .where(inArray(productAttribute.productId, productIds)),
+  ])
+
   return [
     ...productRows.map((row) => ({
       type: "product" as const,
       slug: row.slug,
-      title: productDisplayName(row),
+      title: formatProductDisplayName(
+        row.kind === "ao-dai" ? formats["ao-dai"] : formats.gown,
+        row.name,
+        nameTokensForProduct(searchAttributes, row.id, locale)
+      ),
       href: `/${locale}/product/${row.slug}`,
       image: imageBySlug.get(row.slug) ?? "",
     })),
@@ -547,9 +592,52 @@ export async function searchStorefront({
   ]
 }
 
+function nameTokensForProduct(
+  attributes: StorefrontRows["productAttributes"],
+  productId: string,
+  locale: Locale
+): ProductNameToken[] {
+  const grouped = new Map<string, ProductNameToken & { parts: string[] }>()
+  for (const item of attributes) {
+    if (item.productId !== productId) continue
+    const text = textOf(item.label, locale, item.slug)
+    const current = grouped.get(item.groupSlug) ?? {
+      slug: item.groupSlug,
+      label: textOf(item.groupLabel, locale, item.groupSlug),
+      text: "",
+      parts: [],
+    }
+    if (text) current.parts.push(text)
+    grouped.set(item.groupSlug, current)
+  }
+
+  return [...grouped.values()].map((item) => ({
+    slug: item.slug,
+    label: item.label,
+    text: item.parts.join(", "),
+  }))
+}
+
+async function loadProductNameFormats(locale: Locale) {
+  const fallback = locale === "en" ? "[name]" : "[tên]"
+  const rows = await db
+    .select({ key: siteCopy.key, value: siteCopy.value })
+    .from(siteCopy)
+    .where(
+      inArray(siteCopy.key, ["product.nameFormat", "product.nameFormatAoDai"])
+    )
+  const copy = Object.fromEntries(rows.map((row) => [row.key, row.value]))
+
+  return {
+    gown: copyText(copy["product.nameFormat"], locale, fallback),
+    "ao-dai": copyText(copy["product.nameFormatAoDai"], locale, fallback),
+  }
+}
+
 function mapProducts(
   rows: ProductMapRows,
-  locale: Locale
+  locale: Locale,
+  formats: { gown: string; "ao-dai": string }
 ): CatalogProduct[] {
   const imagesByProduct = new Map<string, string[]>()
   for (const image of [...rows.productImages].sort(
@@ -583,7 +671,13 @@ function mapProducts(
 
     return {
       slug: row.slug,
-      name: productDisplayName(row),
+      name: row.name,
+      displayName: formatProductDisplayName(
+        row.kind === "ao-dai" ? formats["ao-dai"] : formats.gown,
+        row.name,
+        nameTokensForProduct(rows.productAttributes, row.id, locale)
+      ),
+      code: row.code,
       image: images[0] ?? "",
       images,
       collections: collectionsByProduct.get(row.id) ?? [],
@@ -600,6 +694,7 @@ function mapProducts(
       description: textOf(row.description, locale),
       seoTitle: textOf(row.seoTitle, locale),
       seoDescription: textOf(row.seoDescription, locale),
+      seoKeywords: textOf(row.seoKeywords, locale),
     }
   })
 }
@@ -629,6 +724,7 @@ function mapCollections(rows: StorefrontRows, locale: Locale): CollectionItem[] 
       year: row.year,
       seoTitle: textOf(row.seoTitle, locale),
       seoDescription: textOf(row.seoDescription, locale),
+      seoKeywords: textOf(row.seoKeywords, locale),
     }
   })
 }
@@ -666,6 +762,7 @@ function mapBlogPosts(
     content: textOf(row.content, locale),
     seoTitle: textOf(row.seoTitle, locale),
     seoDescription: textOf(row.seoDescription, locale),
+    seoKeywords: textOf(row.seoKeywords, locale),
   }))
 }
 
@@ -776,7 +873,12 @@ const loadStorefrontRows = cache(async () => {
       .select()
       .from(product)
       .where(visibility)
-      .orderBy(asc(product.sortOrder), asc(product.sortNumber), asc(product.name)),
+      .orderBy(
+        asc(product.isOld),
+        asc(product.sortOrder),
+        asc(product.sortNumber),
+        asc(product.name)
+      ),
     db.select().from(productImage),
     db
       .select({
@@ -789,7 +891,9 @@ const loadStorefrontRows = cache(async () => {
       .select({
         productId: productAttribute.productId,
         slug: catalogAttribute.slug,
+        label: catalogAttribute.label,
         groupSlug: attributeGroup.slug,
+        groupLabel: attributeGroup.label,
       })
       .from(productAttribute)
       .innerJoin(
@@ -841,7 +945,8 @@ const loadStorefrontRows = cache(async () => {
 
 export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
   const rows = await loadStorefrontRows()
-  const products = mapProducts(rows, locale).filter((item) => item.image)
+  const formats = await loadProductNameFormats(locale)
+  const products = mapProducts(rows, locale, formats).filter((item) => item.image)
   const collections = mapCollections(rows, locale).filter((item) => item.image)
   const filterGroups = mapFilterGroups(rows, locale)
   const featuredProducts = products.filter((item) => item.featured)
@@ -982,7 +1087,7 @@ export function storefrontNav(
   ]
 
   const featuredLinks = (products.slice(0, 4) ?? []).map((item) => ({
-    label: parseProductName(item.name).shortName,
+    label: item.displayName?.trim() || item.name,
     href: `/product/${productSlug(item)}`,
   }))
 

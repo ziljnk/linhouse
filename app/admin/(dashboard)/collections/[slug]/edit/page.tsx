@@ -45,9 +45,14 @@ export default async function EditCollectionPage({
           publishedAt: collection.publishedAt,
           coverUrl: collection.coverUrl,
           galleryUrls: collection.galleryUrls,
-          seoTitle: collection.seoTitle,
-          seoDescription: collection.seoDescription,
-          seoKeywords: collection.seoKeywords,
+          seo: {
+            titleVi: collection.seoTitle.vi,
+            titleEn: collection.seoTitle.en,
+            descriptionVi: collection.seoDescription.vi,
+            descriptionEn: collection.seoDescription.en,
+            keywordsVi: collection.seoKeywords.vi,
+            keywordsEn: collection.seoKeywords.en,
+          },
         }}
       />
     </div>

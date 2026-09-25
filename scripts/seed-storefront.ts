@@ -189,7 +189,6 @@ function parseCatalogName(name: string) {
       sortNumber,
       name: shortName,
       code: skuMatch[1],
-      fullTitle: skuMatch[2],
     }
   }
 
@@ -197,7 +196,6 @@ function parseCatalogName(name: string) {
     sortNumber,
     name: shortName,
     code: "",
-    fullTitle: rest,
   }
 }
 
@@ -241,15 +239,6 @@ const AO_DAI_NAMES = [
   "Minh", "My", "Ngan", "Ngoc", "Nhu", "Nguyet", "Oanh", "Phuong", "Quynh", "Sen",
   "Thanh", "Thao", "Thu", "Trang", "Tra", "Trinh", "Truc", "Uyen", "Van", "Vy",
   "Xuan", "Yen", "Anh", "Chi", "Hien", "Hoa", "Le", "Nhi", "Phuc", "Tam",
-] as const
-
-const AO_DAI_TITLES = [
-  "Silk Traditional Ao Dai",
-  "Lace Modern Ao Dai",
-  "Wedding Brocade Ao Dai",
-  "Column Organza Ao Dai",
-  "Velvet Evening Ao Dai",
-  "Mesh Reception Ao Dai",
 ] as const
 
 const AO_DAI_IMAGES = [
@@ -470,7 +459,6 @@ async function upsertProducts(
       sortNumber: parsed.sortNumber,
       name: parsed.name,
       code: parsed.code,
-      fullTitle: parsed.fullTitle,
       description: emptyLocalizedText(),
       priceVnd: null,
       priceDisplay: "contact" as const,
@@ -493,7 +481,6 @@ async function upsertProducts(
           sortNumber: values.sortNumber,
           name: values.name,
           code: values.code,
-          fullTitle: values.fullTitle,
           featured: values.featured,
           status: values.status,
           publishedAt: values.publishedAt,
@@ -556,14 +543,12 @@ async function upsertAoDaiProducts(
     const sortNumber = 200 + index
     const slug = `ao-dai-${name.toLowerCase()}`
     const code = `AD-${String(index + 1).padStart(3, "0")}`
-    const fullTitle = AO_DAI_TITLES[index % AO_DAI_TITLES.length]
     const showPrice = index % 4 === 0
     const values = {
       slug,
       sortNumber,
       name,
       code,
-      fullTitle,
       description: emptyLocalizedText(),
       priceVnd: showPrice ? (18 + (index % 12) * 2) * 1_000_000 : null,
       priceDisplay: showPrice ? ("amount" as const) : ("contact" as const),
@@ -586,7 +571,6 @@ async function upsertAoDaiProducts(
           sortNumber: values.sortNumber,
           name: values.name,
           code: values.code,
-          fullTitle: values.fullTitle,
           priceVnd: values.priceVnd,
           priceDisplay: values.priceDisplay,
           featured: values.featured,

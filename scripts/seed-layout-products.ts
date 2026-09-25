@@ -53,9 +53,6 @@ async function seedLayoutProducts() {
         sortNumber,
         name: `${source.name} ${copy}`,
         code: source.code ? `${source.code}-L${copy}` : `LAYOUT-${copy}`,
-        fullTitle: source.fullTitle
-          ? `${source.fullTitle} ${copy}`
-          : source.fullTitle,
         description: source.description,
         priceVnd: source.priceVnd,
         priceDisplay: source.priceDisplay,

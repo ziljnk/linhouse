@@ -40,6 +40,8 @@ export const DEFAULT_CATALOG_SORT: CatalogSort = "newest"
 
 export type CatalogProduct = Dictionary["catalog"][number] & {
   slug?: string
+  code?: string
+  displayName?: string
   images?: string[]
   attributeSlugs?: string[]
   attributesByGroup?: Record<string, string[]>
@@ -47,6 +49,7 @@ export type CatalogProduct = Dictionary["catalog"][number] & {
   description?: string
   seoTitle?: string
   seoDescription?: string
+  seoKeywords?: string
   priceVnd?: number | null
   priceDisplay?: "amount" | "contact"
   kind?: ProductKind
@@ -58,6 +61,7 @@ export type CollectionItem = Dictionary["home"]["collection"]["items"][number] &
   year?: number | null
   seoTitle?: string
   seoDescription?: string
+  seoKeywords?: string
 }
 
 export type CatalogPageCopy = Dictionary["catalogPage"]
@@ -272,6 +276,10 @@ export function productSlug(product: CatalogProduct) {
     .shortName.toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
+}
+
+export function productTitle(product: CatalogProduct) {
+  return product.displayName?.trim() || product.name
 }
 
 export function productHref(locale: Locale, product: CatalogProduct) {

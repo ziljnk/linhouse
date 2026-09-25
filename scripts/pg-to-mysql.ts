@@ -299,7 +299,6 @@ async function run() {
       sortNumber: asInt(row.sort_number) ?? 0,
       name: asRequiredString(row.name),
       code: asString(row.code) ?? "",
-      fullTitle: asString(row.full_title) ?? "",
       description: asJson<LocalizedText>(row.description, { vi: "", en: "" }),
       priceVnd: asInt(row.price_vnd),
       priceDisplay: row.price_display === "amount" ? "amount" : "contact",

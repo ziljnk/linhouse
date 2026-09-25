@@ -49,9 +49,14 @@ export default async function EditBlogPage({
           coverUrl: post.coverUrl,
           status: post.status,
           publishedAt: post.publishedAt,
-          seoTitle: post.seoTitle,
-          seoDescription: post.seoDescription,
-          seoKeywords: post.seoKeywords,
+          seo: {
+            titleVi: post.seoTitle.vi,
+            titleEn: post.seoTitle.en,
+            descriptionVi: post.seoDescription.vi,
+            descriptionEn: post.seoDescription.en,
+            keywordsVi: post.seoKeywords.vi,
+            keywordsEn: post.seoKeywords.en,
+          },
         }}
       />
     </div>

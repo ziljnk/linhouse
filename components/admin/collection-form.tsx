@@ -40,26 +40,18 @@ import {
   defaultScheduleValue,
   toDatetimeLocalValue,
 } from "@/components/admin/schedule-publish-dialog"
-import { cn } from "@/lib/utils"
+import {
+  SeoLocaleFields,
+  type SeoLocaleValues,
+} from "@/components/admin/seo-locale-fields"
 
-const SEO_TITLE_LIMIT = 60
-const SEO_DESCRIPTION_LIMIT = 160
-
-function CharacterCount({
-  value,
-  limit,
-}: {
-  value: string
-  limit: number
-}) {
-  const length = value.length
-  const over = length > limit
-
-  return (
-    <span className={cn("text-xs tabular-nums", over ? "text-destructive" : "text-muted-foreground")}>
-      {length}/{limit}
-    </span>
-  )
+const emptySeo: SeoLocaleValues = {
+  titleVi: "",
+  titleEn: "",
+  descriptionVi: "",
+  descriptionEn: "",
+  keywordsVi: "",
+  keywordsEn: "",
 }
 
 export type CollectionFormValues = {
@@ -76,9 +68,7 @@ export type CollectionFormValues = {
   publishedAt?: string | null
   coverUrl?: string
   galleryUrls?: string[]
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
+  seo?: SeoLocaleValues
 }
 
 export function CollectionForm({
@@ -114,11 +104,7 @@ export function CollectionForm({
       : defaultScheduleValue
   )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
-  const [seoTitle, setSeoTitle] = useState(defaultValues?.seoTitle ?? "")
-  const [seoDescription, setSeoDescription] = useState(
-    defaultValues?.seoDescription ?? ""
-  )
-  const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
+  const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
   const [pending, setPending] = useState(false)
   const [translating, setTranslating] = useState(false)
 
@@ -177,9 +163,12 @@ export function CollectionForm({
         publishedAt,
         coverUrl,
         galleryUrls,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
+        seoTitleVi: seo.titleVi,
+        seoTitleEn: seo.titleEn,
+        seoDescriptionVi: seo.descriptionVi,
+        seoDescriptionEn: seo.descriptionEn,
+        seoKeywordsVi: seo.keywordsVi,
+        seoKeywordsEn: seo.keywordsEn,
       }
       const result = defaultValues?.id
         ? await updateCollectionAction(defaultValues.id, payload)
@@ -450,56 +439,27 @@ export function CollectionForm({
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="collection-seo-title">Tiêu đề SEO</Label>
-              <CharacterCount value={seoTitle} limit={SEO_TITLE_LIMIT} />
-            </div>
-            <Input
-              id="collection-seo-title"
-              name="seoTitle"
-              value={seoTitle}
-              onChange={(event) => setSeoTitle(event.target.value)}
-              placeholder="Spring 2026 | Bộ sưu tập váy cưới | LINHouse"
+          <div className="sm:col-span-2">
+            <SeoLocaleFields
+              idPrefix="collection"
+              value={seo}
+              onChange={setSeo}
+              emptyTitleFallback="tên bộ sưu tập"
+              placeholders={{
+                vi: {
+                  title: "Spring 2026 | Bộ sưu tập váy cưới | LINHouse",
+                  description:
+                    "Bộ sưu tập Spring 2026 tại atelier LINHouse. Dáng váy mới, ánh sáng và độ phồng cho mùa bridal.",
+                  keywords: "bộ sưu tập, váy cưới, spring 2026",
+                },
+                en: {
+                  title: "Spring 2026 | Wedding collection | LINHouse",
+                  description:
+                    "The Spring 2026 collection at the LINHouse atelier.",
+                  keywords: "collection, wedding dress, spring 2026",
+                },
+              }}
             />
-            <p className="text-xs text-muted-foreground">
-              Nên dài khoảng 50–60 ký tự. Nếu để trống sẽ dùng tên bộ sưu tập.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="collection-seo-description">Mô tả SEO</Label>
-              <CharacterCount
-                value={seoDescription}
-                limit={SEO_DESCRIPTION_LIMIT}
-              />
-            </div>
-            <Textarea
-              id="collection-seo-description"
-              name="seoDescription"
-              value={seoDescription}
-              onChange={(event) => setSeoDescription(event.target.value)}
-              placeholder="Bộ sưu tập Spring 2026 tại atelier LINHouse. Dáng váy mới, ánh sáng và độ phồng cho mùa bridal."
-              rows={4}
-            />
-            <p className="text-xs text-muted-foreground">
-              Nên dài khoảng 150–160 ký tự. Hiển thị dưới tiêu đề trên Google.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="collection-seo-keywords">Từ khóa</Label>
-            <Input
-              id="collection-seo-keywords"
-              name="seoKeywords"
-              value={seoKeywords}
-              onChange={(event) => setSeoKeywords(event.target.value)}
-              placeholder="bộ sưu tập, váy cưới, spring 2026"
-            />
-            <p className="text-xs text-muted-foreground">
-              Phân tách bằng dấu phẩy. Dùng cho tìm kiếm nội bộ và thẻ meta keywords.
-            </p>
           </div>
         </div>
       </section>

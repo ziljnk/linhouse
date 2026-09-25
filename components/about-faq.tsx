@@ -31,7 +31,7 @@ export function AboutFaq({ copy }: { copy: Dictionary["aboutPage"]["faq"] }) {
               className="not-last:border-b-0"
             >
               <AccordionTrigger className="items-start gap-6 rounded-none py-7 hover:no-underline sm:py-8 **:data-[slot=accordion-trigger-icon]:hidden">
-                <span className="font-heading text-lg leading-snug font-semibold tracking-tight text-charcoal sm:text-[1.35rem]">
+                <span className="font-heading text-[1.05rem] leading-snug font-medium text-charcoal sm:text-lg">
                   {item.question}
                 </span>
                 <span className="grid size-11 shrink-0 place-items-center rounded-md bg-blush text-charcoal group-aria-expanded/accordion-trigger:bg-charcoal group-aria-expanded/accordion-trigger:text-ivory">

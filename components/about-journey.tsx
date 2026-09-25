@@ -75,7 +75,7 @@ export function AboutJourney({
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div key={`${milestone.year}-${activeIndex}`} {...motionProps}>
-                <h3 className="font-heading text-2xl font-semibold tracking-tight text-charcoal sm:text-[1.7rem]">
+                <h3 className="font-heading text-[1.05rem] leading-snug font-medium text-charcoal sm:text-lg">
                   {milestone.title}
                 </h3>
                 <p className="mt-4 max-w-md text-base leading-relaxed font-light text-charcoal/70 sm:text-lg">

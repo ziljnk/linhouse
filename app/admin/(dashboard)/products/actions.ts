@@ -6,7 +6,6 @@ import {
   actionOk,
   revalidateAdmin,
   requireSlug,
-  seoLocalized,
   toLocalized,
   type ActionResult,
 } from "@/lib/admin-actions"
@@ -47,11 +46,15 @@ export type ProductInput = {
   priceVnd?: number | null
   priceDisplay?: PriceDisplay
   kind?: ProductKind
+  isOld?: boolean
   intent: PublishIntent
   publishedAt?: string | null
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
+  seoTitleVi?: string
+  seoTitleEn?: string
+  seoDescriptionVi?: string
+  seoDescriptionEn?: string
+  seoKeywordsVi?: string
+  seoKeywordsEn?: string
 }
 
 async function nextSortNumber() {
@@ -173,12 +176,12 @@ export async function createProductAction(
       sortNumber,
       name: sanitizePlainText(input.name),
       code: sanitizePlainText(input.code ?? ""),
-      fullTitle: "",
       description: toLocalized(input.descriptionVi ?? "", input.descriptionEn ?? ""),
       priceVnd: input.priceVnd ?? null,
       priceDisplay: parsed.priceDisplay,
       kind,
       featured: true,
+      isOld: input.isOld === true,
       status: publish.data.status,
       publishedAt: publish.data.publishedAt,
       sortOrder: sortNumber,
@@ -186,9 +189,9 @@ export async function createProductAction(
         .map((tag) => sanitizePlainText(tag))
         .filter(Boolean),
       purchaseOptions: parsePurchaseOptions(input.purchaseOptions),
-      seoTitle: seoLocalized(input.seoTitle ?? ""),
-      seoDescription: seoLocalized(input.seoDescription ?? ""),
-      seoKeywords: seoLocalized(input.seoKeywords ?? ""),
+      seoTitle: toLocalized(input.seoTitleVi ?? "", input.seoTitleEn),
+      seoDescription: toLocalized(input.seoDescriptionVi ?? "", input.seoDescriptionEn),
+      seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
     })
     .$returningId()
 
@@ -244,15 +247,16 @@ export async function updateProductAction(
       priceVnd: input.priceVnd ?? null,
       priceDisplay: parsed.priceDisplay,
       kind,
+      isOld: input.isOld === true,
       status: publish.data.status,
       publishedAt: publish.data.publishedAt,
       tags: (input.tags ?? [])
         .map((tag) => sanitizePlainText(tag))
         .filter(Boolean),
       purchaseOptions: parsePurchaseOptions(input.purchaseOptions),
-      seoTitle: seoLocalized(input.seoTitle ?? ""),
-      seoDescription: seoLocalized(input.seoDescription ?? ""),
-      seoKeywords: seoLocalized(input.seoKeywords ?? ""),
+      seoTitle: toLocalized(input.seoTitleVi ?? "", input.seoTitleEn),
+      seoDescription: toLocalized(input.seoDescriptionVi ?? "", input.seoDescriptionEn),
+      seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
     })
     .where(eq(product.id, id))
 

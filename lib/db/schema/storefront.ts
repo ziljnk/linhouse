@@ -135,7 +135,6 @@ export const product = mysqlTable(
     sortNumber: int("sort_number").notNull().default(0),
     name: text("name").notNull(),
     code: varchar("code", { length: 255 }).notNull().default(""),
-    fullTitle: text("full_title").notNull().$defaultFn(() => ""),
     description: json("description").$type<LocalizedText>().notNull(),
     priceVnd: int("price_vnd"),
     priceDisplay: mysqlEnum("price_display", priceDisplayValues)
@@ -143,6 +142,7 @@ export const product = mysqlTable(
       .default("contact"),
     kind: mysqlEnum("kind", productKindValues).notNull().default("gown"),
     featured: boolean("featured").notNull().default(true),
+    isOld: boolean("is_old").notNull().default(false),
     status: mysqlEnum("status", contentStatusValues).notNull().default("draft"),
     publishedAt: timestamptz("published_at"),
     sortOrder: int("sort_order").notNull().default(0),

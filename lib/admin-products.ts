@@ -1,5 +1,4 @@
 import {
-  parseProductName,
   productSlug,
   PRODUCT_KINDS,
   PRODUCT_PURCHASE_OPTIONS,
@@ -103,7 +102,6 @@ export function toAdminProductListItem(
   product: CatalogProduct,
   collectionLabels: Record<string, string>
 ): AdminProductListItem {
-  const { shortName, code } = parseProductName(product.name)
   const slug = productSlug(product)
 
   const status = productStatus(product.name)
@@ -111,9 +109,9 @@ export function toAdminProductListItem(
   return {
     id: slug,
     slug,
-    name: shortName,
+    name: product.name,
     fullName: product.name,
-    code,
+    code: product.code ?? "",
     image: product.image,
     price: productPrice(product.name),
     priceDisplay: "amount",

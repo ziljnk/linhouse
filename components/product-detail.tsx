@@ -9,11 +9,11 @@ import {
   catalogOptionLabel,
   collectionLabel,
   formatProductPriceVnd,
-  parseProductName,
   PRODUCT_PURCHASE_OPTIONS,
   productGallery,
   productSlug,
   productSpecRows,
+  productTitle,
   recommendedProducts,
   relatedProducts,
   showsProductPrice,
@@ -79,7 +79,6 @@ export function ProductDetail({
   contactMethods: { id: string; label: string }[]
 }) {
   const copy = dict.productPage
-  const { code, title, shortName } = parseProductName(product.name)
   const images = productGallery(product)
   const related = relatedProducts(catalog, product)
   const recommended = recommendedProducts(catalog, product, related)
@@ -97,11 +96,11 @@ export function ProductDetail({
     product.description ||
     (product.kind === "ao-dai"
       ? interpolate(copy.leadAoDai, {
-          name: shortName,
+          name: product.name,
           details: specSummary ? ` ${specSummary}` : "",
         })
       : interpolate(copy.lead, {
-          name: shortName,
+          name: product.name,
           silhouette,
           neckline,
           fabric,
@@ -113,7 +112,7 @@ export function ProductDetail({
         <div className="lg:sticky lg:top-28 lg:self-start">
           <ProductGallery
             images={images}
-            alt={product.name}
+            alt={productTitle(product)}
             prevLabel={copy.prevImage}
             nextLabel={copy.nextImage}
             thumbnailLabel={copy.thumbnail}
@@ -137,30 +136,29 @@ export function ProductDetail({
               </>
             ) : null}
             <span className="mx-2">/</span>
-            <span className="text-charcoal">{shortName}</span>
+            <span className="text-charcoal">{productTitle(product)}</span>
           </nav>
 
-          <p className="text-[11px] tracking-[0.18em] text-gold uppercase">
-            {code}
-          </p>
+          {product.code ? (
+            <p className="text-[11px] tracking-[0.18em] text-gold uppercase">
+              {product.code}
+            </p>
+          ) : null}
           <h1 className="mt-2 font-heading text-3xl font-medium tracking-[0.08em] text-burgundy-deep uppercase sm:text-4xl">
-            {shortName}
+            {productTitle(product)}
           </h1>
-          <p className="mt-3 text-sm font-light tracking-[0.04em] text-charcoal/70">
-            {title}
-          </p>
           {showsProductPrice(product) && product.priceVnd != null ? (
             <p className="mt-5 font-heading text-xl tracking-[0.08em] text-burgundy sm:text-2xl">
               {formatProductPriceVnd(product.priceVnd)}
             </p>
           ) : null}
-          <ul className="mt-6 flex flex-col gap-2.5">
+          <ul className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-5">
             {PRODUCT_PURCHASE_OPTIONS.map((option) => {
               const selected = product.purchaseOptions?.includes(option) ?? false
               return (
                 <li
                   key={option}
-                  className="flex items-center gap-3 text-sm font-light tracking-[0.02em] text-charcoal"
+                  className="flex items-center gap-2 whitespace-nowrap text-sm font-light tracking-[0.02em] text-charcoal"
                 >
                   <span
                     aria-hidden
@@ -229,12 +227,12 @@ export function ProductDetail({
               contactMethods={contactMethods}
               product={{
                 slug: productSlug(product),
-                name: product.name,
+                name: productTitle(product),
               }}
             />
             <ProductFavoriteCta
               slug={productSlug(product)}
-              name={product.name}
+              name={productTitle(product)}
               image={product.image}
               addLabel={copy.addToWishlist}
               removeLabel={copy.removeFromWishlist}
@@ -246,7 +244,7 @@ export function ProductDetail({
               {copy.details}
             </h2>
             <p className="mt-3 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
-              {[title, specSummary].filter(Boolean).join(". ")}.
+              {[product.name, specSummary].filter(Boolean).join(". ")}.
             </p>
           </section>
 

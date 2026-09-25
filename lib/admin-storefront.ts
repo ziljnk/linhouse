@@ -94,18 +94,18 @@ export type AdminProductRecord = {
   slug: string
   name: string
   code: string
-  fullTitle: string
   description: LocalizedText
   tags: string[]
   purchaseOptions: ProductPurchaseOption[]
   priceVnd: number | null
   priceDisplay: AdminProductListItem["priceDisplay"]
   kind: ProductKind
+  isOld: boolean
   status: ContentStatus
   publishedAt: string | null
-  seoTitle: string
-  seoDescription: string
-  seoKeywords: string
+  seoTitle: LocalizedText
+  seoDescription: LocalizedText
+  seoKeywords: LocalizedText
   imageUrls: string[]
   attributeIds: string[]
   collectionIds: string[]
@@ -122,9 +122,9 @@ export type AdminCollectionRecord = {
   galleryUrls: string[]
   status: ContentStatus
   publishedAt: string | null
-  seoTitle: string
-  seoDescription: string
-  seoKeywords: string
+  seoTitle: LocalizedText
+  seoDescription: LocalizedText
+  seoKeywords: LocalizedText
 }
 
 export type AdminBlogRecord = {
@@ -139,9 +139,9 @@ export type AdminBlogRecord = {
   coverUrl: string
   status: ContentStatus
   publishedAt: string | null
-  seoTitle: string
-  seoDescription: string
-  seoKeywords: string
+  seoTitle: LocalizedText
+  seoDescription: LocalizedText
+  seoKeywords: LocalizedText
 }
 
 export type AdminBlogCategoryOption = {
@@ -289,7 +289,6 @@ export async function listAdminProducts(
       or(
         textContains(product.name, pattern),
         textContains(product.code, pattern),
-        textContains(product.fullTitle, pattern),
         textContains(product.slug, pattern)
       )!
     )
@@ -376,7 +375,7 @@ export async function listAdminProducts(
       id: row.id,
       slug: row.slug,
       name: row.name,
-      fullName: [row.name, row.code, row.fullTitle].filter(Boolean).join(" — "),
+      fullName: row.name,
       code: row.code,
       image,
       price: row.priceVnd,
@@ -423,18 +422,18 @@ export async function getAdminProduct(
     slug: row.slug,
     name: row.name,
     code: row.code,
-    fullTitle: row.fullTitle,
     description: asLocalized(row.description),
     tags: row.tags ?? [],
     purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
     priceVnd: row.priceVnd,
     priceDisplay: row.priceDisplay,
     kind: row.kind,
+    isOld: row.isOld,
     status: toContentStatus(row.status),
     publishedAt: row.publishedAt?.toISOString() ?? null,
-    seoTitle: row.seoTitle.vi,
-    seoDescription: row.seoDescription.vi,
-    seoKeywords: row.seoKeywords.vi,
+    seoTitle: asLocalized(row.seoTitle),
+    seoDescription: asLocalized(row.seoDescription),
+    seoKeywords: asLocalized(row.seoKeywords),
     imageUrls: images.map((item) => item.url),
     attributeIds: attributeRows.map((item) => item.attributeId),
     collectionIds: collectionRows.map((item) => item.collectionId),
@@ -545,9 +544,9 @@ export async function getAdminCollection(
     galleryUrls,
     status: toContentStatus(row.status),
     publishedAt: row.publishedAt?.toISOString() ?? null,
-    seoTitle: row.seoTitle.vi,
-    seoDescription: row.seoDescription.vi,
-    seoKeywords: row.seoKeywords.vi,
+    seoTitle: asLocalized(row.seoTitle),
+    seoDescription: asLocalized(row.seoDescription),
+    seoKeywords: asLocalized(row.seoKeywords),
   }
 }
 
@@ -664,9 +663,9 @@ export async function getAdminBlogPost(
     coverUrl: row.post.coverUrl,
     status: toContentStatus(row.post.status),
     publishedAt: row.post.publishedAt?.toISOString() ?? null,
-    seoTitle: row.post.seoTitle.vi,
-    seoDescription: row.post.seoDescription.vi,
-    seoKeywords: row.post.seoKeywords.vi,
+    seoTitle: asLocalized(row.post.seoTitle),
+    seoDescription: asLocalized(row.post.seoDescription),
+    seoKeywords: asLocalized(row.post.seoKeywords),
   }
 }
 

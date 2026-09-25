@@ -14,7 +14,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { OptimizedImage } from "@/components/ui/optimized-image"
-import { parseProductName } from "@/lib/catalog"
 import { removeWishlistItem, useWishlist } from "@/lib/wishlist"
 
 const iconButtonClass = "relative inline-flex size-9 items-center justify-center"
@@ -70,8 +69,6 @@ export function HeaderWishlist({
           <ul className="flex flex-col">
             <AnimatePresence initial={false} onExitComplete={() => setExiting(false)}>
               {items.map((item) => {
-                const { title, shortName } = parseProductName(item.name)
-
                 return (
                   <motion.li
                     key={item.slug}
@@ -105,7 +102,7 @@ export function HeaderWishlist({
                         className="size-14 shrink-0 object-cover"
                       />
                       <span className="min-w-0 truncate text-sm tracking-[0.04em] uppercase">
-                        {title || shortName}
+                        {item.name}
                       </span>
                     </Link>
                     <button

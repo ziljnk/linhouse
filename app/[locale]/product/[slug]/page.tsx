@@ -1,11 +1,12 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ProductDetail } from "@/components/product-detail"
-import { findProduct, parseProductName } from "@/lib/catalog"
+import { findProduct, productTitle } from "@/lib/catalog"
 import {
   getStorefront,
   getStorefrontContact,
   getStorefrontProductSlugs,
+  seoKeywordList,
 } from "@/lib/storefront"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
@@ -31,11 +32,10 @@ export async function generateMetadata({
   const product = findProduct(storefront.products, slug)
   if (!product) return {}
 
-  const { shortName, title } = parseProductName(product.name)
-
   return {
-    title: `${product.seoTitle || shortName} | LINHouse`,
-    description: product.seoDescription || title,
+    title: `${product.seoTitle || productTitle(product)} | LINHouse`,
+    description: product.seoDescription || productTitle(product),
+    keywords: seoKeywordList(product.seoKeywords),
   }
 }
 

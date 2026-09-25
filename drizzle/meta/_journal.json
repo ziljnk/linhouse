@@ -36,6 +36,20 @@
       "when": 1790150000000,
       "tag": "0004_about_media_type",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1790160000000,
+      "tag": "0005_drop_product_full_title",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1790170000000,
+      "tag": "0006_product_is_old",
+      "breakpoints": true
     }
   ]
 }

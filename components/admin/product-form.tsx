@@ -77,7 +77,10 @@ import type {
   AdminCollectionOption,
 } from "@/lib/admin-storefront"
 import { nextAutoSlug, slugify } from "@/lib/slug"
-import { cn } from "@/lib/utils"
+import {
+  SeoLocaleFields,
+  type SeoLocaleValues,
+} from "@/components/admin/seo-locale-fields"
 
 const PRODUCT_TAGS = [
   "New In",
@@ -97,24 +100,13 @@ const PRODUCT_TAGS = [
   "Beach wedding",
 ]
 
-const SEO_TITLE_LIMIT = 60
-const SEO_DESCRIPTION_LIMIT = 160
-
-function CharacterCount({
-  value,
-  limit,
-}: {
-  value: string
-  limit: number
-}) {
-  const length = value.length
-  const over = length > limit
-
-  return (
-    <span className={cn("text-xs tabular-nums", over ? "text-destructive" : "text-muted-foreground")}>
-      {length}/{limit}
-    </span>
-  )
+const emptySeo: SeoLocaleValues = {
+  titleVi: "",
+  titleEn: "",
+  descriptionVi: "",
+  descriptionEn: "",
+  keywordsVi: "",
+  keywordsEn: "",
 }
 
 type ComboboxOption = {
@@ -190,12 +182,11 @@ export type ProductFormValues = {
   priceVnd?: number | null
   priceDisplay?: PriceDisplay
   kind?: ProductKind
+  isOld?: boolean
   slug?: string
   status?: "draft" | "published"
   publishedAt?: string | null
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
+  seo?: SeoLocaleValues
 }
 
 export function ProductForm({
@@ -237,6 +228,7 @@ export function ProductForm({
     defaultValues?.priceVnd ? formatPriceInput(String(defaultValues.priceVnd)) : ""
   )
   const [kind, setKind] = useState<ProductKind>(defaultValues?.kind ?? "gown")
+  const [isOld, setIsOld] = useState(defaultValues?.isOld ?? false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [scheduleValue, setScheduleValue] = useState(
     defaultValues?.publishedAt &&
@@ -245,11 +237,7 @@ export function ProductForm({
       : defaultScheduleValue
   )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
-  const [seoTitle, setSeoTitle] = useState(defaultValues?.seoTitle ?? "")
-  const [seoDescription, setSeoDescription] = useState(
-    defaultValues?.seoDescription ?? ""
-  )
-  const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
+  const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
   const [pending, setPending] = useState(false)
   const [translating, setTranslating] = useState(false)
   const [descriptionTab, setDescriptionTab] = useState<"vi" | "en">("vi")
@@ -338,11 +326,15 @@ export function ProductForm({
         priceVnd: parsePriceVnd(priceInput),
         priceDisplay,
         kind,
+        isOld,
         intent,
         publishedAt,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
+        seoTitleVi: seo.titleVi,
+        seoTitleEn: seo.titleEn,
+        seoDescriptionVi: seo.descriptionVi,
+        seoDescriptionEn: seo.descriptionEn,
+        seoKeywordsVi: seo.keywordsVi,
+        seoKeywordsEn: seo.keywordsEn,
       }
       const result = defaultValues?.id
         ? await updateProductAction(defaultValues.id, payload)
@@ -478,6 +470,18 @@ export function ProductForm({
               ))}
             </RadioGroup>
           </fieldset>
+
+          <Label
+            htmlFor="product-is-old"
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 font-normal sm:col-span-2"
+          >
+            <Checkbox
+              id="product-is-old"
+              checked={isOld}
+              onCheckedChange={(value) => setIsOld(value === true)}
+            />
+            <span>Sản phẩm cũ</span>
+          </Label>
 
           <fieldset className="flex flex-col gap-3 sm:col-span-2">
             <legend className="text-sm font-medium">Giá</legend>
@@ -763,53 +767,27 @@ export function ProductForm({
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="product-seo-title">Tiêu đề SEO</Label>
-              <CharacterCount value={seoTitle} limit={SEO_TITLE_LIMIT} />
-            </div>
-            <Input
-              id="product-seo-title"
-              name="seoTitle"
-              value={seoTitle}
-              onChange={(event) => setSeoTitle(event.target.value)}
-              placeholder="Fern | Váy cưới ball gown ivory | LINHouse"
+          <div className="sm:col-span-2">
+            <SeoLocaleFields
+              idPrefix="product"
+              value={seo}
+              onChange={setSeo}
+              emptyTitleFallback="tên sản phẩm"
+              placeholders={{
+                vi: {
+                  title: "Fern | Váy cưới ball gown ivory | LINHouse",
+                  description:
+                    "Váy cưới ball gown ivory may đo tại atelier LINHouse. Chất liệu tulle, cổ tim, phù hợp lễ đường và buổi chụp hình.",
+                  keywords: "váy cưới, ball gown, cổ tim, tulle",
+                },
+                en: {
+                  title: "Fern | Ivory ball gown wedding dress | LINHouse",
+                  description:
+                    "Ivory ball gown wedding dress made to measure at the LINHouse atelier.",
+                  keywords: "wedding dress, ball gown, sweetheart neckline, tulle",
+                },
+              }}
             />
-            <p className="text-xs text-muted-foreground">
-              Nên dài khoảng 50–60 ký tự. Nếu để trống sẽ dùng tên sản phẩm.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="product-seo-description">Mô tả SEO</Label>
-              <CharacterCount value={seoDescription} limit={SEO_DESCRIPTION_LIMIT} />
-            </div>
-            <Textarea
-              id="product-seo-description"
-              name="seoDescription"
-              value={seoDescription}
-              onChange={(event) => setSeoDescription(event.target.value)}
-              placeholder="Váy cưới ball gown ivory may đo tại atelier LINHouse. Chất liệu tulle, cổ tim, phù hợp lễ đường và buổi chụp hình."
-              rows={4}
-            />
-            <p className="text-xs text-muted-foreground">
-              Nên dài khoảng 150–160 ký tự. Hiển thị dưới tiêu đề trên Google.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:col-span-2">
-            <Label htmlFor="product-seo-keywords">Từ khóa</Label>
-            <Input
-              id="product-seo-keywords"
-              name="seoKeywords"
-              value={seoKeywords}
-              onChange={(event) => setSeoKeywords(event.target.value)}
-              placeholder="váy cưới, ball gown, cổ tim, tulle"
-            />
-            <p className="text-xs text-muted-foreground">
-              Phân tách bằng dấu phẩy. Dùng cho tìm kiếm nội bộ và thẻ meta keywords.
-            </p>
           </div>
         </div>
       </section>

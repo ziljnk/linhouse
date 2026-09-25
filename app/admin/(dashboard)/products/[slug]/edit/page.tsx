@@ -51,12 +51,18 @@ export default async function EditProductPage({
           priceVnd: product.priceVnd,
           priceDisplay: product.priceDisplay,
           kind: product.kind,
+          isOld: product.isOld,
           imageUrls: product.imageUrls,
           status: product.status,
           publishedAt: product.publishedAt,
-          seoTitle: product.seoTitle,
-          seoDescription: product.seoDescription,
-          seoKeywords: product.seoKeywords,
+          seo: {
+            titleVi: product.seoTitle.vi,
+            titleEn: product.seoTitle.en,
+            descriptionVi: product.seoDescription.vi,
+            descriptionEn: product.seoDescription.en,
+            keywordsVi: product.seoKeywords.vi,
+            keywordsEn: product.seoKeywords.en,
+          },
         }}
       />
     </div>

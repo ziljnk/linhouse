@@ -38,10 +38,6 @@ export function emptyLocalized(): LocalizedText {
   return { vi: "", en: "" }
 }
 
-export function seoLocalized(value: string): LocalizedText {
-  return { vi: sanitizePlainText(value), en: "" }
-}
-
 export function requireSlug(value: string, label = "Đường dẫn") {
   const slug = slugify(value)
   if (!slug) return { ok: false as const, error: `Vui lòng nhập ${label.toLowerCase()}.` }

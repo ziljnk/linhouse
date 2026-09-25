@@ -8,7 +8,6 @@ import {
   isCatalogSlugTaken,
   revalidateAdmin,
   requireSlug,
-  seoLocalized,
   toLocalized,
   type ActionResult,
 } from "@/lib/admin-actions"
@@ -39,9 +38,12 @@ export type CollectionInput = {
   publishedAt?: string | null
   coverUrl: string
   galleryUrls?: string[]
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
+  seoTitleVi?: string
+  seoTitleEn?: string
+  seoDescriptionVi?: string
+  seoDescriptionEn?: string
+  seoKeywordsVi?: string
+  seoKeywordsEn?: string
 }
 
 export async function createCollectionAction(
@@ -78,9 +80,9 @@ export async function createCollectionAction(
       status: publish.data.status,
       publishedAt: publish.data.publishedAt,
       sortOrder: 99,
-      seoTitle: seoLocalized(input.seoTitle ?? ""),
-      seoDescription: seoLocalized(input.seoDescription ?? ""),
-      seoKeywords: seoLocalized(input.seoKeywords ?? ""),
+      seoTitle: toLocalized(input.seoTitleVi ?? "", input.seoTitleEn),
+      seoDescription: toLocalized(input.seoDescriptionVi ?? "", input.seoDescriptionEn),
+      seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
     })
     .$returningId()
 
@@ -130,9 +132,9 @@ export async function updateCollectionAction(
       coverUrl,
       status: publish.data.status,
       publishedAt: publish.data.publishedAt,
-      seoTitle: seoLocalized(input.seoTitle ?? ""),
-      seoDescription: seoLocalized(input.seoDescription ?? ""),
-      seoKeywords: seoLocalized(input.seoKeywords ?? ""),
+      seoTitle: toLocalized(input.seoTitleVi ?? "", input.seoTitleEn),
+      seoDescription: toLocalized(input.seoDescriptionVi ?? "", input.seoDescriptionEn),
+      seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
     })
     .where(eq(collection.id, id))
 

@@ -3,10 +3,10 @@ import type { Locale } from "@/app/[locale]/dictionaries"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import {
-  parseProductName,
   productHref,
   productPriceLabel,
   productSlug,
+  productTitle,
   showsProductPrice,
   type CatalogProduct,
 } from "@/lib/catalog"
@@ -34,7 +34,6 @@ export function ProductGrid({
       )}
     >
       {products.map((product, index) => {
-        const { code, title } = parseProductName(product.name)
         const href = productHref(locale, product)
 
         return (
@@ -48,7 +47,7 @@ export function ProductGrid({
               <Link href={href} className="relative block">
                 <OptimizedImage
                   src={product.image}
-                  alt={product.name}
+                  alt={productTitle(product)}
                   width={800}
                   height={1067}
                   sizes={
@@ -63,14 +62,14 @@ export function ProductGrid({
                 </span>
               </Link>
               <div className="px-2 pt-3 pb-5 text-center uppercase sm:px-4 sm:pt-5 sm:pb-7">
-                {title ? (
+                {product.code ? (
                   <p className="mb-1 text-[10px] tracking-[0.12em] text-gold sm:text-[11px] sm:tracking-[0.16em]">
-                    {code}
+                    {product.code}
                   </p>
                 ) : null}
                 <h3 className="text-[11px] font-normal tracking-[0.06em] leading-relaxed text-charcoal sm:text-xs sm:tracking-[0.08em]">
                   <Link href={href} className="hover:text-burgundy">
-                    {title || code}
+                    {productTitle(product)}
                   </Link>
                 </h3>
                 {showsProductPrice(product) ? (

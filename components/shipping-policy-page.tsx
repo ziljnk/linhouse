@@ -21,7 +21,7 @@ export function ShippingPolicyPage({ copy }: { copy: Dictionary["shippingPolicy"
                   className="border-t border-charcoal/15 py-8 first:border-t-0 first:pt-0"
                 >
                   {section.title ? (
-                    <h2 className="font-heading text-2xl font-semibold tracking-tight text-charcoal sm:text-[1.7rem]">
+                    <h2 className="font-heading text-[1.05rem] leading-snug font-medium text-charcoal sm:text-lg">
                       {section.title}
                     </h2>
                   ) : null}

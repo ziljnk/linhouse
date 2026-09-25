@@ -216,6 +216,7 @@ export function SiteContentForm({
                         <ContentInput
                           key={`${item.key}-${locale}-${editorEpoch}`}
                           field={item}
+                          locale={locale}
                           value={values[item.key]?.[locale] ?? ""}
                           onChange={(next) => updateField(item.key, next)}
                         />
@@ -706,10 +707,12 @@ function fieldGroups(fields: ContentField[]) {
 function ContentInput({
   field,
   value,
+  locale,
   onChange,
 }: {
   field: ContentField
   value: string
+  locale?: "vi" | "en"
   onChange: (value: string) => void
 }) {
   const id = `content-${field.key.replaceAll(".", "-")}`
@@ -743,15 +746,35 @@ function ContentInput({
     />
   )
 
+  const tokens = field.nameTokens?.[locale ?? "vi"] ?? []
+
   return (
     <Field
       id={id}
       label={field.label}
       hint={field.hint}
       tooltip={field.tooltip}
-      wide={field.multiline}
+      wide={field.multiline || tokens.length > 0}
     >
       {control}
+      {tokens.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {tokens.map((token) => (
+            <Button
+              key={token.token}
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const next = value.trim()
+                onChange(next ? `${next} ${token.token}` : token.token)
+              }}
+            >
+              {token.label}
+            </Button>
+          ))}
+        </div>
+      ) : null}
     </Field>
   )
 }

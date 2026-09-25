@@ -55,10 +55,19 @@ import {
 } from "@/components/admin/image-uploader"
 import { nextAutoSlug, slugify } from "@/lib/slug"
 import type { AdminBlogCategoryOption } from "@/lib/admin-storefront"
-import { cn } from "@/lib/utils"
+import {
+  SeoLocaleFields,
+  type SeoLocaleValues,
+} from "@/components/admin/seo-locale-fields"
 
-const SEO_TITLE_LIMIT = 60
-const SEO_DESCRIPTION_LIMIT = 160
+const emptySeo: SeoLocaleValues = {
+  titleVi: "",
+  titleEn: "",
+  descriptionVi: "",
+  descriptionEn: "",
+  keywordsVi: "",
+  keywordsEn: "",
+}
 
 const BlogRichTextEditor = dynamic(
   () =>
@@ -72,23 +81,6 @@ const BlogRichTextEditor = dynamic(
     ),
   }
 )
-
-function CharacterCount({
-  value,
-  limit,
-}: {
-  value: string
-  limit: number
-}) {
-  const length = value.length
-  const over = length > limit
-
-  return (
-    <span className={cn("text-xs tabular-nums", over ? "text-destructive" : "text-muted-foreground")}>
-      {length}/{limit}
-    </span>
-  )
-}
 
 function isEmptyHtml(html: string) {
   return html
@@ -112,9 +104,7 @@ export type BlogFormValues = {
   coverUrl?: string
   status?: "draft" | "published"
   publishedAt?: string | null
-  seoTitle?: string
-  seoDescription?: string
-  seoKeywords?: string
+  seo?: SeoLocaleValues
 }
 
 export function BlogForm({
@@ -147,11 +137,7 @@ export function BlogForm({
       ? [createUploadedImageFromUrl(defaultValues.coverUrl)]
       : []
   )
-  const [seoTitle, setSeoTitle] = useState(defaultValues?.seoTitle ?? "")
-  const [seoDescription, setSeoDescription] = useState(
-    defaultValues?.seoDescription ?? ""
-  )
-  const [seoKeywords, setSeoKeywords] = useState(defaultValues?.seoKeywords ?? "")
+  const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
   const [cancelOpen, setCancelOpen] = useState(false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [scheduleValue, setScheduleValue] = useState(
@@ -176,9 +162,7 @@ export function BlogForm({
         slug,
         categoryId,
         coverUrl: coverImages[0]?.url ?? "",
-        seoTitle,
-        seoDescription,
-        seoKeywords,
+        seo,
       }),
     [
       titleVi,
@@ -192,9 +176,7 @@ export function BlogForm({
       slug,
       categoryId,
       coverImages,
-      seoTitle,
-      seoDescription,
-      seoKeywords,
+      seo,
     ]
   )
   const cleanSnapshotRef = useRef(snapshot)
@@ -230,9 +212,12 @@ export function BlogForm({
         coverUrl,
         intent,
         publishedAt,
-        seoTitle,
-        seoDescription,
-        seoKeywords,
+        seoTitleVi: seo.titleVi,
+        seoTitleEn: seo.titleEn,
+        seoDescriptionVi: seo.descriptionVi,
+        seoDescriptionEn: seo.descriptionEn,
+        seoKeywordsVi: seo.keywordsVi,
+        seoKeywordsEn: seo.keywordsEn,
       })
       if (!result.ok) {
         toastError(result.error)
@@ -533,56 +518,26 @@ export function BlogForm({
             </span>
           </AccordionTrigger>
           <AccordionContent className="pb-6">
-            <div className="grid gap-4">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-3">
-                  <Label htmlFor="blog-seo-title">Tiêu đề SEO</Label>
-                  <CharacterCount value={seoTitle} limit={SEO_TITLE_LIMIT} />
-                </div>
-                <Input
-                  id="blog-seo-title"
-                  name="seoTitle"
-                  value={seoTitle}
-                  onChange={(event) => setSeoTitle(event.target.value)}
-                  placeholder="Top 9 xu hướng váy cưới 2026 | LINHouse"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Nên dài khoảng 50–60 ký tự. Nếu để trống sẽ dùng tiêu đề bài viết.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-3">
-                  <Label htmlFor="blog-seo-description">Mô tả SEO</Label>
-                  <CharacterCount value={seoDescription} limit={SEO_DESCRIPTION_LIMIT} />
-                </div>
-                <Textarea
-                  id="blog-seo-description"
-                  name="seoDescription"
-                  value={seoDescription}
-                  onChange={(event) => setSeoDescription(event.target.value)}
-                  placeholder="Khám phá những xu hướng váy cưới 2026 được lựa chọn tại atelier LINHouse."
-                  rows={4}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Nên dài khoảng 150–160 ký tự. Hiển thị dưới tiêu đề trên Google.
-                </p>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="blog-seo-keywords">Từ khóa</Label>
-                <Input
-                  id="blog-seo-keywords"
-                  name="seoKeywords"
-                  value={seoKeywords}
-                  onChange={(event) => setSeoKeywords(event.target.value)}
-                  placeholder="váy cưới, xu hướng 2026, cô dâu"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Phân tách bằng dấu phẩy. Dùng cho tìm kiếm nội bộ và thẻ meta keywords.
-                </p>
-              </div>
-            </div>
+            <SeoLocaleFields
+              idPrefix="blog"
+              value={seo}
+              onChange={setSeo}
+              emptyTitleFallback="tiêu đề bài viết"
+              placeholders={{
+                vi: {
+                  title: "Top 9 xu hướng váy cưới 2026 | LINHouse",
+                  description:
+                    "Khám phá những xu hướng váy cưới 2026 được lựa chọn tại atelier LINHouse.",
+                  keywords: "váy cưới, xu hướng 2026, cô dâu",
+                },
+                en: {
+                  title: "Top 9 wedding dress trends 2026 | LINHouse",
+                  description:
+                    "Explore the 2026 wedding dress trends chosen at the LINHouse atelier.",
+                  keywords: "wedding dress, 2026 trends, bride",
+                },
+              }}
+            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>

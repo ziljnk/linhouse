@@ -15,6 +15,7 @@ import {
   getStorefront,
   getStorefrontCatalogSlugs,
   listStorefrontCatalog,
+  seoKeywordList,
 } from "@/lib/storefront"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
@@ -48,6 +49,7 @@ export async function generateMetadata({
   return {
     title: `${collection?.seoTitle || title} | LINHouse`,
     description: collection?.seoDescription || collection?.subtitle,
+    keywords: seoKeywordList(collection?.seoKeywords),
   }
 }
 

@@ -6,6 +6,7 @@ import { sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import {
   getStorefront,
   getStorefrontBlogSlugs,
+  seoKeywordList,
 } from "@/lib/storefront"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
@@ -34,6 +35,7 @@ export async function generateMetadata({
   return {
     title: `${post.seoTitle || post.title} | LINHouse`,
     description: post.seoDescription || post.excerpt,
+    keywords: seoKeywordList(post.seoKeywords),
   }
 }
 
@@ -76,7 +78,7 @@ export default async function BlogPostPage({
         </div>
         {isHtml ? (
           <div
-            className="mt-10 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:font-heading [&_h2]:text-2xl [&_h2]:font-medium [&_h2]:text-charcoal [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-heading [&_h3]:text-xl [&_h3]:font-medium [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:ps-5 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-charcoal/20 [&_blockquote]:ps-4 [&_a]:text-burgundy [&_a]:underline"
+            className="mt-10 text-base leading-relaxed font-light text-charcoal/75 sm:text-lg [&_h2]:mt-8 [&_h2]:mb-3 [&_h2]:font-heading [&_h2]:text-[1.05rem] [&_h2]:leading-snug [&_h2]:font-medium [&_h2]:text-charcoal sm:[&_h2]:text-lg [&_h3]:mt-6 [&_h3]:mb-2 [&_h3]:font-heading [&_h3]:text-[1.05rem] [&_h3]:leading-snug [&_h3]:font-medium sm:[&_h3]:text-lg [&_p]:my-3 [&_ul]:my-3 [&_ul]:list-disc [&_ul]:ps-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:ps-5 [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-charcoal/20 [&_blockquote]:ps-4 [&_a]:text-burgundy [&_a]:underline"
             dangerouslySetInnerHTML={{ __html: body }}
           />
         ) : (
