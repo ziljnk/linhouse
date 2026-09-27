@@ -15,6 +15,7 @@
     "db:studio": "node ./node_modules/drizzle-kit/bin.cjs studio",
     "db:import-pg": "node scripts/run-ts.mjs scripts/pg-to-mysql.ts",
     "auth:seed": "node scripts/run-ts.mjs scripts/seed-admin.ts",
+    "auth:seed-dev": "node scripts/run-ts.mjs scripts/seed-dev-admin.ts",
     "auth:reset-admin": "node scripts/run-ts.mjs scripts/reset-admin.ts"
   },
   "dependencies": {

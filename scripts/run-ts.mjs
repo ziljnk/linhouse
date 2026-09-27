@@ -40,15 +40,16 @@ try {
   process.exit(1)
 }
 
-const child = spawn(
-  process.execPath,
-  [outfile, ...process.argv.slice(3)],
-  {
-    stdio: "inherit",
-    cwd: root,
-    env: process.env,
-  }
-)
+const child = spawn(process.execPath, [outfile, ...process.argv.slice(3)], {
+  stdio: "inherit",
+  cwd: root,
+  env: {
+    ...process.env,
+    NODE_PATH: [join(root, "node_modules"), process.env.NODE_PATH]
+      .filter(Boolean)
+      .join(":"),
+  },
+})
 
 child.on("exit", async (code) => {
   await rm(outfileDir, { recursive: true, force: true }).catch(() => undefined)
