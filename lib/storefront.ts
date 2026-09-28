@@ -943,18 +943,50 @@ const loadStorefrontRows = cache(async () => {
   }
 })
 
+function compareNewThenNewest(
+  a: {
+    isOld: boolean
+    publishedAt: Date | null
+    createdAt: Date
+    sortOrder: number
+  },
+  b: {
+    isOld: boolean
+    publishedAt: Date | null
+    createdAt: Date
+    sortOrder: number
+  }
+) {
+  const oldDelta = Number(a.isOld) - Number(b.isOld)
+  if (oldDelta !== 0) return oldDelta
+  const publishedDelta =
+    (b.publishedAt?.getTime() ?? 0) - (a.publishedAt?.getTime() ?? 0)
+  if (publishedDelta !== 0) return publishedDelta
+  const createdDelta = b.createdAt.getTime() - a.createdAt.getTime()
+  if (createdDelta !== 0) return createdDelta
+  return a.sortOrder - b.sortOrder
+}
+
 export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
   const rows = await loadStorefrontRows()
   const formats = await loadProductNameFormats(locale)
   const products = mapProducts(rows, locale, formats).filter((item) => item.image)
   const collections = mapCollections(rows, locale).filter((item) => item.image)
   const filterGroups = mapFilterGroups(rows, locale)
-  const featuredProducts = products.filter((item) => item.featured)
+  const featuredSource = rows.products.filter((row) => row.featured)
+  const featuredRows = (featuredSource.length > 0 ? featuredSource : rows.products)
+    .slice()
+    .sort(compareNewThenNewest)
+  const featuredProducts = mapProducts(
+    { ...rows, products: featuredRows },
+    locale,
+    formats
+  ).filter((item) => item.image)
   const blogPosts = mapBlogPosts(rows, locale)
 
   return {
     products,
-    featuredProducts: featuredProducts.length > 0 ? featuredProducts : products,
+    featuredProducts,
     collections,
     filterGroups,
     blogPosts,

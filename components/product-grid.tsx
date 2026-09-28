@@ -44,7 +44,7 @@ export function ProductGrid({
             duration={0.7}
           >
             <article className="flex h-full flex-col bg-ivory">
-              <Link href={href} className="relative block">
+              <Link href={href} className="block">
                 <OptimizedImage
                   src={product.image}
                   alt={productTitle(product)}
@@ -57,9 +57,6 @@ export function ProductGrid({
                   }
                   className="aspect-3/4 w-full object-cover"
                 />
-                <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center font-heading text-[10px] tracking-[0.2em] text-ivory uppercase drop-shadow sm:bottom-4 sm:text-[13px] sm:tracking-[0.28em]">
-                  LINHouse
-                </span>
               </Link>
               <div className="px-2 pt-3 pb-5 text-center uppercase sm:px-4 sm:pt-5 sm:pb-7">
                 {product.code ? (
