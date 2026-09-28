@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, type KeyboardEvent } from "react"
+import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { OptimizedImage } from "@/components/ui/optimized-image"
@@ -19,8 +19,47 @@ function Thumbs({
   onSelect: (index: number) => void
   className?: string
 }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    const active = container.querySelector<HTMLElement>("[aria-current='true']")
+    if (!active) return
+
+    const vertical = container.scrollHeight > container.clientHeight + 1
+    if (vertical) {
+      const top = active.offsetTop
+      const bottom = top + active.offsetHeight
+      const viewTop = container.scrollTop
+      const viewBottom = viewTop + container.clientHeight
+      if (top < viewTop) {
+        container.scrollTo({ top, behavior: "smooth" })
+      } else if (bottom > viewBottom) {
+        container.scrollTo({
+          top: bottom - container.clientHeight,
+          behavior: "smooth",
+        })
+      }
+      return
+    }
+
+    const left = active.offsetLeft
+    const right = left + active.offsetWidth
+    const viewLeft = container.scrollLeft
+    const viewRight = viewLeft + container.clientWidth
+    if (left < viewLeft) {
+      container.scrollTo({ left, behavior: "smooth" })
+    } else if (right > viewRight) {
+      container.scrollTo({
+        left: right - container.clientWidth,
+        behavior: "smooth",
+      })
+    }
+  }, [selected])
+
   return (
-    <div className={className}>
+    <div ref={containerRef} className={className}>
       {images.map((image, index) => (
         <button
           key={`${image}-${index}`}
@@ -105,7 +144,10 @@ export function ProductGallery({
 
   return (
     <div
-      className="flex flex-col gap-3 outline-none lg:flex-row lg:items-start"
+      className={cn(
+        "relative outline-none",
+        canNavigate && "lg:pl-23"
+      )}
       role="region"
       aria-roledescription="carousel"
       aria-label={alt}
@@ -118,11 +160,11 @@ export function ProductGallery({
           selected={selected}
           thumbnailLabel={thumbnailLabel}
           onSelect={scrollTo}
-          className="hidden w-20 shrink-0 flex-col gap-2 lg:flex"
+          className="hidden lg:absolute lg:inset-y-0 lg:left-0 lg:flex lg:w-20 lg:flex-col lg:gap-2 lg:overflow-y-auto lg:overscroll-contain scrollbar-thin [scrollbar-color:color-mix(in_srgb,var(--charcoal)_28%,transparent)_transparent]"
         />
       ) : null}
 
-      <div className="relative min-w-0 flex-1 overflow-hidden bg-charcoal/5">
+      <div className="relative min-w-0 overflow-hidden bg-charcoal/5">
         <div ref={emblaRef} className="overflow-hidden">
           <div className="flex">
             {images.map((image, index) => (
@@ -174,7 +216,7 @@ export function ProductGallery({
           selected={selected}
           thumbnailLabel={thumbnailLabel}
           onSelect={scrollTo}
-          className="flex gap-2 overflow-x-auto lg:hidden [&_button]:w-16"
+          className="mt-3 flex gap-2 overflow-x-auto overscroll-contain scrollbar-thin lg:hidden [&_button]:w-16"
         />
       ) : null}
     </div>

@@ -2,13 +2,26 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 
 const locales = ["en", "vi"] as const
+const appModes = ["all", "storefront", "admin"] as const
+
+type AppMode = (typeof appModes)[number]
 
 function getLocale() {
   return "en"
 }
 
+function getAppMode(): AppMode {
+  const mode = process.env.APP_MODE?.trim()
+  if (mode === "all" || mode === "storefront" || mode === "admin") return mode
+  return "all"
+}
+
 function isAdminPath(pathname: string) {
   return pathname === "/admin" || pathname.startsWith("/admin/")
+}
+
+function isAdminApiPath(pathname: string) {
+  return pathname === "/api/admin" || pathname.startsWith("/api/admin/")
 }
 
 function isAdminLogin(pathname: string) {
@@ -26,6 +39,20 @@ function isLocaleExempt(pathname: string) {
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // `all` and `admin` serve both surfaces. `storefront` hides admin entirely.
+  if (
+    getAppMode() === "storefront" &&
+    (isAdminPath(pathname) || isAdminApiPath(pathname))
+  ) {
+    if (isAdminApiPath(pathname)) {
+      return new NextResponse(null, { status: 404 })
+    }
+
+    const url = request.nextUrl.clone()
+    url.pathname = `/${getLocale()}/__not-found`
+    return NextResponse.rewrite(url)
+  }
 
   if (isAdminPath(pathname)) {
     // Presence-only gate. Signature and DB checks happen in requireAdminSession.
