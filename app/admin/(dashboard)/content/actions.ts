@@ -10,6 +10,14 @@ export async function saveSiteContentAction(values: Record<string, ContentPair>)
   const result = await writeSiteContent(values)
   if (!result.ok) return actionFail(result.error)
 
-  await revalidateAdmin()
+  await revalidateAdmin([
+    "/",
+    "/about",
+    "/blog",
+    "/shipping",
+    "/terms",
+    "/privacy",
+    "/support",
+  ])
   return actionOk()
 }

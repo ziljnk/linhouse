@@ -750,7 +750,9 @@
       "licenseNumber": "",
       "licenseNumberLabel": "Giấy phép kinh doanh",
       "workingHours": "",
-      "workingHoursLabel": "Giờ làm việc"
+      "workingHoursLabel": "Giờ làm việc",
+      "storeAddressLabel": "Địa chỉ cửa hàng",
+      "companyAddressLabel": "Địa chỉ công ty"
     },
     "customerService": "Dịch vụ khách hàng",
     "customerServiceLinks": [

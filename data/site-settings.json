@@ -28,7 +28,16 @@
   "address": {
     "vi": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     "en": "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
-    "mapQuery": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Hồ Chí Minh"
+    "company": {
+      "vi": "",
+      "en": ""
+    },
+    "mapQuery": "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Hồ Chí Minh",
+    "footerVisible": {
+      "store": true,
+      "company": true,
+      "map": true
+    }
   },
   "business": {
     "brandName": "LINHouse",
@@ -39,6 +48,13 @@
     "workingHours": {
       "vi": "",
       "en": ""
+    },
+    "footerVisible": {
+      "legalName": true,
+      "taxCode": true,
+      "representative": true,
+      "licenseNumber": true,
+      "workingHours": true
     }
   },
   "social": {

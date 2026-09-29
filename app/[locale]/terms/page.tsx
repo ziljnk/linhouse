@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { LegalDocumentPage } from "@/components/legal-document-page"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
 import { getDictionary, hasLocale } from "../dictionaries"
 
 export async function generateMetadata({
@@ -11,10 +12,10 @@ export async function generateMetadata({
 
   const dict = await getDictionary(locale)
 
-  return {
+  return withStorefrontSeo(locale, "/terms", {
     title: `${dict.termsOfUse.metaTitle} | LINHouse`,
     description: dict.termsOfUse.metaDescription,
-  }
+  })
 }
 
 export default async function TermsOfUseRoute({

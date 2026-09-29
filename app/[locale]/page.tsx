@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { AboutSection } from "@/components/about-section"
 import { BlogSection } from "@/components/blog-section"
@@ -5,8 +6,37 @@ import { CollectionSection } from "@/components/collection-section"
 import { FeaturedProducts } from "@/components/featured-products"
 import { HeroSection } from "@/components/hero-section"
 import { TestimonialSection } from "@/components/testimonial-section"
-import { getStorefront } from "@/lib/storefront"
+import { JsonLd } from "@/components/json-ld"
+import { getStorefront, getStorefrontContact } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { homeStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "./dictionaries"
+
+const homeSeo = {
+  vi: {
+    title: "LINHouse | Váy Cưới Thiết Kế",
+    description:
+      "LINHouse – Bridal studio chuyên váy cưới thiết kế, mang đến những thiết kế tinh tế và thanh lịch dành cho mọi cô dâu, với lựa chọn đặc biệt cho cô dâu Big Size.",
+  },
+  en: {
+    title: "LINHouse | Designer Wedding Dresses",
+    description:
+      "LINHouse – A bridal studio specializing in thoughtfully designed wedding dresses, offering elegant and refined styles for every bride, with a special selection for plus-size brides.",
+  },
+} as const
+
+export async function generateMetadata({
+  params,
+}: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params
+  if (!hasLocale(locale)) return {}
+
+  return withStorefrontSeo(locale, "/", {
+    ...homeSeo[locale],
+    image: "/og-image.webp",
+    imageAlt: "LINHouse",
+  })
+}
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
   const { locale } = await params
@@ -14,10 +44,26 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
   if (!hasLocale(locale)) notFound()
 
   const dict = await getDictionary(locale)
-  const storefront = await getStorefront(locale, dict)
+  const [storefront, contact] = await Promise.all([
+    getStorefront(locale, dict),
+    getStorefrontContact(locale, dict),
+  ])
+  const sameAs = [contact.social.facebookUrl, contact.social.instagramUrl].filter(
+    (url) => url.startsWith("http")
+  )
 
   return (
     <main className="overflow-x-clip bg-ivory">
+      <JsonLd
+        data={homeStructuredData({
+          name: contact.brand.name || "LINHouse",
+          description: homeSeo[locale].description,
+          email: contact.footer.company.email,
+          phone: contact.footer.company.phone,
+          address: contact.storeAddress,
+          sameAs,
+        })}
+      />
       <HeroSection locale={locale} copy={storefront.hero} />
       {storefront.collections.length > 0 ? (
         <CollectionSection

@@ -95,7 +95,7 @@ export async function saveTestimonialAction(
       .limit(1)
     await db.update(testimonial).set(values).where(eq(testimonial.id, input.id))
     await cleanupRemovedCmsImages([current?.imageUrl ?? ""], [imageUrl])
-    await revalidateAdmin()
+    await revalidateAdmin(["/", "/reviews"])
     return actionOk({ slug })
   }
 
@@ -103,7 +103,7 @@ export async function saveTestimonialAction(
     ...values,
     sortOrder: 99,
   })
-  await revalidateAdmin()
+  await revalidateAdmin(["/", "/reviews"])
   return actionOk({ slug })
 }
 
@@ -116,7 +116,7 @@ export async function deleteTestimonialAction(id: string): Promise<ActionResult>
     .limit(1)
   await db.delete(testimonial).where(eq(testimonial.id, id))
   await cleanupRemovedCmsImages([row?.imageUrl ?? ""], [])
-  await revalidateAdmin()
+  await revalidateAdmin(["/", "/reviews"])
   return actionOk()
 }
 
@@ -145,6 +145,6 @@ export async function saveTestimonialsSectionAction(
         },
       },
     })
-  await revalidateAdmin()
+  await revalidateAdmin(["/", "/reviews"])
   return actionOk()
 }

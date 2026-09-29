@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import { BlogGrid } from "@/components/blog-grid"
 import { ScrollReveal } from "@/components/motion-primitives/scroll-reveal"
 import { getStorefront } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
 import { getDictionary, hasLocale } from "../dictionaries"
 
 export async function generateMetadata({
@@ -13,10 +14,10 @@ export async function generateMetadata({
 
   const dict = await getDictionary(locale)
 
-  return {
+  return withStorefrontSeo(locale, "/blog", {
     title: `${dict.home.blog.title} | LINHouse`,
     description: dict.home.blog.description,
-  }
+  })
 }
 
 export default async function BlogIndexPage({

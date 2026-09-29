@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ShippingPolicyPage } from "@/components/shipping-policy-page"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
 import { getDictionary, hasLocale } from "../dictionaries"
 
 export async function generateMetadata({
@@ -11,10 +12,10 @@ export async function generateMetadata({
 
   const dict = await getDictionary(locale)
 
-  return {
+  return withStorefrontSeo(locale, "/shipping", {
     title: `${dict.shippingPolicy.metaTitle} | LINHouse`,
     description: dict.shippingPolicy.metaDescription,
-  }
+  })
 }
 
 export default async function ShippingPolicyRoute({

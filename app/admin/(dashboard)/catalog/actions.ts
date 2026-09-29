@@ -38,6 +38,15 @@ export type CatalogAttributeInput = {
 
 const DEFAULT_SORT_ORDER = 99
 
+function catalogAttributeStorefrontPaths(slugs: Array<string | undefined>) {
+  return [
+    "/",
+    ...slugs
+      .filter((slug): slug is string => Boolean(slug))
+      .map((slug) => `/catalog/${slug}`),
+  ]
+}
+
 export async function createAttributeGroupAction(
   input: AttributeGroupInput
 ): Promise<ActionResult> {
@@ -60,7 +69,7 @@ export async function createAttributeGroupAction(
     kind: input.kind ?? "gown",
     sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
   })
-  await revalidateAdmin()
+  await revalidateAdmin(["/"])
   return actionOk()
 }
 
@@ -90,14 +99,14 @@ export async function updateAttributeGroupAction(
       sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
     })
     .where(eq(attributeGroup.id, id))
-  await revalidateAdmin()
+  await revalidateAdmin(["/"])
   return actionOk()
 }
 
 export async function deleteAttributeGroupAction(id: string): Promise<ActionResult> {
   await requireUsableAdminSession()
   const attributes = await db
-    .select({ id: catalogAttribute.id })
+    .select({ id: catalogAttribute.id, slug: catalogAttribute.slug })
     .from(catalogAttribute)
     .where(eq(catalogAttribute.groupId, id))
 
@@ -117,7 +126,9 @@ export async function deleteAttributeGroupAction(id: string): Promise<ActionResu
   }
 
   await db.delete(attributeGroup).where(eq(attributeGroup.id, id))
-  await revalidateAdmin()
+  await revalidateAdmin(
+    catalogAttributeStorefrontPaths(attributes.map((item) => item.slug))
+  )
   return actionOk()
 }
 
@@ -140,7 +151,7 @@ export async function createCatalogAttributeAction(
     label: toLocalized(input.labelVi, input.labelEn),
     sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
   })
-  await revalidateAdmin()
+  await revalidateAdmin(catalogAttributeStorefrontPaths([slugResult.slug]))
   return actionOk()
 }
 
@@ -158,6 +169,12 @@ export async function updateCatalogAttributeAction(
     return actionFail("Đường dẫn đã dùng cho bộ sưu tập hoặc danh mục khác.")
   }
 
+  const [current] = await db
+    .select({ slug: catalogAttribute.slug })
+    .from(catalogAttribute)
+    .where(eq(catalogAttribute.id, id))
+    .limit(1)
+
   await db
     .update(catalogAttribute)
     .set({
@@ -167,7 +184,9 @@ export async function updateCatalogAttributeAction(
       sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
     })
     .where(eq(catalogAttribute.id, id))
-  await revalidateAdmin()
+  await revalidateAdmin(
+    catalogAttributeStorefrontPaths([current?.slug, slugResult.slug])
+  )
   return actionOk()
 }
 
@@ -184,7 +203,13 @@ export async function deleteCatalogAttributeAction(
     return actionFail("Không xóa được danh mục đang gắn sản phẩm.")
   }
 
+  const [row] = await db
+    .select({ slug: catalogAttribute.slug })
+    .from(catalogAttribute)
+    .where(eq(catalogAttribute.id, id))
+    .limit(1)
+
   await db.delete(catalogAttribute).where(eq(catalogAttribute.id, id))
-  await revalidateAdmin()
+  await revalidateAdmin(catalogAttributeStorefrontPaths([row?.slug]))
   return actionOk()
 }

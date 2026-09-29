@@ -10,6 +10,20 @@ export type BookingContactMethod = {
   label: LocalizedText
 }
 
+export type BusinessFooterVisibility = {
+  legalName: boolean
+  taxCode: boolean
+  representative: boolean
+  licenseNumber: boolean
+  workingHours: boolean
+}
+
+export type AddressFooterVisibility = {
+  store: boolean
+  company: boolean
+  map: boolean
+}
+
 export type SiteSettings = {
   contact: {
     hotline: string
@@ -23,7 +37,9 @@ export type SiteSettings = {
   address: {
     vi: string
     en: string
+    company: LocalizedText
     mapQuery: string
+    footerVisible: AddressFooterVisibility
   }
   business: {
     brandName: string
@@ -32,6 +48,7 @@ export type SiteSettings = {
     representative: string
     licenseNumber: string
     workingHours: LocalizedText
+    footerVisible: BusinessFooterVisibility
   }
   social: {
     facebookUrl: string
@@ -57,7 +74,16 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   address: {
     vi: "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Tp. Hồ Chí Minh",
     en: "45 Nguyen Trong Tuyen, Ward 15, Phu Nhuan, Ho Chi Minh City",
+    company: {
+      vi: "",
+      en: "",
+    },
     mapQuery: "45 Nguyễn Trọng Tuyển, Phường 15, Phú Nhuận, Hồ Chí Minh",
+    footerVisible: {
+      store: true,
+      company: true,
+      map: true,
+    },
   },
   business: {
     brandName: "LINHouse",
@@ -68,6 +94,13 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     workingHours: {
       vi: "",
       en: "",
+    },
+    footerVisible: {
+      legalName: true,
+      taxCode: true,
+      representative: true,
+      licenseNumber: true,
+      workingHours: true,
     },
   },
   social: {
@@ -85,6 +118,32 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function asString(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value : fallback
+}
+
+function asBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === "boolean" ? value : fallback
+}
+
+function asAddressFooterVisibility(value: unknown): AddressFooterVisibility {
+  const record = asRecord(value)
+  const defaults = DEFAULT_SITE_SETTINGS.address.footerVisible
+  return {
+    store: asBoolean(record.store, defaults.store),
+    company: asBoolean(record.company, defaults.company),
+    map: asBoolean(record.map, defaults.map),
+  }
+}
+
+function asFooterVisibility(value: unknown): BusinessFooterVisibility {
+  const record = asRecord(value)
+  const defaults = DEFAULT_SITE_SETTINGS.business.footerVisible
+  return {
+    legalName: asBoolean(record.legalName, defaults.legalName),
+    taxCode: asBoolean(record.taxCode, defaults.taxCode),
+    representative: asBoolean(record.representative, defaults.representative),
+    licenseNumber: asBoolean(record.licenseNumber, defaults.licenseNumber),
+    workingHours: asBoolean(record.workingHours, defaults.workingHours),
+  }
 }
 
 function asEmailList(value: unknown): string[] {
@@ -184,7 +243,9 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
     address: {
       vi: asString(address.vi, defaults.address.vi),
       en: asString(address.en, defaults.address.en),
+      company: asLocalizedText(address.company, defaults.address.company),
       mapQuery: asString(address.mapQuery, defaults.address.mapQuery),
+      footerVisible: asAddressFooterVisibility(address.footerVisible),
     },
     business: {
       brandName: asString(business.brandName, defaults.business.brandName),
@@ -202,6 +263,7 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
         business.workingHours,
         defaults.business.workingHours
       ),
+      footerVisible: asFooterVisibility(business.footerVisible),
     },
     social: {
       facebookUrl: asString(social.facebookUrl, defaults.social.facebookUrl),
@@ -253,7 +315,12 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
     address: {
       vi: addressVi,
       en: trim(input.address.en),
+      company: {
+        vi: trim(input.address.company?.vi ?? ""),
+        en: trim(input.address.company?.en ?? ""),
+      },
       mapQuery,
+      footerVisible: asAddressFooterVisibility(input.address.footerVisible),
     },
     business: {
       brandName: trim(input.business.brandName),
@@ -265,6 +332,7 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
         vi: trim(input.business.workingHours.vi),
         en: trim(input.business.workingHours.en),
       },
+      footerVisible: asFooterVisibility(input.business.footerVisible),
     },
     social: {
       facebookUrl: sanitizeExternalUrl(input.social.facebookUrl) ?? "",
@@ -293,7 +361,7 @@ export function validateSiteSettings(input: SiteSettings): SiteSettingsResult {
   }
 
   if (!data.address.vi) {
-    return { ok: false, error: "Vui lòng nhập địa chỉ tiếng Việt." }
+    return { ok: false, error: "Vui lòng nhập địa chỉ cửa hàng tiếng Việt." }
   }
 
   if (

@@ -14,6 +14,7 @@ import { db } from "@/lib/db"
 import {
   attributeGroup,
   catalogAttribute,
+  collection,
   product,
   productAttribute,
   productCollection,
@@ -125,6 +126,86 @@ async function replaceJoins(
   )
 }
 
+function catalogPathForKind(kind: ProductKind) {
+  return kind === "ao-dai" ? "/catalog/all-ao-dai" : "/catalog/all-gowns"
+}
+
+function productStorefrontPaths(input: {
+  slugs: string[]
+  kinds: ProductKind[]
+  catalogSlugs: string[]
+}) {
+  const paths = ["/", ...input.kinds.map(catalogPathForKind)]
+  for (const slug of input.slugs) {
+    if (slug) paths.push(`/product/${slug}`)
+  }
+  for (const slug of input.catalogSlugs) {
+    if (slug) paths.push(`/catalog/${slug}`)
+  }
+  return paths
+}
+
+async function catalogSlugsForIds(
+  collectionIds: string[],
+  attributeIds: string[]
+) {
+  const collectionSlugs: string[] = []
+  const attributeSlugs: string[] = []
+
+  if (collectionIds.length) {
+    const rows = await db
+      .select({ slug: collection.slug })
+      .from(collection)
+      .where(inArray(collection.id, collectionIds))
+    collectionSlugs.push(...rows.map((row) => row.slug))
+  }
+
+  if (attributeIds.length) {
+    const rows = await db
+      .select({ slug: catalogAttribute.slug })
+      .from(catalogAttribute)
+      .where(inArray(catalogAttribute.id, attributeIds))
+    attributeSlugs.push(...rows.map((row) => row.slug))
+  }
+
+  return [...collectionSlugs, ...attributeSlugs]
+}
+
+async function loadProductStorefrontContext(ids: string[]) {
+  if (!ids.length) {
+    return { slugs: [] as string[], kinds: [] as ProductKind[], catalogSlugs: [] as string[] }
+  }
+
+  const [products, collections, attributes] = await Promise.all([
+    db
+      .select({ slug: product.slug, kind: product.kind })
+      .from(product)
+      .where(inArray(product.id, ids)),
+    db
+      .select({ slug: collection.slug })
+      .from(productCollection)
+      .innerJoin(collection, eq(productCollection.collectionId, collection.id))
+      .where(inArray(productCollection.productId, ids)),
+    db
+      .select({ slug: catalogAttribute.slug })
+      .from(productAttribute)
+      .innerJoin(
+        catalogAttribute,
+        eq(productAttribute.attributeId, catalogAttribute.id)
+      )
+      .where(inArray(productAttribute.productId, ids)),
+  ])
+
+  return {
+    slugs: products.map((row) => row.slug),
+    kinds: products.map((row) => row.kind),
+    catalogSlugs: [
+      ...collections.map((row) => row.slug),
+      ...attributes.map((row) => row.slug),
+    ],
+  }
+}
+
 function validateProduct(input: ProductInput) {
   if (!sanitizePlainText(input.name)) {
     return actionFail("Vui lòng nhập tên sản phẩm.")
@@ -197,13 +278,17 @@ export async function createProductAction(
 
   if (!row) return actionFail("Không tạo được sản phẩm.")
 
-  await replaceJoins(
-    row.id,
-    await attributeIdsForKind(input.attributeIds ?? [], kind),
-    input.collectionIds ?? [],
-    parsed.imageUrls
+  const attributeIds = await attributeIdsForKind(input.attributeIds ?? [], kind)
+  const collectionIds = input.collectionIds ?? []
+  const catalogSlugs = await catalogSlugsForIds(collectionIds, attributeIds)
+  await replaceJoins(row.id, attributeIds, collectionIds, parsed.imageUrls)
+  await revalidateAdmin(
+    productStorefrontPaths({
+      slugs: [parsed.slug],
+      kinds: [kind],
+      catalogSlugs,
+    })
   )
-  await revalidateAdmin()
   return actionOk({ slug: parsed.slug })
 }
 
@@ -236,7 +321,12 @@ export async function updateProductAction(
   })
   if (!publish.ok) return publish
 
+  const previous = await loadProductStorefrontContext([id])
   const kind = input.kind ?? "gown"
+  const attributeIds = await attributeIdsForKind(input.attributeIds ?? [], kind)
+  const collectionIds = input.collectionIds ?? []
+  const catalogSlugs = await catalogSlugsForIds(collectionIds, attributeIds)
+
   await db
     .update(product)
     .set({
@@ -260,13 +350,14 @@ export async function updateProductAction(
     })
     .where(eq(product.id, id))
 
-  await replaceJoins(
-    id,
-    await attributeIdsForKind(input.attributeIds ?? [], kind),
-    input.collectionIds ?? [],
-    parsed.imageUrls
+  await replaceJoins(id, attributeIds, collectionIds, parsed.imageUrls)
+  await revalidateAdmin(
+    productStorefrontPaths({
+      slugs: [...previous.slugs, parsed.slug],
+      kinds: [...previous.kinds, kind],
+      catalogSlugs: [...previous.catalogSlugs, ...catalogSlugs],
+    })
   )
-  await revalidateAdmin()
   return actionOk({ slug: parsed.slug })
 }
 
@@ -276,6 +367,7 @@ export async function deleteProductsAction(
   await requireUsableAdminSession()
   if (!ids.length) return actionFail("Chưa chọn sản phẩm.")
 
+  const previous = await loadProductStorefrontContext(ids)
   const images = await db
     .select({ url: productImage.url })
     .from(productImage)
@@ -286,7 +378,7 @@ export async function deleteProductsAction(
     images.map((row) => row.url),
     []
   )
-  await revalidateAdmin()
+  await revalidateAdmin(productStorefrontPaths(previous))
   return actionOk()
 }
 

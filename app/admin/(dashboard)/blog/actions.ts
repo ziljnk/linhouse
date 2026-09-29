@@ -44,6 +44,16 @@ export type BlogInput = {
   seoKeywordsEn?: string
 }
 
+function blogStorefrontPaths(slugs: Array<string | undefined>) {
+  return [
+    "/",
+    "/blog",
+    ...slugs
+      .filter((slug): slug is string => Boolean(slug))
+      .map((slug) => `/blog/${slug}`),
+  ]
+}
+
 export async function saveBlogPostAction(
   input: BlogInput & { id?: string }
 ): Promise<ActionResult<{ slug: string }>> {
@@ -112,30 +122,30 @@ export async function saveBlogPostAction(
 
   if (input.id) {
     const [previous] = await db
-      .select({ coverUrl: blogPost.coverUrl })
+      .select({ coverUrl: blogPost.coverUrl, slug: blogPost.slug })
       .from(blogPost)
       .where(eq(blogPost.id, input.id))
       .limit(1)
     await db.update(blogPost).set(values).where(eq(blogPost.id, input.id))
     await cleanupRemovedCmsImages([previous?.coverUrl ?? ""], [coverUrl ?? ""])
-    await revalidateAdmin()
+    await revalidateAdmin(blogStorefrontPaths([previous?.slug, slugResult.slug]))
     return actionOk({ slug: slugResult.slug })
   }
 
   await db.insert(blogPost).values(values)
-  await revalidateAdmin()
+  await revalidateAdmin(blogStorefrontPaths([slugResult.slug]))
   return actionOk({ slug: slugResult.slug })
 }
 
 export async function deleteBlogPostAction(id: string): Promise<ActionResult> {
   await requireUsableAdminSession()
   const [row] = await db
-    .select({ coverUrl: blogPost.coverUrl })
+    .select({ coverUrl: blogPost.coverUrl, slug: blogPost.slug })
     .from(blogPost)
     .where(eq(blogPost.id, id))
     .limit(1)
   await db.delete(blogPost).where(eq(blogPost.id, id))
   await cleanupRemovedCmsImages([row?.coverUrl ?? ""], [])
-  await revalidateAdmin()
+  await revalidateAdmin(blogStorefrontPaths([row?.slug]))
   return actionOk()
 }

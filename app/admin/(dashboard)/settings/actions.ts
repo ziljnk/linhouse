@@ -16,7 +16,7 @@ export async function saveSiteSettingsAction(input: SiteSettings) {
     ...result.data,
     notifications: current.notifications,
   })
-  await revalidateAdmin()
+  await revalidateAdmin(["/"])
 
   return actionOk()
 }

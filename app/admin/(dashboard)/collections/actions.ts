@@ -46,6 +46,10 @@ export type CollectionInput = {
   seoKeywordsEn?: string
 }
 
+function collectionStorefrontPaths(slugs: Array<string | undefined>) {
+  return ["/", ...slugs.filter((slug): slug is string => Boolean(slug)).map((slug) => `/catalog/${slug}`)]
+}
+
 export async function createCollectionAction(
   input: CollectionInput
 ): Promise<ActionResult<{ slug: string }>> {
@@ -88,7 +92,7 @@ export async function createCollectionAction(
 
   if (!row) return actionFail("Không tạo được bộ sưu tập.")
   await replaceCollectionImages(row.id, coverUrl, galleryUrls)
-  await revalidateAdmin()
+  await revalidateAdmin(collectionStorefrontPaths([slugResult.slug]))
   return actionOk({ slug: slugResult.slug })
 }
 
@@ -110,7 +114,10 @@ export async function updateCollectionAction(
   }
 
   const [current] = await db
-    .select({ publishedAt: collection.publishedAt })
+    .select({
+      publishedAt: collection.publishedAt,
+      slug: collection.slug,
+    })
     .from(collection)
     .where(eq(collection.id, id))
     .limit(1)
@@ -139,7 +146,9 @@ export async function updateCollectionAction(
     .where(eq(collection.id, id))
 
   await replaceCollectionImages(id, coverUrl, galleryUrls)
-  await revalidateAdmin()
+  await revalidateAdmin(
+    collectionStorefrontPaths([current?.slug, slugResult.slug])
+  )
   return actionOk({ slug: slugResult.slug })
 }
 
@@ -155,7 +164,7 @@ export async function deleteCollectionAction(id: string): Promise<ActionResult> 
   }
 
   const [row] = await db
-    .select({ coverUrl: collection.coverUrl })
+    .select({ coverUrl: collection.coverUrl, slug: collection.slug })
     .from(collection)
     .where(eq(collection.id, id))
     .limit(1)
@@ -169,7 +178,7 @@ export async function deleteCollectionAction(id: string): Promise<ActionResult> 
     [...images.map((item) => item.url), row?.coverUrl ?? ""],
     []
   )
-  await revalidateAdmin()
+  await revalidateAdmin(collectionStorefrontPaths([row?.slug]))
   return actionOk()
 }
 

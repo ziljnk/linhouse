@@ -14,6 +14,7 @@ import {
   getStorefrontContact,
   storefrontNav,
 } from "@/lib/storefront"
+import { SITE_ORIGIN } from "@/lib/seo"
 
 export const revalidate = 60
 
@@ -29,6 +30,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_ORIGIN),
   title: "LINHouse",
   description: "Atelier váy cưới LINHouse",
   icons: {

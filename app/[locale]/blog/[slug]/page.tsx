@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { JsonLd } from "@/components/json-ld"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import {
@@ -8,6 +9,8 @@ import {
   getStorefrontBlogSlugs,
   seoKeywordList,
 } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { articleStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
 export async function generateStaticParams() {
@@ -32,11 +35,15 @@ export async function generateMetadata({
   const post = storefront.blogPosts.find((item) => item.slug === slug)
   if (!post) return {}
 
-  return {
+  return withStorefrontSeo(locale, `/blog/${slug}`, {
     title: `${post.seoTitle || post.title} | LINHouse`,
     description: post.seoDescription || post.excerpt,
     keywords: seoKeywordList(post.seoKeywords),
-  }
+    image: post.image,
+    imageAlt: post.imageAlt || post.title,
+    type: "article",
+    publishedTime: post.publishedAt || undefined,
+  })
 }
 
 export default async function BlogPostPage({
@@ -58,6 +65,7 @@ export default async function BlogPostPage({
 
   return (
     <main className="bg-ivory px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
+      <JsonLd data={articleStructuredData(locale, post)} />
       <article className="mx-auto max-w-3xl">
         {post.date ? (
           <p className="text-[13px] font-light text-charcoal/50">{post.date}</p>

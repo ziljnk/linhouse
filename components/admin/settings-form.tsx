@@ -3,14 +3,17 @@
 import { useState, useTransition, type FormEvent, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { saveSiteSettingsAction } from "@/app/admin/(dashboard)/settings/actions"
-import { Plus, Trash2 } from "lucide-react"
+import { Eye, EyeOff, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  DEFAULT_SITE_SETTINGS,
   MAX_CONTACT_METHODS,
   validateSiteSettings,
+  type AddressFooterVisibility,
+  type BusinessFooterVisibility,
   type SiteSettings,
 } from "@/lib/site-settings"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
@@ -40,16 +43,35 @@ function Field({
   label,
   hint,
   children,
+  footerVisible,
+  onFooterVisibleChange,
 }: {
   id: string
   label: string
   hint?: string
   children: ReactNode
+  footerVisible?: boolean
+  onFooterVisibleChange?: (visible: boolean) => void
 }) {
+  const shown = footerVisible === true
+
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>{label}</Label>
       {children}
+      {onFooterVisibleChange ? (
+        <Button
+          type="button"
+          variant={shown ? "secondary" : "outline"}
+          size="xs"
+          className="self-start"
+          aria-pressed={shown}
+          onClick={() => onFooterVisibleChange(!shown)}
+        >
+          {shown ? <Eye /> : <EyeOff />}
+          {shown ? "Hiện trên footer" : "Ẩn trên footer"}
+        </Button>
+      ) : null}
       {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   )
@@ -70,6 +92,49 @@ export function SettingsForm({
         }
   )
   const [isPending, startTransition] = useTransition()
+  const footerVisible = {
+    ...DEFAULT_SITE_SETTINGS.business.footerVisible,
+    ...values.business.footerVisible,
+  }
+
+  const addressVisible = {
+    ...DEFAULT_SITE_SETTINGS.address.footerVisible,
+    ...values.address.footerVisible,
+  }
+
+  const setAddressVisible = (
+    key: keyof AddressFooterVisibility,
+    visible: boolean
+  ) => {
+    setValues((current) => ({
+      ...current,
+      address: {
+        ...current.address,
+        footerVisible: {
+          ...DEFAULT_SITE_SETTINGS.address.footerVisible,
+          ...current.address.footerVisible,
+          [key]: visible,
+        },
+      },
+    }))
+  }
+
+  const setFooterVisible = (
+    key: keyof BusinessFooterVisibility,
+    visible: boolean
+  ) => {
+    setValues((current) => ({
+      ...current,
+      business: {
+        ...current.business,
+        footerVisible: {
+          ...DEFAULT_SITE_SETTINGS.business.footerVisible,
+          ...current.business.footerVisible,
+          [key]: visible,
+        },
+      },
+    }))
+  }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -332,10 +397,18 @@ export function SettingsForm({
 
       <SettingsSection
         title="Địa chỉ"
-        description="Địa chỉ showroom và vị trí Google Map ở cuối trang."
+        description="Địa chỉ cửa hàng dùng cho đặt lịch. Địa chỉ công ty và bản đồ chỉ hiện trên footer khi bật Hiện trên footer và đã có nội dung."
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="settings-address-vi" label="Địa chỉ (Tiếng Việt)">
+          <Field
+            id="settings-address-vi"
+            label="Địa chỉ cửa hàng (Tiếng Việt)"
+            hint="Dùng cho đặt lịch. Nút này chỉ ẩn hoặc hiện dòng địa chỉ cửa hàng trên footer."
+            footerVisible={addressVisible.store}
+            onFooterVisibleChange={(visible) =>
+              setAddressVisible("store", visible)
+            }
+          >
             <Textarea
               id="settings-address-vi"
               name="addressVi"
@@ -354,8 +427,8 @@ export function SettingsForm({
 
           <Field
             id="settings-address-en"
-            label="Địa chỉ (English)"
-            hint="Để trống sẽ dùng địa chỉ tiếng Việt trên bản tiếng Anh."
+            label="Địa chỉ cửa hàng (English)"
+            hint="Để trống sẽ dùng địa chỉ cửa hàng tiếng Việt trên bản tiếng Anh."
           >
             <Textarea
               id="settings-address-en"
@@ -373,33 +446,97 @@ export function SettingsForm({
           </Field>
 
           <Field
-            id="settings-map-query"
-            label="Vị trí Google Map"
-            hint="Từ khóa tìm trên Google Maps. Để trống sẽ dùng địa chỉ tiếng Việt."
+            id="settings-company-address-vi"
+            label="Địa chỉ công ty (Tiếng Việt)"
+            footerVisible={addressVisible.company}
+            onFooterVisibleChange={(visible) =>
+              setAddressVisible("company", visible)
+            }
           >
-            <Input
-              id="settings-map-query"
-              name="mapQuery"
-              value={values.address.mapQuery}
+            <Textarea
+              id="settings-company-address-vi"
+              name="companyAddressVi"
+              value={values.address.company?.vi ?? ""}
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
-                  address: { ...current.address, mapQuery: event.target.value },
+                  address: {
+                    ...current.address,
+                    company: {
+                      vi: event.target.value,
+                      en: current.address.company?.en ?? "",
+                    },
+                  },
                 }))
               }
-              placeholder="45 Nguyễn Trọng Tuyển, Phú Nhuận, Hồ Chí Minh"
-              className="sm:col-span-2"
+              placeholder="Địa chỉ đăng ký doanh nghiệp"
+              rows={3}
             />
           </Field>
+
+          <Field
+            id="settings-company-address-en"
+            label="Địa chỉ công ty (English)"
+            hint="Để trống sẽ dùng địa chỉ công ty tiếng Việt trên bản tiếng Anh."
+          >
+            <Textarea
+              id="settings-company-address-en"
+              name="companyAddressEn"
+              value={values.address.company?.en ?? ""}
+              onChange={(event) =>
+                setValues((current) => ({
+                  ...current,
+                  address: {
+                    ...current.address,
+                    company: {
+                      vi: current.address.company?.vi ?? "",
+                      en: event.target.value,
+                    },
+                  },
+                }))
+              }
+              placeholder="Registered company address"
+              rows={3}
+            />
+          </Field>
+
+          <div className="sm:col-span-2">
+            <Field
+              id="settings-map-query"
+              label="Vị trí Google Map"
+              hint="Từ khóa tìm trên Google Maps. Để trống sẽ dùng địa chỉ cửa hàng tiếng Việt. Nút này ẩn hoặc hiện khối bản đồ trên footer."
+              footerVisible={addressVisible.map}
+              onFooterVisibleChange={(visible) =>
+                setAddressVisible("map", visible)
+              }
+            >
+              <Input
+                id="settings-map-query"
+                name="mapQuery"
+                value={values.address.mapQuery}
+                onChange={(event) =>
+                  setValues((current) => ({
+                    ...current,
+                    address: { ...current.address, mapQuery: event.target.value },
+                  }))
+                }
+                placeholder="45 Nguyễn Trọng Tuyển, Phú Nhuận, Hồ Chí Minh"
+              />
+            </Field>
+          </div>
         </div>
       </SettingsSection>
 
       <SettingsSection
         title="Thông tin doanh nghiệp"
-        description="Tên thương hiệu và thông tin pháp lý hiển thị ở cột công ty trên footer."
+        description="Tên thương hiệu luôn hiện trên footer. Các mục còn lại chỉ hiện khi bật Hiện trên footer và đã có nội dung."
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="settings-brand-name" label="Tên thương hiệu">
+          <Field
+            id="settings-brand-name"
+            label="Tên thương hiệu"
+            hint="Luôn hiển thị trên footer."
+          >
             <Input
               id="settings-brand-name"
               name="brandName"
@@ -415,7 +552,14 @@ export function SettingsForm({
             />
           </Field>
 
-          <Field id="settings-legal-name" label="Tên doanh nghiệp">
+          <Field
+            id="settings-legal-name"
+            label="Tên doanh nghiệp"
+            footerVisible={footerVisible.legalName}
+            onFooterVisibleChange={(visible) =>
+              setFooterVisible("legalName", visible)
+            }
+          >
             <Input
               id="settings-legal-name"
               name="legalName"
@@ -430,7 +574,14 @@ export function SettingsForm({
             />
           </Field>
 
-          <Field id="settings-tax-code" label="Mã số thuế">
+          <Field
+            id="settings-tax-code"
+            label="Mã số thuế"
+            footerVisible={footerVisible.taxCode}
+            onFooterVisibleChange={(visible) =>
+              setFooterVisible("taxCode", visible)
+            }
+          >
             <Input
               id="settings-tax-code"
               name="taxCode"
@@ -445,7 +596,14 @@ export function SettingsForm({
             />
           </Field>
 
-          <Field id="settings-representative" label="Người đại diện">
+          <Field
+            id="settings-representative"
+            label="Người đại diện"
+            footerVisible={footerVisible.representative}
+            onFooterVisibleChange={(visible) =>
+              setFooterVisible("representative", visible)
+            }
+          >
             <Input
               id="settings-representative"
               name="representative"
@@ -467,6 +625,10 @@ export function SettingsForm({
             id="settings-license"
             label="Giấy phép kinh doanh"
             hint="Số giấy phép hoặc thông tin đăng ký kinh doanh."
+            footerVisible={footerVisible.licenseNumber}
+            onFooterVisibleChange={(visible) =>
+              setFooterVisible("licenseNumber", visible)
+            }
           >
             <Input
               id="settings-license"
@@ -485,7 +647,15 @@ export function SettingsForm({
             />
           </Field>
 
-          <Field id="settings-hours-vi" label="Giờ làm việc (Tiếng Việt)">
+          <Field
+            id="settings-hours-vi"
+            label="Giờ làm việc (Tiếng Việt)"
+            hint="Nút này điều khiển giờ làm việc trên cả bản tiếng Việt và tiếng Anh."
+            footerVisible={footerVisible.workingHours}
+            onFooterVisibleChange={(visible) =>
+              setFooterVisible("workingHours", visible)
+            }
+          >
             <Input
               id="settings-hours-vi"
               name="workingHoursVi"

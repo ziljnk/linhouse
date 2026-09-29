@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { ReviewsPage } from "@/components/reviews-page"
 import { getStorefront } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
 import { getDictionary, hasLocale } from "../dictionaries"
 
 export async function generateMetadata({
@@ -12,10 +13,10 @@ export async function generateMetadata({
 
   const dict = await getDictionary(locale)
 
-  return {
+  return withStorefrontSeo(locale, "/reviews", {
     title: `${dict.reviewsPage.metaTitle} | LINHouse`,
     description: dict.reviewsPage.metaDescription,
-  }
+  })
 }
 
 export default async function ReviewsRoute({

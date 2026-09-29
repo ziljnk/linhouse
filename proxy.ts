@@ -1,19 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
+import { getAppMode, isIndexableDeployment, NOINDEX_ROBOTS_HEADER } from "@/lib/seo"
 
 const locales = ["en", "vi"] as const
-const appModes = ["all", "storefront", "admin"] as const
-
-type AppMode = (typeof appModes)[number]
 
 function getLocale() {
   return "en"
-}
-
-function getAppMode(): AppMode {
-  const mode = process.env.APP_MODE?.trim()
-  if (mode === "all" || mode === "storefront" || mode === "admin") return mode
-  return "all"
 }
 
 function isAdminPath(pathname: string) {
@@ -26,6 +18,22 @@ function isAdminApiPath(pathname: string) {
 
 function isAdminLogin(pathname: string) {
   return pathname === "/admin/login"
+}
+
+function isPrivatePath(pathname: string) {
+  return (
+    isAdminPath(pathname) ||
+    isAdminApiPath(pathname) ||
+    pathname === "/api" ||
+    pathname.startsWith("/api/")
+  )
+}
+
+function withIndexingHeaders(response: NextResponse, request: NextRequest) {
+  if (!isIndexableDeployment() || isPrivatePath(request.nextUrl.pathname)) {
+    response.headers.set("X-Robots-Tag", NOINDEX_ROBOTS_HEADER)
+  }
+  return response
 }
 
 function isLocaleExempt(pathname: string) {
@@ -46,12 +54,12 @@ export function proxy(request: NextRequest) {
     (isAdminPath(pathname) || isAdminApiPath(pathname))
   ) {
     if (isAdminApiPath(pathname)) {
-      return new NextResponse(null, { status: 404 })
+      return withIndexingHeaders(new NextResponse(null, { status: 404 }), request)
     }
 
     const url = request.nextUrl.clone()
     url.pathname = `/${getLocale()}/__not-found`
-    return NextResponse.rewrite(url)
+    return withIndexingHeaders(NextResponse.rewrite(url), request)
   }
 
   if (isAdminPath(pathname)) {
@@ -59,29 +67,32 @@ export function proxy(request: NextRequest) {
     const sessionCookie = getSessionCookie(request)
 
     if (isAdminLogin(pathname)) {
-      return NextResponse.next()
+      return withIndexingHeaders(NextResponse.next(), request)
     }
 
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL("/admin/login", request.url))
+      return withIndexingHeaders(
+        NextResponse.redirect(new URL("/admin/login", request.url)),
+        request
+      )
     }
 
-    return NextResponse.next()
+    return withIndexingHeaders(NextResponse.next(), request)
   }
 
   if (isLocaleExempt(pathname)) {
-    return NextResponse.next()
+    return withIndexingHeaders(NextResponse.next(), request)
   }
 
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   )
 
-  if (pathnameHasLocale) return NextResponse.next()
+  if (pathnameHasLocale) return withIndexingHeaders(NextResponse.next(), request)
 
   const locale = getLocale()
   request.nextUrl.pathname = `/${locale}${pathname}`
-  return NextResponse.redirect(request.nextUrl)
+  return withIndexingHeaders(NextResponse.redirect(request.nextUrl), request)
 }
 
 export const config = {

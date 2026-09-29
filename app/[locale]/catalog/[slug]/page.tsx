@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { JsonLd } from "@/components/json-ld"
 import { CollectionSection } from "@/components/collection-section"
 import { CollectionCatalog } from "@/components/collection-catalog"
 import { CollectionGallery } from "@/components/collection-gallery"
@@ -17,6 +18,8 @@ import {
   listStorefrontCatalog,
   seoKeywordList,
 } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { collectionStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
 export async function generateStaticParams() {
@@ -46,11 +49,13 @@ export async function generateMetadata({
     dict
   )
 
-  return {
+  return withStorefrontSeo(locale, `/catalog/${slug}`, {
     title: `${collection?.seoTitle || title} | LINHouse`,
     description: collection?.seoDescription || collection?.subtitle,
     keywords: seoKeywordList(collection?.seoKeywords),
-  }
+    image: collection?.image,
+    imageAlt: collection?.imageAlt || title,
+  })
 }
 
 export default async function CatalogPage({
@@ -72,6 +77,7 @@ export default async function CatalogPage({
 
     return (
       <main className="overflow-x-clip bg-ivory">
+        <JsonLd data={collectionStructuredData(locale, collection)} />
         <CollectionHero
           collection={collection}
           readMoreLabel={dict.catalogPage.readMore}

@@ -750,7 +750,9 @@
       "licenseNumber": "",
       "licenseNumberLabel": "Business license",
       "workingHours": "",
-      "workingHoursLabel": "Hours"
+      "workingHoursLabel": "Hours",
+      "storeAddressLabel": "Store address",
+      "companyAddressLabel": "Company address"
     },
     "customerService": "Customer service",
     "customerServiceLinks": [

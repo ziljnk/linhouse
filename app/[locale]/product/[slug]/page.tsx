@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { JsonLd } from "@/components/json-ld"
 import { ProductDetail } from "@/components/product-detail"
 import { findProduct, productTitle } from "@/lib/catalog"
 import {
@@ -8,6 +9,8 @@ import {
   getStorefrontProductSlugs,
   seoKeywordList,
 } from "@/lib/storefront"
+import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { productStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "../../dictionaries"
 
 export async function generateStaticParams() {
@@ -32,11 +35,14 @@ export async function generateMetadata({
   const product = findProduct(storefront.products, slug)
   if (!product) return {}
 
-  return {
-    title: `${product.seoTitle || productTitle(product)} | LINHouse`,
+  const title = product.seoTitle || productTitle(product)
+  return withStorefrontSeo(locale, `/product/${slug}`, {
+    title: `${title} | LINHouse`,
     description: product.seoDescription || productTitle(product),
     keywords: seoKeywordList(product.seoKeywords),
-  }
+    image: product.image,
+    imageAlt: title,
+  })
 }
 
 export default async function ProductPage({
@@ -57,6 +63,7 @@ export default async function ProductPage({
 
   return (
     <main className="bg-ivory">
+      <JsonLd data={productStructuredData(locale, product)} />
       <ProductDetail
         locale={locale}
         product={product}

@@ -45,6 +45,7 @@ import { isSearchableQuery, normalizeSearchQuery } from "@/lib/search-query"
 import { getSiteSettings } from "@/lib/site-settings-store"
 import {
   bookingContactMethods,
+  DEFAULT_SITE_SETTINGS,
   localizedValue,
   type LocalizedText,
   type SiteSettings,
@@ -58,6 +59,8 @@ export type StorefrontBlogPost = {
   imageAlt: string
   excerpt: string
   content: string
+  publishedAt: string
+  updatedAt: string
   seoTitle: string
   seoDescription: string
   seoKeywords: string
@@ -760,6 +763,8 @@ function mapBlogPosts(
     imageAlt: textOf(row.imageAlt, locale, textOf(row.title, locale, row.slug)),
     excerpt: textOf(row.excerpt, locale),
     content: textOf(row.content, locale),
+    publishedAt: row.publishedAt?.toISOString() ?? "",
+    updatedAt: row.updatedAt?.toISOString() ?? "",
     seoTitle: textOf(row.seoTitle, locale),
     seoDescription: textOf(row.seoDescription, locale),
     seoKeywords: textOf(row.seoKeywords, locale),
@@ -1184,7 +1189,64 @@ export function withStorefrontContact(
     { vi: settings.address.vi, en: settings.address.en },
     locale
   )
+  const companyAddress = localizedValue(
+    settings.address.company ?? { vi: "", en: "" },
+    locale
+  )
+  const addressVisible = {
+    ...DEFAULT_SITE_SETTINGS.address.footerVisible,
+    ...settings.address.footerVisible,
+  }
   const brandName = settings.business.brandName || dict.brand.name
+  const footerVisible = {
+    ...DEFAULT_SITE_SETTINGS.business.footerVisible,
+    ...settings.business.footerVisible,
+  }
+  const companyLabels = dict.footer.company
+  const workingHours = localizedValue(settings.business.workingHours, locale)
+  const companyDetails = [
+    {
+      show: footerVisible.legalName,
+      label: companyLabels.legalNameLabel,
+      value: settings.business.legalName,
+    },
+    {
+      show: footerVisible.taxCode,
+      label: companyLabels.taxCodeLabel,
+      value: settings.business.taxCode,
+    },
+    {
+      show: footerVisible.representative,
+      label: companyLabels.representativeLabel,
+      value: settings.business.representative,
+    },
+    {
+      show: footerVisible.licenseNumber,
+      label: companyLabels.licenseNumberLabel,
+      value: settings.business.licenseNumber,
+    },
+    {
+      show: footerVisible.workingHours,
+      label: companyLabels.workingHoursLabel,
+      value: workingHours,
+    },
+  ]
+    .filter((detail) => detail.show && detail.value.trim())
+    .map(({ label, value }) => ({ label, value }))
+  const places = [
+    {
+      show: addressVisible.company,
+      label: companyLabels.companyAddressLabel,
+      value: companyAddress,
+    },
+    {
+      show: addressVisible.store,
+      label: companyLabels.storeAddressLabel,
+      value: address,
+    },
+  ]
+    .filter((place) => place.show && place.value.trim())
+    .map(({ label, value }) => ({ label, value }))
 
   return {
     brand: {
@@ -1206,11 +1268,13 @@ export function withStorefrontContact(
         licenseNumber:
           settings.business.licenseNumber || dict.footer.company.licenseNumber,
         workingHours:
-          localizedValue(settings.business.workingHours, locale) ||
-          dict.footer.company.workingHours,
+          workingHours || dict.footer.company.workingHours,
+        details: companyDetails,
+        places,
       },
       mapQuery: settings.address.mapQuery || dict.footer.mapQuery,
       address: address || dict.footer.address,
+      showMap: addressVisible.map,
     },
     social: {
       ...dict.social,

@@ -22,10 +22,21 @@ export function actionFail(error: string): { ok: false; error: string } {
   return { ok: false, error }
 }
 
-export async function revalidateAdmin() {
+const STOREFRONT_LOCALES = ["vi", "en"] as const
+
+function localePath(locale: string, path: string) {
+  if (path === "/") return `/${locale}`
+  return `/${locale}${path.startsWith("/") ? path : `/${path}`}`
+}
+
+export async function revalidateAdmin(paths: string[] = []) {
   revalidatePath("/admin", "layout")
-  revalidatePath("/vi", "layout")
-  revalidatePath("/en", "layout")
+  for (const path of new Set(paths)) {
+    if (!path) continue
+    for (const locale of STOREFRONT_LOCALES) {
+      revalidatePath(localePath(locale, path))
+    }
+  }
 }
 
 export const VIRTUAL_CATALOG_SLUGS = new Set(["all-gowns", "all-ao-dai"])
