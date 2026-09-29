@@ -43,7 +43,7 @@ export function parseAnalyticsRange(
   const next = firstSearchParam(value).trim()
   return ANALYTICS_RANGES.includes(next as AnalyticsRange)
     ? (next as AnalyticsRange)
-    : "7d"
+    : "today"
 }
 
 export function formatAnalyticsCount(value: number) {

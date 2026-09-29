@@ -7,7 +7,7 @@ import {
 } from "@/lib/admin-analytics"
 
 function hrefForRange(range: AnalyticsRange) {
-  return range === "7d" ? "/admin" : `/admin?range=${range}`
+  return range === "today" ? "/admin" : `/admin?range=${range}`
 }
 
 export function AnalyticsRangeTabs({ value }: { value: AnalyticsRange }) {
