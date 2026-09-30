@@ -65,7 +65,7 @@ export default async function BlogPostPage({
 
   return (
     <main className="bg-ivory px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
-      <JsonLd data={articleStructuredData(locale, post)} />
+      <JsonLd data={await articleStructuredData(locale, post)} />
       <article className="mx-auto max-w-3xl">
         {post.date ? (
           <p className="text-[13px] font-light text-charcoal/50">{post.date}</p>

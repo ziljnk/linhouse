@@ -195,7 +195,7 @@ function productMatchesSlug(product: CatalogProduct, slug: string) {
   )
 }
 
-export function productKindOf(product: CatalogProduct): ProductKind {
+export function productKindOf(product: { kind?: ProductKind }): ProductKind {
   return product.kind ?? "gown"
 }
 
@@ -269,7 +269,7 @@ export function parseProductName(name: string) {
   return { code, title, shortName }
 }
 
-export function productSlug(product: CatalogProduct) {
+export function productSlug(product: { slug?: string; name: string }) {
   if (product.slug) return product.slug
 
   return parseProductName(product.name)
@@ -332,23 +332,37 @@ export function collectionLabel(
   return findCollection(source, slug)?.name ?? slug
 }
 
-function productKey(product: CatalogProduct) {
+function productKey(product: { slug?: string; name: string }) {
   return productSlug(product)
 }
 
-function uniqueProducts(products: CatalogProduct[], count: number) {
-  const unique: CatalogProduct[] = []
+export const PRODUCT_RAIL_COUNT = 12
+
+function dedupedProducts<T extends { slug?: string; name: string }>(products: T[]) {
+  const unique: T[] = []
   const seen = new Set<string>()
 
   for (const product of products) {
-    const key = productKey(product)
+    const key = productSlug(product)
     if (seen.has(key)) continue
     seen.add(key)
     unique.push(product)
-    if (unique.length === count) break
   }
 
   return unique
+}
+
+function shuffleProducts<T>(products: T[], random: () => number) {
+  const copy = products.slice()
+
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1))
+    const current = copy[index]
+    copy[index] = copy[swap]
+    copy[swap] = current
+  }
+
+  return copy
 }
 
 export function productGallery(product: CatalogProduct) {
@@ -368,52 +382,35 @@ export function productGallery(product: CatalogProduct) {
   return unique
 }
 
-export function relatedProducts(
-  catalog: CatalogProduct[],
-  product: CatalogProduct,
-  count = 4
+export function relatedProducts<T extends { slug?: string; name: string; kind?: ProductKind }>(
+  catalog: T[],
+  product: { slug?: string; name: string; kind?: ProductKind },
+  count = PRODUCT_RAIL_COUNT,
+  random: () => number = Math.random
 ) {
-  const rest = catalog.filter((item) => productKey(item) !== productKey(product))
-  const sameKind = rest.filter(
-    (item) => productKindOf(item) === productKindOf(product)
+  const current = productKey(product)
+  const kind = productKindOf(product)
+  const sameKind = catalog.filter(
+    (item) => productKey(item) !== current && productKindOf(item) === kind
   )
-  return uniqueProducts(
-    [
-      ...sameKind.filter((item) => item.silhouette === product.silhouette),
-      ...sameKind.filter((item) =>
-        item.collections.some((slug) => product.collections.includes(slug))
-      ),
-      ...sameKind,
-      ...rest,
-    ],
-    count
-  )
+
+  return shuffleProducts(dedupedProducts(sameKind), random).slice(0, count)
 }
 
-export function recommendedProducts(
-  catalog: CatalogProduct[],
-  product: CatalogProduct,
-  related: CatalogProduct[],
-  count = 4
+export function recommendedProducts<T extends { slug?: string; name: string }>(
+  catalog: T[],
+  product: { slug?: string; name: string },
+  related: { slug?: string; name: string }[],
+  count = PRODUCT_RAIL_COUNT,
+  random: () => number = Math.random
 ) {
   const skip = new Set([
     productKey(product),
     ...related.map((item) => productKey(item)),
   ])
   const rest = catalog.filter((item) => !skip.has(productKey(item)))
-  const sameKind = rest.filter(
-    (item) => productKindOf(item) === productKindOf(product)
-  )
 
-  return uniqueProducts(
-    [
-      ...sameKind.filter((item) => item.fabric === product.fabric),
-      ...sameKind.filter((item) => item.neckline === product.neckline),
-      ...sameKind,
-      ...rest,
-    ],
-    count
-  )
+  return shuffleProducts(dedupedProducts(rest), random).slice(0, count)
 }
 
 export function catalogSlugs(dict: Dictionary) {

@@ -63,7 +63,7 @@ export default async function ProductPage({
 
   return (
     <main className="bg-ivory">
-      <JsonLd data={productStructuredData(locale, product)} />
+      <JsonLd data={await productStructuredData(locale, product)} />
       <ProductDetail
         locale={locale}
         product={product}

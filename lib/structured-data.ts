@@ -1,7 +1,7 @@
 import type { CatalogProduct, CollectionItem } from "@/lib/catalog"
 import { productTitle, showsProductPrice } from "@/lib/catalog"
+import { publicImageUrl } from "@/lib/public-image"
 import {
-  absoluteAssetUrl,
   BRAND_LOGO,
   localePath,
   SITE_ORIGIN,
@@ -29,7 +29,7 @@ function telephoneE164(value: string) {
   return ""
 }
 
-export function homeStructuredData({
+export async function homeStructuredData({
   name,
   description,
   email,
@@ -50,8 +50,8 @@ export function homeStructuredData({
     "@id": ORGANIZATION_ID,
     name,
     url: SITE_ORIGIN,
-    logo: absoluteAssetUrl(BRAND_LOGO),
-    image: absoluteAssetUrl("/og-image.webp"),
+    logo: await publicImageUrl(BRAND_LOGO),
+    image: await publicImageUrl("/og-image.webp"),
     description,
   }
   if (email) organization.email = email
@@ -91,7 +91,7 @@ export function homeStructuredData({
   }
 }
 
-export function productStructuredData(
+export async function productStructuredData(
   locale: StorefrontLocale,
   product: CatalogProduct
 ) {
@@ -100,7 +100,8 @@ export function productStructuredData(
   const images = (product.images?.length ? product.images : [product.image])
     .map((url) => url?.trim() ?? "")
     .filter(Boolean)
-    .map(absoluteAssetUrl)
+    .map((url) => publicImageUrl(url))
+  const imageUrls = (await Promise.all(images))
   const url = pageUrl(locale, `/product/${product.slug || ""}`)
   const data: JsonLdNode = {
     "@context": "https://schema.org",
@@ -110,7 +111,7 @@ export function productStructuredData(
     url,
     brand: { "@type": "Brand", name: "LINHouse" },
   }
-  if (images.length) data.image = images
+  if (imageUrls.length) data.image = imageUrls
   if (showsProductPrice(product) && product.priceVnd) {
     const inStock = product.purchaseOptions?.some(
       (option) => option === "rent" || option === "ready-to-purchase"
@@ -126,12 +127,12 @@ export function productStructuredData(
   return data
 }
 
-export function articleStructuredData(
+export async function articleStructuredData(
   locale: StorefrontLocale,
   post: StorefrontBlogPost
 ) {
   const url = pageUrl(locale, `/blog/${post.slug}`)
-  const image = post.image.trim() ? absoluteAssetUrl(post.image) : ""
+  const image = post.image.trim() ? await publicImageUrl(post.image) : ""
   const data: JsonLdNode = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -150,7 +151,7 @@ export function articleStructuredData(
       name: "LINHouse",
       logo: {
         "@type": "ImageObject",
-        url: absoluteAssetUrl(BRAND_LOGO),
+        url: await publicImageUrl(BRAND_LOGO),
       },
     },
   }
@@ -162,13 +163,13 @@ export function articleStructuredData(
   return data
 }
 
-export function collectionStructuredData(
+export async function collectionStructuredData(
   locale: StorefrontLocale,
   collection: CollectionItem
 ) {
   const slug = collection.href.replace(/^\/catalog\//, "")
   const url = pageUrl(locale, `/catalog/${slug}`)
-  const image = collection.image.trim() ? absoluteAssetUrl(collection.image) : ""
+  const image = collection.image.trim() ? await publicImageUrl(collection.image) : ""
   const data: JsonLdNode = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",

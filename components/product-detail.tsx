@@ -4,18 +4,18 @@ import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ProductBookingCta } from "@/components/product-booking-cta"
 import { ProductFavoriteCta } from "@/components/product-favorite-cta"
 import { ProductGallery } from "@/components/product-gallery"
-import { ProductGrid } from "@/components/product-grid"
+import { ProductSuggestions } from "@/components/product-suggestions"
 import {
   catalogOptionLabel,
   collectionLabel,
   formatProductPriceVnd,
   PRODUCT_PURCHASE_OPTIONS,
   productGallery,
+  productHref,
+  productKindOf,
   productSlug,
   productSpecRows,
   productTitle,
-  recommendedProducts,
-  relatedProducts,
   showsProductPrice,
   type CatalogFilterGroup,
   type CatalogProduct,
@@ -29,35 +29,6 @@ function interpolate(
   return Object.entries(values).reduce(
     (text, [key, value]) => text.replaceAll(`{${key}}`, value),
     template
-  )
-}
-
-function ProductRail({
-  title,
-  products,
-  locale,
-  contactLabel,
-}: {
-  title: string
-  products: CatalogProduct[]
-  locale: Locale
-  contactLabel: string
-}) {
-  if (products.length === 0) return null
-
-  return (
-    <section className="mt-16 border-t border-charcoal/10 pt-12 sm:mt-20 sm:pt-16">
-      <h2 className="mb-8 text-center font-heading text-2xl font-medium tracking-[0.16em] text-burgundy-deep uppercase sm:mb-10 sm:text-3xl">
-        {title}
-      </h2>
-      <ProductGrid
-        products={products}
-        locale={locale}
-        contactLabel={contactLabel}
-        columns={4}
-        className="mx-0 max-w-none"
-      />
-    </section>
   )
 }
 
@@ -80,8 +51,19 @@ export function ProductDetail({
 }) {
   const copy = dict.productPage
   const images = productGallery(product)
-  const related = relatedProducts(catalog, product)
-  const recommended = recommendedProducts(catalog, product, related)
+  const suggestions = catalog.map((item) => ({
+    slug: productSlug(item),
+    name: item.name,
+    kind: productKindOf(item),
+    code: item.code,
+    title: productTitle(item),
+    image: item.image,
+    href: productHref(locale, item),
+    priceLabel:
+      showsProductPrice(item) && item.priceVnd != null
+        ? formatProductPriceVnd(item.priceVnd)
+        : null,
+  }))
   const specs = productSpecRows(product, groups)
   const silhouette = catalogOptionLabel(groups, "silhouette", product.silhouette)
   const neckline = catalogOptionLabel(groups, "neckline", product.neckline)
@@ -277,16 +259,15 @@ export function ProductDetail({
         </div>
       </div>
 
-      <ProductRail
-        title={copy.related}
-        products={related}
-        locale={locale}
-        contactLabel={dict.products.contact}
-      />
-      <ProductRail
-        title={copy.youMayAlsoLike}
-        products={recommended}
-        locale={locale}
+      <ProductSuggestions
+        current={{
+          slug: productSlug(product),
+          name: product.name,
+          kind: productKindOf(product),
+        }}
+        products={suggestions}
+        relatedTitle={copy.related}
+        recommendedTitle={copy.youMayAlsoLike}
         contactLabel={dict.products.contact}
       />
     </div>

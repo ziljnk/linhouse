@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
+import { publicImageUrl } from "@/lib/public-image"
 import {
-  absoluteAssetUrl,
   DEFAULT_OG_IMAGE,
   isIndexableDeployment,
   localePath,
@@ -21,7 +21,7 @@ const noindexRobots: Metadata["robots"] = {
   },
 }
 
-export function withStorefrontSeo(
+export async function withStorefrontSeo(
   locale: StorefrontLocale,
   path: string,
   meta: {
@@ -37,7 +37,7 @@ export function withStorefrontSeo(
   const indexable = isIndexableDeployment()
   const canonical = `${SITE_ORIGIN}${localePath(locale, path)}`
   const imagePath = meta.image?.trim() || DEFAULT_OG_IMAGE
-  const imageUrl = absoluteAssetUrl(imagePath)
+  const imageUrl = await publicImageUrl(imagePath)
   const isBrandImage = imageUrl.endsWith("/og-image.webp")
   const image = {
     url: imageUrl,

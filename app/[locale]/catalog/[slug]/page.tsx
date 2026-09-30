@@ -77,7 +77,7 @@ export default async function CatalogPage({
 
     return (
       <main className="overflow-x-clip bg-ivory">
-        <JsonLd data={collectionStructuredData(locale, collection)} />
+        <JsonLd data={await collectionStructuredData(locale, collection)} />
         <CollectionHero
           collection={collection}
           readMoreLabel={dict.catalogPage.readMore}

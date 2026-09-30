@@ -55,7 +55,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
   return (
     <main className="overflow-x-clip bg-ivory">
       <JsonLd
-        data={homeStructuredData({
+        data={await homeStructuredData({
           name: contact.brand.name || "LINHouse",
           description: homeSeo[locale].description,
           email: contact.footer.company.email,

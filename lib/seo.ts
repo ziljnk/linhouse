@@ -8,13 +8,6 @@ export const NOINDEX_ROBOTS_HEADER = "noindex, nofollow, noarchive"
 export const DEFAULT_OG_IMAGE = "/og-image.webp"
 export const BRAND_LOGO = "/logo-text.png"
 
-export function absoluteAssetUrl(path: string) {
-  const value = path.trim()
-  if (!value) return `${SITE_ORIGIN}${DEFAULT_OG_IMAGE}`
-  if (/^https?:\/\//i.test(value)) return value
-  return `${SITE_ORIGIN}${value.startsWith("/") ? value : `/${value}`}`
-}
-
 export function getAppMode(): AppMode {
   const mode = process.env.APP_MODE?.trim()
   if (mode === "all" || mode === "storefront" || mode === "admin") return mode
