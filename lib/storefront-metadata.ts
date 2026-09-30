@@ -33,7 +33,7 @@ export async function withStorefrontSeo(
     type?: "website" | "article"
     publishedTime?: string
   }
-): Metadata {
+): Promise<Metadata> {
   const indexable = isIndexableDeployment()
   const canonical = `${SITE_ORIGIN}${localePath(locale, path)}`
   const imagePath = meta.image?.trim() || DEFAULT_OG_IMAGE
