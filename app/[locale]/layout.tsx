@@ -106,6 +106,7 @@ export default async function LocaleLayout({
               email={contact.footer.company.email}
               phone={contact.footer.company.phone}
               zalo={contact.social.zaloPhone}
+              order={contact.floatOrder}
             />
           </div>
         </TooltipProvider>

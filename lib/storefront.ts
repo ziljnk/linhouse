@@ -46,6 +46,7 @@ import { getSiteSettings } from "@/lib/site-settings-store"
 import {
   bookingContactMethods,
   DEFAULT_SITE_SETTINGS,
+  floatIconLabel,
   localizedValue,
   type LocalizedText,
   type SiteSettings,
@@ -1281,7 +1282,28 @@ export function withStorefrontContact(
       facebookUrl: settings.social.facebookUrl,
       instagramUrl: settings.social.instagramUrl,
       zaloPhone: settings.contact.zalo || dict.social.zaloPhone,
+      gmail: floatIconLabel(settings, "gmail", locale, dict.social.gmail),
+      zalo: floatIconLabel(settings, "zalo", locale, dict.social.zalo),
+      instagram: floatIconLabel(
+        settings,
+        "instagram",
+        locale,
+        dict.social.instagram
+      ),
+      facebook: floatIconLabel(
+        settings,
+        "facebook",
+        locale,
+        dict.social.facebook
+      ),
+      whatsapp: floatIconLabel(
+        settings,
+        "whatsapp",
+        locale,
+        dict.social.whatsapp
+      ),
     },
+    floatOrder: settings.social.floatOrder,
     storeAddress: address || dict.footer.company.address,
     contactMethods: bookingContactMethods(settings, locale),
   }

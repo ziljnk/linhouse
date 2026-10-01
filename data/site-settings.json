@@ -59,6 +59,14 @@
   },
   "social": {
     "facebookUrl": "https://www.facebook.com/linhousebigsize",
-    "instagramUrl": "https://www.instagram.com/linhouse.bridal"
+    "instagramUrl": "https://www.instagram.com/linhouse.bridal",
+    "floatOrder": ["gmail", "zalo", "instagram", "facebook", "whatsapp"],
+    "tooltips": {
+      "gmail": { "vi": "Gmail", "en": "Gmail" },
+      "zalo": { "vi": "Zalo", "en": "Zalo" },
+      "instagram": { "vi": "Instagram", "en": "Instagram" },
+      "facebook": { "vi": "Facebook", "en": "Facebook" },
+      "whatsapp": { "vi": "WhatsApp", "en": "WhatsApp" }
+    }
   }
 }

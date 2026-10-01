@@ -5,10 +5,22 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { zaloHref } from "@/lib/site-settings"
+import {
+  whatsappHref,
+  zaloHref,
+  type FloatIconId,
+} from "@/lib/site-settings"
 
 const iconButtonClass =
   "flex size-12 items-center justify-center rounded-xl border border-charcoal/15 bg-ivory/90 text-charcoal shadow-lg backdrop-blur-xl"
+
+const ICONS: Record<FloatIconId, string> = {
+  gmail: "/socials/gmail.svg",
+  zalo: "/socials/zalo.svg",
+  instagram: "/socials/instagram.svg",
+  facebook: "/socials/facebook.svg",
+  whatsapp: "/socials/whatsapp.svg",
+}
 
 function SocialIcon({ src }: { src: string }) {
   return <Image src={src} alt="" width={20} height={20} className="size-8" />
@@ -19,66 +31,47 @@ export function SocialFloat({
   email,
   phone,
   zalo,
+  order,
 }: {
   social: Dictionary["social"]
   email: string
   phone: string
   zalo?: string
+  order: FloatIconId[]
 }) {
-  const phoneHref = phone ? `tel:${phone.replaceAll(" ", "")}` : ""
   const zaloLink = zaloHref(zalo || social.zaloPhone, phone)
+  const whatsappLink = whatsappHref(phone)
 
-  const links = [
-    email
-      ? {
-          key: "gmail",
-          href: `mailto:${email}`,
-          label: social.gmail,
-          icon: "/socials/gmail.svg",
-        }
+  const links: Record<FloatIconId, { href: string; label: string } | null> = {
+    gmail: email
+      ? { href: `mailto:${email}`, label: social.gmail }
       : null,
-    zaloLink
-      ? {
-          key: "zalo",
-          href: zaloLink,
-          label: social.zalo,
-          icon: "/socials/zalo.svg",
-        }
+    zalo: zaloLink ? { href: zaloLink, label: social.zalo } : null,
+    instagram: social.instagramUrl
+      ? { href: social.instagramUrl, label: social.instagram }
       : null,
-    social.instagramUrl
-      ? {
-          key: "instagram",
-          href: social.instagramUrl,
-          label: social.instagram,
-          icon: "/socials/instagram.svg",
-        }
+    facebook: social.facebookUrl
+      ? { href: social.facebookUrl, label: social.facebook }
       : null,
-    social.facebookUrl
-      ? {
-          key: "facebook",
-          href: social.facebookUrl,
-          label: social.facebook,
-          icon: "/socials/facebook.svg",
-        }
+    whatsapp: whatsappLink
+      ? { href: whatsappLink, label: social.whatsapp }
       : null,
-    phoneHref
-      ? {
-          key: "phone",
-          href: phoneHref,
-          label: social.phone,
-          icon: "/socials/phone.svg",
-        }
-      : null,
-  ].filter((link) => link !== null)
+  }
 
-  if (links.length === 0) return null
+  const visible = order.flatMap((id) => {
+    const link = links[id]
+    if (!link) return []
+    return [{ key: id, ...link, icon: ICONS[id] }]
+  })
+
+  if (visible.length === 0) return null
 
   return (
     <nav
       aria-label={social.label}
       className="fixed right-5 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-50 flex flex-col gap-2.5 sm:right-6"
     >
-      {links.map((link) => {
+      {visible.map((link) => {
         const isExternal = link.href.startsWith("http")
         return (
           <Tooltip key={link.key}>

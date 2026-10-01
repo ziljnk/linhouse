@@ -1,22 +1,101 @@
 "use client"
 
-import { useState, useTransition, type FormEvent, type ReactNode } from "react"
+import {
+  useId,
+  useState,
+  useTransition,
+  type Dispatch,
+  type FormEvent,
+  type ReactNode,
+  type SetStateAction,
+} from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { saveSiteSettingsAction } from "@/app/admin/(dashboard)/settings/actions"
-import { Eye, EyeOff, Plus, Trash2 } from "lucide-react"
+import { Eye, EyeOff, GripVertical, Plus, Trash2 } from "lucide-react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  DEFAULT_FLOAT_TOOLTIPS,
   DEFAULT_SITE_SETTINGS,
   MAX_CONTACT_METHODS,
   validateSiteSettings,
   type AddressFooterVisibility,
   type BusinessFooterVisibility,
+  type FloatIconId,
   type SiteSettings,
 } from "@/lib/site-settings"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { cn } from "@/lib/utils"
+
+const FLOAT_CHANNELS: {
+  id: FloatIconId
+  icon: string
+  name: string
+  fieldLabel: string
+  hint: string
+}[] = [
+  {
+    id: "whatsapp",
+    icon: "/socials/whatsapp.svg",
+    name: "WhatsApp",
+    fieldLabel: "Số điện thoại",
+    hint: "Hiện ở chân trang. Nút WhatsApp cũng dùng số này.",
+  },
+  {
+    id: "gmail",
+    icon: "/socials/gmail.svg",
+    name: "Email",
+    fieldLabel: "Địa chỉ email",
+    hint: "Hiện ở chân trang và dùng cho nút Email.",
+  },
+  {
+    id: "zalo",
+    icon: "/socials/zalo.svg",
+    name: "Zalo",
+    fieldLabel: "Số Zalo hoặc đường dẫn",
+    hint: "Số điện thoại hoặc đường dẫn https://zalo.me/.... Để trống sẽ dùng số hotline.",
+  },
+  {
+    id: "facebook",
+    icon: "/socials/facebook.svg",
+    name: "Facebook",
+    fieldLabel: "Đường dẫn Facebook",
+    hint: "Để trống để ẩn nút Facebook.",
+  },
+  {
+    id: "instagram",
+    icon: "/socials/instagram.svg",
+    name: "Instagram",
+    fieldLabel: "Đường dẫn Instagram",
+    hint: "Để trống để ẩn nút Instagram.",
+  },
+]
 
 function SettingsSection({
   title,
@@ -77,6 +156,262 @@ function Field({
   )
 }
 
+function SortableContactRow({
+  id,
+  icon,
+  name,
+  children,
+}: {
+  id: FloatIconId
+  icon: string
+  name: string
+  children: ReactNode
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
+
+  return (
+    <AccordionItem
+      ref={setNodeRef}
+      value={id}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={cn(
+        "rounded-lg border border-border bg-background",
+        isDragging && "z-10 opacity-80 shadow-md"
+      )}
+    >
+      <div className="flex items-center gap-1 px-2 [&>h3]:min-w-0 [&>h3]:flex-1">
+        <button
+          type="button"
+          className="inline-flex size-8 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:cursor-grabbing"
+          aria-label={`Kéo để đổi vị trí ${name}`}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="size-4" />
+        </button>
+        <AccordionTrigger className="w-full items-center py-2.5 hover:no-underline">
+          <span className="flex min-w-0 items-center gap-3">
+            <Image
+              src={icon}
+              alt=""
+              width={20}
+              height={20}
+              className="size-8 shrink-0"
+            />
+            <span>{name}</span>
+          </span>
+        </AccordionTrigger>
+      </div>
+      <AccordionContent className="px-3 [&_a]:no-underline">
+        {children}
+      </AccordionContent>
+    </AccordionItem>
+  )
+}
+
+function FloatTooltipFields({
+  id,
+  values,
+  setValues,
+}: {
+  id: FloatIconId
+  values: SiteSettings
+  setValues: Dispatch<SetStateAction<SiteSettings>>
+}) {
+  const tooltip = {
+    ...DEFAULT_FLOAT_TOOLTIPS[id],
+    ...values.social.tooltips?.[id],
+  }
+
+  const setTooltip = (locale: "vi" | "en", value: string) => {
+    setValues((current) => ({
+      ...current,
+      social: {
+        ...current.social,
+        tooltips: {
+          ...DEFAULT_FLOAT_TOOLTIPS,
+          ...current.social.tooltips,
+          [id]: {
+            ...DEFAULT_FLOAT_TOOLTIPS[id],
+            ...current.social.tooltips?.[id],
+            [locale]: value,
+          },
+        },
+      },
+    }))
+  }
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <Field
+        id={`settings-tooltip-vi-${id}`}
+        label="Chữ khi rê chuột (Tiếng Việt)"
+        hint="Khách thấy chữ này khi đưa chuột vào nút. Để trống sẽ dùng tên mặc định."
+      >
+        <Input
+          id={`settings-tooltip-vi-${id}`}
+          value={tooltip.vi}
+          onChange={(event) => setTooltip("vi", event.target.value)}
+          placeholder={DEFAULT_FLOAT_TOOLTIPS[id].vi}
+        />
+      </Field>
+      <Field
+        id={`settings-tooltip-en-${id}`}
+        label="Chữ khi rê chuột (English)"
+        hint="Để trống sẽ dùng chữ tiếng Việt."
+      >
+        <Input
+          id={`settings-tooltip-en-${id}`}
+          value={tooltip.en}
+          onChange={(event) => setTooltip("en", event.target.value)}
+          placeholder={DEFAULT_FLOAT_TOOLTIPS[id].en}
+        />
+      </Field>
+    </div>
+  )
+}
+
+function ContactChannelField({
+  id,
+  values,
+  setValues,
+}: {
+  id: FloatIconId
+  values: SiteSettings
+  setValues: Dispatch<SetStateAction<SiteSettings>>
+}) {
+  const channel = FLOAT_CHANNELS.find((item) => item.id === id)
+  if (!channel) return null
+
+  const tooltipFields = (
+    <FloatTooltipFields id={id} values={values} setValues={setValues} />
+  )
+
+  if (id === "whatsapp") {
+    return (
+      <div className="flex flex-col gap-3">
+      <Field id="settings-hotline" label={channel.fieldLabel} hint={channel.hint}>
+        <Input
+          id="settings-hotline"
+          name="hotline"
+          type="tel"
+          value={values.contact.hotline}
+          onChange={(event) =>
+            setValues((current) => ({
+              ...current,
+              contact: { ...current.contact, hotline: event.target.value },
+            }))
+          }
+          placeholder="0902 678 114"
+          required
+        />
+      </Field>
+      {tooltipFields}
+      </div>
+    )
+  }
+
+  if (id === "gmail") {
+    return (
+      <div className="flex flex-col gap-3">
+      <Field id="settings-email" label={channel.fieldLabel} hint={channel.hint}>
+        <Input
+          id="settings-email"
+          name="email"
+          type="email"
+          value={values.contact.email}
+          onChange={(event) =>
+            setValues((current) => ({
+              ...current,
+              contact: { ...current.contact, email: event.target.value },
+            }))
+          }
+          placeholder="info@linhouse.com.vn"
+          required
+        />
+      </Field>
+      {tooltipFields}
+      </div>
+    )
+  }
+
+  if (id === "zalo") {
+    return (
+      <div className="flex flex-col gap-3">
+      <Field id="settings-zalo" label={channel.fieldLabel} hint={channel.hint}>
+        <Input
+          id="settings-zalo"
+          name="zalo"
+          value={values.contact.zalo}
+          onChange={(event) =>
+            setValues((current) => ({
+              ...current,
+              contact: { ...current.contact, zalo: event.target.value },
+            }))
+          }
+          placeholder="0902678114"
+        />
+      </Field>
+      {tooltipFields}
+      </div>
+    )
+  }
+
+  if (id === "facebook") {
+    return (
+      <div className="flex flex-col gap-3">
+      <Field id="settings-facebook" label={channel.fieldLabel} hint={channel.hint}>
+        <Input
+          id="settings-facebook"
+          name="facebookUrl"
+          type="url"
+          value={values.social.facebookUrl}
+          onChange={(event) =>
+            setValues((current) => ({
+              ...current,
+              social: { ...current.social, facebookUrl: event.target.value },
+            }))
+          }
+          placeholder="https://www.facebook.com/linhousebigsize"
+        />
+      </Field>
+      {tooltipFields}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+    <Field id="settings-instagram" label={channel.fieldLabel} hint={channel.hint}>
+      <Input
+        id="settings-instagram"
+        name="instagramUrl"
+        type="url"
+        value={values.social.instagramUrl}
+        onChange={(event) =>
+          setValues((current) => ({
+            ...current,
+            social: { ...current.social, instagramUrl: event.target.value },
+          }))
+        }
+        placeholder="https://www.instagram.com/linhouse.bridal"
+      />
+    </Field>
+    {tooltipFields}
+    </div>
+  )
+}
+
 export function SettingsForm({
   defaultValues,
 }: {
@@ -92,6 +427,42 @@ export function SettingsForm({
         }
   )
   const [isPending, startTransition] = useTransition()
+  const floatDndId = useId()
+  const floatSensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+  const floatOrder =
+    values.social.floatOrder.length > 0
+      ? values.social.floatOrder
+      : DEFAULT_SITE_SETTINGS.social.floatOrder
+
+  const handleFloatDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+
+    setValues((current) => {
+      const order =
+        current.social.floatOrder.length > 0
+          ? current.social.floatOrder
+          : DEFAULT_SITE_SETTINGS.social.floatOrder
+      const oldIndex = order.indexOf(active.id as FloatIconId)
+      const newIndex = order.indexOf(over.id as FloatIconId)
+      if (oldIndex < 0 || newIndex < 0) return current
+      return {
+        ...current,
+        social: {
+          ...current.social,
+          floatOrder: arrayMove(order, oldIndex, newIndex),
+        },
+      }
+    })
+  }
+
   const footerVisible = {
     ...DEFAULT_SITE_SETTINGS.business.footerVisible,
     ...values.business.footerVisible,
@@ -166,110 +537,37 @@ export function SettingsForm({
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
       <SettingsSection
         title="Liên hệ"
-        description="Hotline, email, Zalo, Facebook và Instagram dùng cho footer và thanh liên hệ nổi bên phải."
+        description="Dùng cho chân trang và thanh nút nổi bên phải. Bấm vào từng mục để sửa số điện thoại, đường dẫn và chữ hiện khi rê chuột. Kéo tay cầm bên trái để đổi thứ tự."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            id="settings-hotline"
-            label="Hotline"
-            hint="Hiện trên footer và nút gọi điện."
-          >
-            <Input
-              id="settings-hotline"
-              name="hotline"
-              type="tel"
-              value={values.contact.hotline}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  contact: { ...current.contact, hotline: event.target.value },
-                }))
-              }
-              placeholder="0902 678 114"
-              required
-            />
-          </Field>
-
-          <Field
-            id="settings-email"
-            label="Email"
-            hint="Hiện trên footer và nút Gmail."
-          >
-            <Input
-              id="settings-email"
-              name="email"
-              type="email"
-              value={values.contact.email}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  contact: { ...current.contact, email: event.target.value },
-                }))
-              }
-              placeholder="info@linhouse.com.vn"
-              required
-            />
-          </Field>
-
-          <Field
-            id="settings-zalo"
-            label="Zalo"
-            hint="Số điện thoại hoặc link https://zalo.me/.... Để trống sẽ dùng hotline."
-          >
-            <Input
-              id="settings-zalo"
-              name="zalo"
-              value={values.contact.zalo}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  contact: { ...current.contact, zalo: event.target.value },
-                }))
-              }
-              placeholder="0902678114"
-            />
-          </Field>
-
-          <Field
-            id="settings-facebook"
-            label="Facebook"
-            hint="Nút Facebook trên thanh liên hệ nổi. Để trống để ẩn nút."
-          >
-            <Input
-              id="settings-facebook"
-              name="facebookUrl"
-              type="url"
-              value={values.social.facebookUrl}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  social: { ...current.social, facebookUrl: event.target.value },
-                }))
-              }
-              placeholder="https://www.facebook.com/linhousebigsize"
-            />
-          </Field>
-
-          <Field
-            id="settings-instagram"
-            label="Instagram"
-            hint="Nút Instagram trên thanh liên hệ nổi. Để trống để ẩn nút."
-          >
-            <Input
-              id="settings-instagram"
-              name="instagramUrl"
-              type="url"
-              value={values.social.instagramUrl}
-              onChange={(event) =>
-                setValues((current) => ({
-                  ...current,
-                  social: { ...current.social, instagramUrl: event.target.value },
-                }))
-              }
-              placeholder="https://www.instagram.com/linhouse.bridal"
-            />
-          </Field>
-        </div>
+        <DndContext
+          id={floatDndId}
+          sensors={floatSensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleFloatDragEnd}
+        >
+          <SortableContext items={floatOrder} strategy={verticalListSortingStrategy}>
+            <Accordion multiple defaultValue={[]} className="gap-3">
+              {floatOrder.map((id) => {
+                const channel = FLOAT_CHANNELS.find((item) => item.id === id)
+                if (!channel) return null
+                return (
+                  <SortableContactRow
+                    key={id}
+                    id={id}
+                    icon={channel.icon}
+                    name={channel.name}
+                  >
+                    <ContactChannelField
+                      id={id}
+                      values={values}
+                      setValues={setValues}
+                    />
+                  </SortableContactRow>
+                )
+              })}
+            </Accordion>
+          </SortableContext>
+        </DndContext>
       </SettingsSection>
 
       <SettingsSection

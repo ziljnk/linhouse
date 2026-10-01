@@ -24,6 +24,26 @@ export type AddressFooterVisibility = {
   map: boolean
 }
 
+export const FLOAT_ICON_IDS = [
+  "gmail",
+  "zalo",
+  "instagram",
+  "facebook",
+  "whatsapp",
+] as const
+
+export type FloatIconId = (typeof FLOAT_ICON_IDS)[number]
+
+export type FloatTooltips = Record<FloatIconId, LocalizedText>
+
+export const DEFAULT_FLOAT_TOOLTIPS: FloatTooltips = {
+  gmail: { vi: "Gmail", en: "Gmail" },
+  zalo: { vi: "Zalo", en: "Zalo" },
+  instagram: { vi: "Instagram", en: "Instagram" },
+  facebook: { vi: "Facebook", en: "Facebook" },
+  whatsapp: { vi: "WhatsApp", en: "WhatsApp" },
+}
+
 export type SiteSettings = {
   contact: {
     hotline: string
@@ -53,6 +73,8 @@ export type SiteSettings = {
   social: {
     facebookUrl: string
     instagramUrl: string
+    floatOrder: FloatIconId[]
+    tooltips: FloatTooltips
   }
 }
 
@@ -106,6 +128,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   social: {
     facebookUrl: "https://www.facebook.com/linhousebigsize",
     instagramUrl: "https://www.instagram.com/linhouse.bridal",
+    floatOrder: ["gmail", "zalo", "instagram", "facebook", "whatsapp"],
+    tooltips: DEFAULT_FLOAT_TOOLTIPS,
   },
 }
 
@@ -189,6 +213,66 @@ function uniqueContactMethodId(base: string, used: Set<string>) {
   return `${fallback}-${index}`
 }
 
+function isFloatIconId(value: string): value is FloatIconId {
+  return (FLOAT_ICON_IDS as readonly string[]).includes(value)
+}
+
+function asFloatTooltips(value: unknown): FloatTooltips {
+  const record = asRecord(value)
+  return {
+    gmail: asLocalizedText(record.gmail, DEFAULT_FLOAT_TOOLTIPS.gmail),
+    zalo: asLocalizedText(record.zalo, DEFAULT_FLOAT_TOOLTIPS.zalo),
+    instagram: asLocalizedText(
+      record.instagram,
+      DEFAULT_FLOAT_TOOLTIPS.instagram
+    ),
+    facebook: asLocalizedText(record.facebook, DEFAULT_FLOAT_TOOLTIPS.facebook),
+    whatsapp: asLocalizedText(record.whatsapp, DEFAULT_FLOAT_TOOLTIPS.whatsapp),
+  }
+}
+
+function sanitizeFloatTooltips(value: unknown): FloatTooltips {
+  const tooltips = asFloatTooltips(value)
+  return {
+    gmail: { vi: trim(tooltips.gmail.vi), en: trim(tooltips.gmail.en) },
+    zalo: { vi: trim(tooltips.zalo.vi), en: trim(tooltips.zalo.en) },
+    instagram: {
+      vi: trim(tooltips.instagram.vi),
+      en: trim(tooltips.instagram.en),
+    },
+    facebook: {
+      vi: trim(tooltips.facebook.vi),
+      en: trim(tooltips.facebook.en),
+    },
+    whatsapp: {
+      vi: trim(tooltips.whatsapp.vi),
+      en: trim(tooltips.whatsapp.en),
+    },
+  }
+}
+
+function asFloatOrder(value: unknown): FloatIconId[] {
+  const defaults = DEFAULT_SITE_SETTINGS.social.floatOrder
+  if (!Array.isArray(value)) return [...defaults]
+
+  const seen = new Set<FloatIconId>()
+  const order: FloatIconId[] = []
+
+  for (const item of value) {
+    if (typeof item !== "string" || !isFloatIconId(item) || seen.has(item)) {
+      continue
+    }
+    seen.add(item)
+    order.push(item)
+  }
+
+  for (const id of defaults) {
+    if (!seen.has(id)) order.push(id)
+  }
+
+  return order
+}
+
 function asContactMethods(value: unknown): BookingContactMethod[] {
   if (!Array.isArray(value)) return DEFAULT_SITE_SETTINGS.contactMethods
 
@@ -268,6 +352,8 @@ export function normalizeSiteSettings(value: unknown): SiteSettings {
     social: {
       facebookUrl: asString(social.facebookUrl, defaults.social.facebookUrl),
       instagramUrl: asString(social.instagramUrl, defaults.social.instagramUrl),
+      floatOrder: asFloatOrder(social.floatOrder),
+      tooltips: asFloatTooltips(social.tooltips),
     },
   }
 }
@@ -337,6 +423,8 @@ export function sanitizeSiteSettings(input: SiteSettings): SiteSettings {
     social: {
       facebookUrl: sanitizeExternalUrl(input.social.facebookUrl) ?? "",
       instagramUrl: sanitizeExternalUrl(input.social.instagramUrl) ?? "",
+      floatOrder: asFloatOrder(input.social.floatOrder),
+      tooltips: sanitizeFloatTooltips(input.social.tooltips),
     },
   }
 }
@@ -470,6 +558,24 @@ export function googleMapsUrls(query: string) {
     href: `https://www.google.com/maps?q=${encoded}`,
     embedSrc: `https://maps.google.com/maps?q=${encoded}&z=16&output=embed`,
   }
+}
+
+export function floatIconLabel(
+  settings: SiteSettings,
+  id: FloatIconId,
+  locale: LocaleCode,
+  fallback: string
+) {
+  const text = settings.social.tooltips?.[id]
+  if (!text) return fallback
+  return localizedValue(text, locale).trim() || fallback
+}
+
+export function whatsappHref(phone: string) {
+  const digits = phone.replace(/\D/g, "")
+  if (!digits) return ""
+  const international = digits.startsWith("0") ? `84${digits.slice(1)}` : digits
+  return `https://wa.me/${international}`
 }
 
 export function zaloHref(zalo: string, hotline: string) {
