@@ -60,7 +60,7 @@ export default async function AdminContentPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Nội dung</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sửa chữ cố định trên website: trang giới thiệu, chính sách giao hàng, hỗ trợ khách hàng, điều khoản sử dụng, chính sách bảo mật, tiêu đề section và các đoạn mô tả dùng chung.
+          Sửa chữ cố định trên website: trang giới thiệu, chính sách giao hàng, hỗ trợ khách hàng, điều khoản sử dụng, chính sách bảo mật, tiêu đề section và các đoạn mô tả dùng chung. Thẻ tiêu đề, mô tả và từ khóa trên Google chỉnh ở mục SEO.
         </p>
       </div>
       <SiteContentForm

@@ -23,6 +23,10 @@ import {
   withAboutMilestones,
 } from "@/lib/about-list-items"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
+import {
+  DEFAULT_HOME_HERO_IMAGE,
+  HOME_HERO_IMAGE_KEY,
+} from "@/lib/home-hero-image"
 import { toastError, toastInfo, toastSuccess } from "@/lib/admin-toast"
 import { cmsImageDisplaySrc, getImageUrl } from "@/lib/cms-image"
 import type { ContentField, ContentPair, ContentSection } from "@/lib/site-content"
@@ -33,7 +37,15 @@ import {
   withShippingSections,
 } from "@/lib/shipping-policy-sections"
 import { cn } from "@/lib/utils"
+import { HeroSection } from "@/components/hero-section"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   ImageUploader,
   createUploadedImageFromUrl,
@@ -172,6 +184,14 @@ export function SiteContentForm({
                         aboutFaqItemsFrom(defaults)
                       )
                     }
+                    if (section.id === "home") {
+                      next[HOME_HERO_IMAGE_KEY] = {
+                        ...(defaults[HOME_HERO_IMAGE_KEY] ?? {
+                          vi: DEFAULT_HOME_HERO_IMAGE,
+                          en: DEFAULT_HOME_HERO_IMAGE,
+                        }),
+                      }
+                    }
                     return next
                   })
                   setEditorEpoch((epoch) => epoch + 1)
@@ -222,6 +242,29 @@ export function SiteContentForm({
                         />
                       ))}
                     </div>
+                    {section.id === "home" && group.title === "Banner" ? (
+                      <HeroImageField
+                        image={values[HOME_HERO_IMAGE_KEY]?.vi || DEFAULT_HOME_HERO_IMAGE}
+                        locale={locale}
+                        copy={{
+                          headline: values["home.headline"]?.[locale] ?? "",
+                          subhead: values["home.subhead"]?.[locale] ?? "",
+                          description: values["home.description"]?.[locale] ?? "",
+                          cta: values["home.cta"]?.[locale] ?? "",
+                          imageAlt: values["home.imageAlt"]?.[locale] ?? "",
+                        }}
+                        pending={busy}
+                        onUploadChange={(active) => {
+                          setImageUploads((count) => count + (active ? 1 : -1))
+                        }}
+                        onChange={(url) => {
+                          setValues((current) => ({
+                            ...current,
+                            [HOME_HERO_IMAGE_KEY]: { vi: url, en: url },
+                          }))
+                        }}
+                      />
+                    ) : null}
                   </div>
                   {section.id === "about" && group.title === "Hành trình" ? (
                     <AboutMilestonesEditor
@@ -431,6 +474,149 @@ function AboutMilestonesEditor({
       )}
     </div>
   )
+}
+
+function HeroImageField({
+  image,
+  locale,
+  copy,
+  pending,
+  onChange,
+  onUploadChange,
+}: {
+  image: string
+  locale: "vi" | "en"
+  copy: {
+    headline: string
+    subhead: string
+    description: string
+    cta: string
+    imageAlt: string
+  }
+  pending: boolean
+  onChange: (url: string) => void
+  onUploadChange: (active: boolean) => void
+}) {
+  const [images, setImages] = useState<UploadedImage[]>(() => heroPreview(image))
+  const [uploading, setUploading] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const pendingUrl = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (uploading) return
+    if (pendingUrl.current && image !== pendingUrl.current) return
+    pendingUrl.current = null
+    setImages((current) => {
+      const shown = current[0]?.url ?? ""
+      if (shown === image || shown === cmsImageDisplaySrc(image)) return current
+      return heroPreview(image)
+    })
+  }, [image, uploading])
+
+  return (
+    <div className={cn("mt-4 flex flex-col gap-2", (pending || uploading) && "pointer-events-none opacity-70")}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Label>Ảnh banner</Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={pending || uploading}
+          onClick={() => setPreviewOpen(true)}
+        >
+          Xem trước
+        </Button>
+      </div>
+      <ImageUploader
+        images={images}
+        maxFiles={1}
+        aspect="banner"
+        showCoverBadge={false}
+        dropLabel="Kéo thả ảnh banner vào đây, hoặc "
+        sizeHint={ADMIN_IMAGE_SIZE_HINTS.homeHero}
+        onChange={(next) => {
+          void replaceHeroImage(next, image, {
+            setImages,
+            setUploading,
+            onChange,
+            onUploadChange,
+            rememberUrl: (url) => {
+              pendingUrl.current = url
+            },
+          })
+        }}
+      />
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="flex max-h-[calc(100svh-2rem)] w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] flex-col gap-4 overflow-y-auto p-4 sm:max-w-[calc(100vw-2rem)]">
+          <DialogHeader className="pr-8">
+            <DialogTitle>Xem trước banner</DialogTitle>
+            <DialogDescription>
+              Hero trên trang chủ với ảnh và chữ đang nhập. Bấm Lưu để đưa lên website.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-hidden rounded-lg border border-border">
+            {previewOpen ? (
+              <HeroSection
+                locale={locale}
+                preview
+                copy={{
+                  ...copy,
+                  imageUrl: images[0]?.url || image,
+                }}
+              />
+            ) : null}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+function heroPreview(image: string) {
+  const url = image.trim()
+  if (!url) return []
+  return [createUploadedImageFromUrl(cmsImageDisplaySrc(url), "banner")]
+}
+
+async function replaceHeroImage(
+  next: UploadedImage[],
+  current: string,
+  handlers: {
+    setImages: (images: UploadedImage[]) => void
+    setUploading: (uploading: boolean) => void
+    onChange: (url: string) => void
+    onUploadChange: (active: boolean) => void
+    rememberUrl: (url: string) => void
+  }
+) {
+  const picked = next[0]
+  if (!picked) {
+    handlers.rememberUrl(DEFAULT_HOME_HERO_IMAGE)
+    handlers.setImages(heroPreview(DEFAULT_HOME_HERO_IMAGE))
+    handlers.onChange(DEFAULT_HOME_HERO_IMAGE)
+    return
+  }
+  if (!picked.file) {
+    handlers.setImages(next)
+    return
+  }
+
+  handlers.setImages(next)
+  handlers.setUploading(true)
+  handlers.onUploadChange(true)
+  try {
+    const [storageKey] = await persistUploadedImages([picked], "hero")
+    const url = getImageUrl(storageKey)
+    handlers.rememberUrl(url)
+    handlers.setImages([createUploadedImageFromUrl(url, picked.name)])
+    handlers.onChange(url)
+  } catch (error) {
+    handlers.setImages(heroPreview(current))
+    toastError(error instanceof Error ? error.message : "Không tải được ảnh lên.")
+  } finally {
+    handlers.setUploading(false)
+    handlers.onUploadChange(false)
+  }
 }
 
 function MilestoneImageField({

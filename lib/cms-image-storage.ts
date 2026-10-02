@@ -3,6 +3,8 @@ import { mkdir, rm } from "node:fs/promises"
 import path from "node:path"
 import { inArray } from "drizzle-orm"
 import {
+  CMS_IMAGE_VARIANT_WIDTHS,
+  HERO_IMAGE_VARIANT_WIDTHS,
   parseCmsStorageKey,
   type CmsImageType,
 } from "@/lib/cms-image"
@@ -58,7 +60,11 @@ export async function saveCmsImageVariants(
   await mkdir(dir, { recursive: true })
 
   try {
-    const metadata = await writeWebpVariants(buffer, dir)
+    const metadata = await writeWebpVariants(
+      buffer,
+      dir,
+      type === "hero" ? HERO_IMAGE_VARIANT_WIDTHS : CMS_IMAGE_VARIANT_WIDTHS
+    )
 
     await db.insert(media).values({
       id,

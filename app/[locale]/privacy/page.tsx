@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { LegalDocumentPage } from "@/components/legal-document-page"
-import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { staticPageMetadata } from "@/lib/page-seo"
 import { getDictionary, hasLocale } from "../dictionaries"
 
 export async function generateMetadata({
@@ -10,12 +10,7 @@ export async function generateMetadata({
   const { locale } = await params
   if (!hasLocale(locale)) return {}
 
-  const dict = await getDictionary(locale)
-
-  return withStorefrontSeo(locale, "/privacy", {
-    title: `${dict.privacyPolicy.metaTitle} | LINHouse`,
-    description: dict.privacyPolicy.metaDescription,
-  })
+  return staticPageMetadata(locale, "privacy")
 }
 
 export default async function PrivacyPolicyRoute({

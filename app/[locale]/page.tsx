@@ -8,22 +8,9 @@ import { HeroSection } from "@/components/hero-section"
 import { TestimonialSection } from "@/components/testimonial-section"
 import { JsonLd } from "@/components/json-ld"
 import { getStorefront, getStorefrontContact } from "@/lib/storefront"
-import { withStorefrontSeo } from "@/lib/storefront-metadata"
+import { resolveStaticPageSeo, staticPageMetadata } from "@/lib/page-seo"
 import { homeStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "./dictionaries"
-
-const homeSeo = {
-  vi: {
-    title: "LINHouse | Váy Cưới Thiết Kế",
-    description:
-      "LINHouse – Bridal studio chuyên váy cưới thiết kế, mang đến những thiết kế tinh tế và thanh lịch dành cho mọi cô dâu, với lựa chọn đặc biệt cho cô dâu Big Size.",
-  },
-  en: {
-    title: "LINHouse | Designer Wedding Dresses",
-    description:
-      "LINHouse – A bridal studio specializing in thoughtfully designed wedding dresses, offering elegant and refined styles for every bride, with a special selection for plus-size brides.",
-  },
-} as const
 
 export async function generateMetadata({
   params,
@@ -31,11 +18,7 @@ export async function generateMetadata({
   const { locale } = await params
   if (!hasLocale(locale)) return {}
 
-  return withStorefrontSeo(locale, "/", {
-    ...homeSeo[locale],
-    image: "/og-image.webp",
-    imageAlt: "LINHouse",
-  })
+  return staticPageMetadata(locale, "home")
 }
 
 export default async function Page({ params }: PageProps<"/[locale]">) {
@@ -44,9 +27,10 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
   if (!hasLocale(locale)) notFound()
 
   const dict = await getDictionary(locale)
-  const [storefront, contact] = await Promise.all([
+  const [storefront, contact, seo] = await Promise.all([
     getStorefront(locale, dict),
     getStorefrontContact(locale, dict),
+    resolveStaticPageSeo(locale, "home"),
   ])
   const sameAs = [contact.social.facebookUrl, contact.social.instagramUrl].filter(
     (url) => url.startsWith("http")
@@ -57,7 +41,7 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
       <JsonLd
         data={await homeStructuredData({
           name: contact.brand.name || "LINHouse",
-          description: homeSeo[locale].description,
+          description: seo.description,
           email: contact.footer.company.email,
           phone: contact.footer.company.phone,
           address: contact.storeAddress,

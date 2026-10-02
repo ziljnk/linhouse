@@ -50,6 +50,13 @@
       "when": 1790170000000,
       "tag": "0006_product_is_old",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1790180000000,
+      "tag": "0007_hero_media_type",
+      "breakpoints": true
     }
   ]
 }

@@ -12,6 +12,7 @@ import {
   LogOut,
   Newspaper,
   Quote,
+  Search,
   Settings,
   Shirt,
 } from "lucide-react"
@@ -39,6 +40,7 @@ const navItems = [
   { title: "Câu chuyện cô dâu", href: "/admin/testimonials", icon: Quote },
   { title: "Blog", href: "/admin/blog", icon: Newspaper },
   { title: "Nội dung", href: "/admin/content", icon: FileText },
+  { title: "SEO", href: "/admin/seo", icon: Search },
 ]
 
 const systemItems = [

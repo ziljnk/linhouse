@@ -21,6 +21,7 @@ export const media = mysqlTable(
       "blog",
       "testimonials",
       "about",
+      "hero",
     ]).notNull(),
     storageKey: varchar("storage_key", { length: 255 }).notNull(),
     width: int("width").notNull(),

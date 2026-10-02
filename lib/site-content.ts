@@ -6,6 +6,13 @@ import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { db } from "@/lib/db"
 import { siteCopy } from "@/lib/db/schema"
 import { getImageUrl, parseCmsStorageKey } from "@/lib/cms-image"
+import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
+import {
+  allowedHomeHeroImage,
+  DEFAULT_HOME_HERO_IMAGE,
+  HOME_HERO_IMAGE_KEY,
+  readHomeHeroImage,
+} from "@/lib/home-hero-image"
 import { sanitizePlainText, sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import {
   ABOUT_FAQ_ANSWER_MAX,
@@ -295,6 +302,7 @@ export function contentModel() {
   put("home.description", viDict.home.description, enDict.home.description)
   put("home.cta", viDict.home.cta, enDict.home.cta)
   put("home.imageAlt", viDict.home.imageAlt, enDict.home.imageAlt)
+  put(HOME_HERO_IMAGE_KEY, DEFAULT_HOME_HERO_IMAGE, DEFAULT_HOME_HERO_IMAGE)
   put("home.collectionTitle", viDict.home.collection.title, enDict.home.collection.title)
   put("home.featuredTitle", viDict.home.featured.title, enDict.home.featured.title)
   put("home.featuredLoadMore", viDict.home.featured.loadMore, enDict.home.featured.loadMore)
@@ -375,17 +383,6 @@ export function contentModel() {
   put("about.faq.title", viDict.aboutPage.faq.title, enDict.aboutPage.faq.title)
 
   const aboutFields: ContentField[] = [
-    field("about.metaTitle", "Tiêu đề trang", {
-      group: "Trang",
-      maxLength: MEDIUM,
-      hint: "Hiện trên tab trình duyệt.",
-    }),
-    field("about.metaDescription", "Mô tả ngắn", {
-      group: "Trang",
-      multiline: true,
-      maxLength: MEDIUM,
-      hint: "Hiện trong kết quả tìm kiếm.",
-    }),
     field("about.title", "Tiêu đề lớn", { group: "Ảnh đầu trang", maxLength: MEDIUM }),
     field("about.heroAlt", "Mô tả ảnh", { group: "Ảnh đầu trang", maxLength: MEDIUM }),
     field("about.eyebrow", "Nhãn nhỏ", { group: "Đoạn giới thiệu" }),
@@ -540,12 +537,6 @@ export function contentModel() {
           maxLength: MEDIUM,
           hint: "Dùng làm tên liên kết ở footer.",
         }),
-        field("shipping.metaDescription", "Mô tả ngắn", {
-          group: "Trang",
-          multiline: true,
-          maxLength: MEDIUM,
-          hint: "Hiện trong kết quả tìm kiếm.",
-        }),
         field("shipping.intro", "Đoạn mở đầu", {
           group: "Trang",
           multiline: true,
@@ -563,12 +554,6 @@ export function contentModel() {
           group: "Trang",
           maxLength: MEDIUM,
           hint: "Dùng làm tên liên kết ở footer.",
-        }),
-        field("terms.metaDescription", "Mô tả ngắn", {
-          group: "Trang",
-          multiline: true,
-          maxLength: MEDIUM,
-          hint: "Hiện trong kết quả tìm kiếm.",
         }),
         field("terms.body", "Nội dung", {
           group: "Trang",
@@ -588,12 +573,6 @@ export function contentModel() {
           maxLength: MEDIUM,
           hint: "Dùng làm tên liên kết ở footer.",
         }),
-        field("privacy.metaDescription", "Mô tả ngắn", {
-          group: "Trang",
-          multiline: true,
-          maxLength: MEDIUM,
-          hint: "Hiện trong kết quả tìm kiếm.",
-        }),
         field("privacy.body", "Nội dung", {
           group: "Trang",
           rich: true,
@@ -610,13 +589,7 @@ export function contentModel() {
         field("support.title", "Tiêu đề", {
           group: "Trang",
           maxLength: MEDIUM,
-          hint: "Dùng làm tiêu đề trang và tên liên kết ở footer.",
-        }),
-        field("support.metaDescription", "Mô tả ngắn", {
-          group: "Trang",
-          multiline: true,
-          maxLength: MEDIUM,
-          hint: "Hiện trong kết quả tìm kiếm.",
+          hint: "Dùng làm tiêu đề trên trang và tên liên kết ở footer.",
         }),
         field("support.intro", "Đoạn mở đầu", {
           group: "Trang",
@@ -659,7 +632,7 @@ export function contentModel() {
       id: "home",
       title: "Trang chủ",
       description:
-        "Banner, tiêu đề các section và phần đặt hàng từ nước ngoài. Tiêu đề câu chuyện cô dâu sửa ở trang Câu chuyện cô dâu.",
+        "Banner, tiêu đề các section và phần đặt hàng từ nước ngoài. Có thể tải ảnh banner. Tiêu đề câu chuyện cô dâu sửa ở trang Câu chuyện cô dâu.",
       fields: [
         field("home.headline", "Tiêu đề lớn", { group: "Banner", maxLength: MEDIUM }),
         field("home.subhead", "Tiêu đề phụ", { group: "Banner", maxLength: MEDIUM }),
@@ -849,6 +822,10 @@ function overlayStored(defaults: Record<string, ContentPair>, copy: CopyMap) {
   setPair("home.description", hero.description)
   setPair("home.cta", hero.cta)
   setPair("home.imageAlt", hero.image_alt)
+  const heroImage = allowedHomeHeroImage(
+    readHomeHeroImage(hero.image_url) || DEFAULT_HOME_HERO_IMAGE
+  )
+  values[HOME_HERO_IMAGE_KEY] = { vi: heroImage, en: heroImage }
 
   const about = record(copy["home.about"])
   setPair("home.aboutLabel", about.label)
@@ -1882,6 +1859,11 @@ function pairAt(data: CleanedContent, key: string): ContentPair {
   return data.pairs[key] ?? { vi: "", en: "" }
 }
 
+function keptPair(data: CleanedContent, key: string, previous: unknown): ContentPair {
+  if (Object.hasOwn(data.pairs, key)) return data.pairs[key]
+  return rawPair(previous)
+}
+
 function linesAt(data: CleanedContent, key: string) {
   return data.lines[key] ?? { vi: [], en: [] }
 }
@@ -1909,12 +1891,11 @@ export async function writeSiteContent(
   const data = cleaned.data
   const current = await loadSiteCopyMap()
   const hero = record(current["home.hero"])
-  const imageUrl =
-    typeof hero.image_url === "string" && hero.image_url.trim()
-      ? hero.image_url
-      : hero.image_url && typeof hero.image_url === "object"
-        ? hero.image_url
-        : "/hero/bridal.webp"
+  const previousHeroImage = readHomeHeroImage(hero.image_url) || DEFAULT_HOME_HERO_IMAGE
+  const submittedHeroImage = input[HOME_HERO_IMAGE_KEY]
+  const imageUrl = submittedHeroImage
+    ? allowedHomeHeroImage(submittedHeroImage.vi || submittedHeroImage.en)
+    : allowedHomeHeroImage(previousHeroImage)
 
   const shippingSections = shippingSectionsResult.sections
   const aboutMilestones = aboutMilestonesResult.milestones
@@ -1960,8 +1941,12 @@ export async function writeSiteContent(
     {
       key: "about.page",
       value: {
-        metaTitle: pairAt(data, "about.metaTitle"),
-        metaDescription: pairAt(data, "about.metaDescription"),
+        metaTitle: keptPair(data, "about.metaTitle", record(current["about.page"]).metaTitle),
+        metaDescription: keptPair(
+          data,
+          "about.metaDescription",
+          record(current["about.page"]).metaDescription
+        ),
         title: pairAt(data, "about.title"),
         heroAlt: pairAt(data, "about.heroAlt"),
         eyebrow: pairAt(data, "about.eyebrow"),
@@ -2010,7 +1995,11 @@ export async function writeSiteContent(
       value: {
         title: pairAt(data, "shipping.title"),
         intro: pairAt(data, "shipping.intro"),
-        metaDescription: pairAt(data, "shipping.metaDescription"),
+        metaDescription: keptPair(
+          data,
+          "shipping.metaDescription",
+          record(current["shipping.policy"]).metaDescription
+        ),
         sections: shippingSections,
       },
     },
@@ -2018,7 +2007,11 @@ export async function writeSiteContent(
       key: "terms.page",
       value: {
         title: pairAt(data, "terms.title"),
-        metaDescription: pairAt(data, "terms.metaDescription"),
+        metaDescription: keptPair(
+          data,
+          "terms.metaDescription",
+          record(current["terms.page"]).metaDescription
+        ),
         body: pairAt(data, "terms.body"),
       },
     },
@@ -2026,7 +2019,11 @@ export async function writeSiteContent(
       key: "privacy.page",
       value: {
         title: pairAt(data, "privacy.title"),
-        metaDescription: pairAt(data, "privacy.metaDescription"),
+        metaDescription: keptPair(
+          data,
+          "privacy.metaDescription",
+          record(current["privacy.page"]).metaDescription
+        ),
         body: pairAt(data, "privacy.body"),
       },
     },
@@ -2034,7 +2031,11 @@ export async function writeSiteContent(
       key: "support.page",
       value: {
         title: pairAt(data, "support.title"),
-        metaDescription: pairAt(data, "support.metaDescription"),
+        metaDescription: keptPair(
+          data,
+          "support.metaDescription",
+          record(current["support.page"]).metaDescription
+        ),
         intro: pairAt(data, "support.intro"),
         name: pairAt(data, "support.name"),
         email: pairAt(data, "support.email"),
@@ -2122,6 +2123,8 @@ export async function writeSiteContent(
   for (const entry of entries) {
     await upsertCopy(entry.key, entry.value)
   }
+
+  await cleanupRemovedCmsImages([previousHeroImage], [imageUrl])
 
   return { ok: true }
 }

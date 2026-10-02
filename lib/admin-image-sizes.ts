@@ -12,4 +12,6 @@ export const ADMIN_IMAGE_SIZE_HINTS = {
     "Tỷ lệ 3:4. Nên dùng 1200×1600 px (tối thiểu 900×1200) để nét trên màn hình retina. Ảnh hiện tối đa 240px trên slider trang chủ.",
   aboutMilestone:
     "Tỷ lệ 4:3. Nên dùng 1600×1200 px (tối thiểu 1200×900). Ảnh hiện lớn cạnh nội dung mốc năm trên trang giới thiệu.",
+  homeHero:
+    "Tỷ lệ khoảng 2:1 (ngang). Nên dùng 2880×1440 px (tối thiểu 1920×960). Ảnh phủ kín banner trang chủ. Đặt chủ thể về bên phải vì tiêu đề nằm bên trái. Trên điện thoại ảnh bị cắt phía trên và dưới.",
 } as const

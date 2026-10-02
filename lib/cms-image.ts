@@ -1,4 +1,5 @@
 export const CMS_IMAGE_VARIANT_WIDTHS = [400, 800, 1200] as const
+export const HERO_IMAGE_VARIANT_WIDTHS = [400, 800, 1200, 2400, 2880] as const
 export const CMS_IMAGE_DEFAULT_WIDTH = 800
 export const CMS_IMAGE_TYPES = [
   "products",
@@ -6,13 +7,15 @@ export const CMS_IMAGE_TYPES = [
   "blog",
   "testimonials",
   "about",
+  "hero",
 ] as const
 
 export type CmsImageVariantWidth = (typeof CMS_IMAGE_VARIANT_WIDTHS)[number]
+export type HeroImageVariantWidth = (typeof HERO_IMAGE_VARIANT_WIDTHS)[number]
 export type CmsImageType = (typeof CMS_IMAGE_TYPES)[number]
 
 const IMAGE_FILE_EXT = /\.(avif|gif|jpe?g|png|webp|svg)$/i
-const VARIANT_FILENAME = /^(400|800|1200)w\.webp$/i
+const VARIANT_FILENAME = /^(400|800|1200|2400|2880)w\.webp$/i
 const STORAGE_KEY_RE = new RegExp(
   `^(${CMS_IMAGE_TYPES.join("|")})/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`,
   "i"
@@ -53,7 +56,7 @@ export function isCmsStorageKey(value: string): boolean {
 
 export function getImageUrl(
   storageKey: string,
-  width: CmsImageVariantWidth = CMS_IMAGE_DEFAULT_WIDTH
+  width: CmsImageVariantWidth | HeroImageVariantWidth = CMS_IMAGE_DEFAULT_WIDTH
 ) {
   return `/uploads/${normalizeStorageKey(storageKey)}/${width}w.webp`
 }
@@ -77,11 +80,11 @@ export function resolveCmsImageSources({
 }
 
 function variantSources(storageKey: string): ResolvedCmsImage {
+  const hero = storageKey.startsWith("hero/")
+  const widths = hero ? HERO_IMAGE_VARIANT_WIDTHS : CMS_IMAGE_VARIANT_WIDTHS
   return {
-    src: getImageUrl(storageKey),
-    srcSet: CMS_IMAGE_VARIANT_WIDTHS.map(
-      (width) => `${getImageUrl(storageKey, width)} ${width}w`
-    ).join(", "),
+    src: getImageUrl(storageKey, hero ? 1200 : CMS_IMAGE_DEFAULT_WIDTH),
+    srcSet: widths.map((width) => `${getImageUrl(storageKey, width)} ${width}w`).join(", "),
   }
 }
 

@@ -12,7 +12,8 @@ export type CmsImageMetadata = {
 
 export async function writeWebpVariants(
   buffer: Buffer,
-  dir: string
+  dir: string,
+  widths: readonly number[] = CMS_IMAGE_VARIANT_WIDTHS
 ): Promise<CmsImageMetadata> {
   await mkdir(dir, { recursive: true })
   const image = sharp(buffer, { failOn: "none", animated: false }).rotate()
@@ -21,7 +22,7 @@ export async function writeWebpVariants(
     throw new Error("Không đọc được kích thước ảnh.")
   }
 
-  for (const width of CMS_IMAGE_VARIANT_WIDTHS) {
+  for (const width of widths) {
     await image
       .clone()
       .resize({

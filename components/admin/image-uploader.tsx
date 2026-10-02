@@ -47,7 +47,7 @@ type ImageUploaderProps = {
   images: UploadedImage[]
   onChange: (images: UploadedImage[]) => void
   maxFiles?: number
-  aspect?: "portrait" | "landscape" | "wide"
+  aspect?: "portrait" | "landscape" | "wide" | "banner"
   sortHint?: string
   sizeHint?: string
   showCoverBadge?: boolean
@@ -91,9 +91,10 @@ export function createUploadedImageFromUrl(
   }
 }
 
-function aspectClass(aspect: "portrait" | "landscape" | "wide") {
+function aspectClass(aspect: "portrait" | "landscape" | "wide" | "banner") {
   if (aspect === "portrait") return "aspect-3/4"
   if (aspect === "wide") return "aspect-4/3"
+  if (aspect === "banner") return "aspect-[2/1]"
   return "aspect-video"
 }
 
@@ -438,7 +439,7 @@ function SingleImagePreview({
 }: {
   image: UploadedImage
   inputId: string
-  aspect: "portrait" | "landscape" | "wide"
+  aspect: "portrait" | "landscape" | "wide" | "banner"
   onRemove: () => void
 }) {
   return (
@@ -491,7 +492,7 @@ function SortableImageTile({
 }: {
   image: UploadedImage
   index: number
-  aspect: "portrait" | "landscape" | "wide"
+  aspect: "portrait" | "landscape" | "wide" | "banner"
   showCoverBadge: boolean
   onRemove: (id: string) => void
 }) {
@@ -548,7 +549,7 @@ function ImageTilePreview({
   isCover,
 }: {
   image: UploadedImage
-  aspect: "portrait" | "landscape" | "wide"
+  aspect: "portrait" | "landscape" | "wide" | "banner"
   isCover: boolean
 }) {
   return (
