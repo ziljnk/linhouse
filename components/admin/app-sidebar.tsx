@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
   Bell,
+  History,
   Images,
   FileText,
   LayoutDashboard,
@@ -44,6 +45,7 @@ const navItems = [
 ]
 
 const systemItems = [
+  { title: "Lịch sử", href: "/admin/audit", icon: History },
   { title: "Cài đặt chung", href: "/admin/settings", icon: Settings },
   { title: "Cài đặt thông báo", href: "/admin/notifications", icon: Bell },
 ]

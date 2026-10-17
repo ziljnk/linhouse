@@ -21,6 +21,17 @@ const noindexRobots: Metadata["robots"] = {
   },
 }
 
+export const indexableRobots: Metadata["robots"] = {
+  index: true,
+  follow: true,
+  "max-image-preview": "large",
+  googleBot: {
+    index: true,
+    follow: true,
+    "max-image-preview": "large",
+  },
+}
+
 export async function withStorefrontSeo(
   locale: StorefrontLocale,
   path: string,
@@ -49,7 +60,7 @@ export async function withStorefrontSeo(
     title: meta.title,
     description: meta.description,
     keywords: meta.keywords,
-    robots: indexable ? { index: true, follow: true } : noindexRobots,
+    robots: indexable ? indexableRobots : noindexRobots,
     alternates: indexable
       ? {
           canonical,

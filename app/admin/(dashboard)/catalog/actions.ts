@@ -11,6 +11,13 @@ import {
   toLocalized,
   type ActionResult,
 } from "@/lib/admin-actions"
+import { recordAudit } from "@/lib/admin-audit"
+import {
+  deletedChange,
+  diffFields,
+  localizedChanges,
+} from "@/lib/admin-audit-shared"
+import { PRODUCT_KIND_LABELS } from "@/lib/admin-products"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { db } from "@/lib/db"
 import {
@@ -47,10 +54,91 @@ function catalogAttributeStorefrontPaths(slugs: Array<string | undefined>) {
   ]
 }
 
+const SELECTION_LABELS = {
+  single: "Chọn một",
+  multiple: "Chọn nhiều",
+} as const
+
+function groupAuditChanges(
+  before: {
+    slug: string
+    labelVi: string
+    labelEn: string
+    selection: "single" | "multiple"
+    kind: "gown" | "ao-dai"
+    sortOrder: number
+  } | null,
+  after: {
+    slug: string
+    labelVi: string
+    labelEn: string
+    selection: "single" | "multiple"
+    kind: "gown" | "ao-dai"
+    sortOrder: number
+  }
+) {
+  return diffFields([
+    { label: "Đường dẫn", before: before?.slug ?? "", after: after.slug },
+    ...localizedChanges(
+      "Tên nhóm",
+      before ? { vi: before.labelVi, en: before.labelEn } : null,
+      { vi: after.labelVi, en: after.labelEn }
+    ),
+    {
+      label: "Cách chọn",
+      before: before ? SELECTION_LABELS[before.selection] : "",
+      after: SELECTION_LABELS[after.selection],
+    },
+    {
+      label: "Loại",
+      before: before ? PRODUCT_KIND_LABELS[before.kind] : "",
+      after: PRODUCT_KIND_LABELS[after.kind],
+    },
+    { label: "Thứ tự", before: before?.sortOrder ?? "", after: after.sortOrder },
+  ])
+}
+
+function attributeAuditChanges(
+  before: {
+    groupLabel: string
+    slug: string
+    labelVi: string
+    labelEn: string
+    sortOrder: number
+  } | null,
+  after: {
+    groupLabel: string
+    slug: string
+    labelVi: string
+    labelEn: string
+    sortOrder: number
+  }
+) {
+  return diffFields([
+    { label: "Nhóm", before: before?.groupLabel ?? "", after: after.groupLabel },
+    { label: "Đường dẫn", before: before?.slug ?? "", after: after.slug },
+    ...localizedChanges(
+      "Tên danh mục",
+      before ? { vi: before.labelVi, en: before.labelEn } : null,
+      { vi: after.labelVi, en: after.labelEn }
+    ),
+    { label: "Thứ tự", before: before?.sortOrder ?? "", after: after.sortOrder },
+  ])
+}
+
+async function groupLabel(id: string) {
+  const [row] = await db
+    .select({ label: attributeGroup.label })
+    .from(attributeGroup)
+    .where(eq(attributeGroup.id, id))
+    .limit(1)
+  return row?.label.vi || row?.label.en || ""
+}
+
 export async function createAttributeGroupAction(
   input: AttributeGroupInput
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên nhóm.")
   const slugResult = requireSlug(input.slug, "Slug nhóm")
   if (!slugResult.ok) return slugResult
@@ -62,12 +150,27 @@ export async function createAttributeGroupAction(
     .limit(1)
   if (existing) return actionFail("Slug nhóm đã tồn tại.")
 
-  await db.insert(attributeGroup).values({
+  const next = {
     slug: slugResult.slug,
-    label: toLocalized(input.labelVi, input.labelEn),
+    labelVi: input.labelVi.trim(),
+    labelEn: input.labelEn?.trim() ?? "",
     selection: input.selection,
     kind: input.kind ?? "gown",
     sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+  }
+  await db.insert(attributeGroup).values({
+    slug: next.slug,
+    label: toLocalized(next.labelVi, next.labelEn),
+    selection: next.selection,
+    kind: next.kind,
+    sortOrder: next.sortOrder,
+  })
+  await recordAudit(session, {
+    action: "create",
+    area: "catalog",
+    entityLabel: next.labelVi,
+    summary: `Tạo nhóm danh mục ${next.labelVi}`,
+    changes: groupAuditChanges(null, next),
   })
   await revalidateAdmin(["/"])
   return actionOk()
@@ -77,7 +180,7 @@ export async function updateAttributeGroupAction(
   id: string,
   input: AttributeGroupInput
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên nhóm.")
   const slugResult = requireSlug(input.slug, "Slug nhóm")
   if (!slugResult.ok) return slugResult
@@ -89,22 +192,60 @@ export async function updateAttributeGroupAction(
     .limit(1)
   if (existing && existing.id !== id) return actionFail("Slug nhóm đã tồn tại.")
 
+  const [current] = await db
+    .select()
+    .from(attributeGroup)
+    .where(eq(attributeGroup.id, id))
+    .limit(1)
+
+  const next = {
+    slug: slugResult.slug,
+    labelVi: input.labelVi.trim(),
+    labelEn: input.labelEn?.trim() ?? "",
+    selection: input.selection,
+    kind: input.kind ?? "gown",
+    sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+  }
   await db
     .update(attributeGroup)
     .set({
-      slug: slugResult.slug,
-      label: toLocalized(input.labelVi, input.labelEn),
-      selection: input.selection,
-      kind: input.kind ?? "gown",
-      sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+      slug: next.slug,
+      label: toLocalized(next.labelVi, next.labelEn),
+      selection: next.selection,
+      kind: next.kind,
+      sortOrder: next.sortOrder,
     })
     .where(eq(attributeGroup.id, id))
+  if (current) {
+    await recordAudit(session, {
+      action: "update",
+      area: "catalog",
+      entityLabel: next.labelVi,
+      summary: `Cập nhật nhóm danh mục ${next.labelVi}`,
+      changes: groupAuditChanges(
+        {
+          slug: current.slug,
+          labelVi: current.label.vi,
+          labelEn: current.label.en,
+          selection: current.selection,
+          kind: current.kind,
+          sortOrder: current.sortOrder,
+        },
+        next
+      ),
+    })
+  }
   await revalidateAdmin(["/"])
   return actionOk()
 }
 
 export async function deleteAttributeGroupAction(id: string): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
+  const [group] = await db
+    .select({ label: attributeGroup.label })
+    .from(attributeGroup)
+    .where(eq(attributeGroup.id, id))
+    .limit(1)
   const attributes = await db
     .select({ id: catalogAttribute.id, slug: catalogAttribute.slug })
     .from(catalogAttribute)
@@ -126,6 +267,14 @@ export async function deleteAttributeGroupAction(id: string): Promise<ActionResu
   }
 
   await db.delete(attributeGroup).where(eq(attributeGroup.id, id))
+  const name = group?.label.vi || group?.label.en || ""
+  await recordAudit(session, {
+    action: "delete",
+    area: "catalog",
+    entityLabel: name,
+    summary: `Xóa nhóm danh mục ${name}`,
+    changes: deletedChange(name),
+  })
   await revalidateAdmin(
     catalogAttributeStorefrontPaths(attributes.map((item) => item.slug))
   )
@@ -135,7 +284,7 @@ export async function deleteAttributeGroupAction(id: string): Promise<ActionResu
 export async function createCatalogAttributeAction(
   input: CatalogAttributeInput
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên danh mục.")
   const slugResult = requireSlug(input.slug)
   if (!slugResult.ok) return slugResult
@@ -145,12 +294,28 @@ export async function createCatalogAttributeAction(
     return actionFail("Đường dẫn đã dùng cho bộ sưu tập hoặc danh mục khác.")
   }
 
+  const next = {
+    slug: slugResult.slug,
+    labelVi: input.labelVi.trim(),
+    labelEn: input.labelEn?.trim() ?? "",
+    sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+  }
   await db.insert(catalogAttribute).values({
     groupId: input.groupId,
-    slug: slugResult.slug,
-    label: toLocalized(input.labelVi, input.labelEn),
-    sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+    slug: next.slug,
+    label: toLocalized(next.labelVi, next.labelEn),
+    sortOrder: next.sortOrder,
   })
+  await recordAudit(session, async () => ({
+    action: "create",
+    area: "catalog",
+    entityLabel: next.labelVi,
+    summary: `Tạo danh mục ${next.labelVi}`,
+    changes: attributeAuditChanges(null, {
+      ...next,
+      groupLabel: await groupLabel(input.groupId),
+    }),
+  }))
   await revalidateAdmin(catalogAttributeStorefrontPaths([slugResult.slug]))
   return actionOk()
 }
@@ -159,7 +324,7 @@ export async function updateCatalogAttributeAction(
   id: string,
   input: CatalogAttributeInput
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên danh mục.")
   const slugResult = requireSlug(input.slug)
   if (!slugResult.ok) return slugResult
@@ -170,20 +335,52 @@ export async function updateCatalogAttributeAction(
   }
 
   const [current] = await db
-    .select({ slug: catalogAttribute.slug })
+    .select({
+      slug: catalogAttribute.slug,
+      label: catalogAttribute.label,
+      groupId: catalogAttribute.groupId,
+      sortOrder: catalogAttribute.sortOrder,
+    })
     .from(catalogAttribute)
     .where(eq(catalogAttribute.id, id))
     .limit(1)
 
+  const next = {
+    slug: slugResult.slug,
+    labelVi: input.labelVi.trim(),
+    labelEn: input.labelEn?.trim() ?? "",
+    sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+  }
   await db
     .update(catalogAttribute)
     .set({
       groupId: input.groupId,
-      slug: slugResult.slug,
-      label: toLocalized(input.labelVi, input.labelEn),
-      sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
+      slug: next.slug,
+      label: toLocalized(next.labelVi, next.labelEn),
+      sortOrder: next.sortOrder,
     })
     .where(eq(catalogAttribute.id, id))
+  if (current) {
+    await recordAudit(session, async () => ({
+      action: "update",
+      area: "catalog",
+      entityLabel: next.labelVi,
+      summary: `Cập nhật danh mục ${next.labelVi}`,
+      changes: attributeAuditChanges(
+        {
+          groupLabel: await groupLabel(current.groupId),
+          slug: current.slug,
+          labelVi: current.label.vi,
+          labelEn: current.label.en,
+          sortOrder: current.sortOrder,
+        },
+        {
+          ...next,
+          groupLabel: await groupLabel(input.groupId),
+        }
+      ),
+    }))
+  }
   await revalidateAdmin(
     catalogAttributeStorefrontPaths([current?.slug, slugResult.slug])
   )
@@ -193,7 +390,7 @@ export async function updateCatalogAttributeAction(
 export async function deleteCatalogAttributeAction(
   id: string
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   const [usage] = await db
     .select({ value: count() })
     .from(productAttribute)
@@ -204,12 +401,20 @@ export async function deleteCatalogAttributeAction(
   }
 
   const [row] = await db
-    .select({ slug: catalogAttribute.slug })
+    .select({ slug: catalogAttribute.slug, label: catalogAttribute.label })
     .from(catalogAttribute)
     .where(eq(catalogAttribute.id, id))
     .limit(1)
 
   await db.delete(catalogAttribute).where(eq(catalogAttribute.id, id))
+  const name = row?.label.vi || row?.label.en || row?.slug || ""
+  await recordAudit(session, {
+    action: "delete",
+    area: "catalog",
+    entityLabel: name,
+    summary: `Xóa danh mục ${name}`,
+    changes: deletedChange(name),
+  })
   await revalidateAdmin(catalogAttributeStorefrontPaths([row?.slug]))
   return actionOk()
 }

@@ -16,6 +16,10 @@ const HERO_BLUR =
 const CTA_CLASS =
   "mt-8 inline-flex w-fit items-center justify-center border border-charcoal/80 px-8 py-3 text-[11px] tracking-[0.22em] text-charcoal uppercase transition-colors hover:bg-charcoal hover:text-ivory"
 
+function withLineBreaks(value: string) {
+  return value.replaceAll("\\n", "\n")
+}
+
 export function HeroSection({
   locale,
   copy,
@@ -42,7 +46,7 @@ export function HeroSection({
     {
       id: "headline",
       node: (
-        <h1 className="font-heading text-[clamp(1.125rem,7.6cqi,2.75rem)] leading-[1.15] font-medium whitespace-nowrap text-burgundy-deep">
+        <h1 className="max-w-full font-heading text-[clamp(1.125rem,7.6cqi,2.75rem)] leading-[1.15] font-medium text-balance wrap-break-word text-burgundy-deep">
           {copy.headline}
         </h1>
       ),
@@ -58,8 +62,8 @@ export function HeroSection({
     {
       id: "description",
       node: (
-        <p className="mt-6 max-w-md text-base leading-relaxed font-light text-charcoal/75 sm:text-lg">
-          {copy.description}
+        <p className="mt-6 max-w-md text-base leading-relaxed font-light whitespace-pre-line text-charcoal/75 sm:text-lg">
+          {withLineBreaks(copy.description)}
         </p>
       ),
     },

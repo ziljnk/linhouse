@@ -4,6 +4,7 @@ import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { getDictionary } from "@/app/[locale]/dictionaries"
 import { db } from "@/lib/db"
 import { siteCopy } from "@/lib/db/schema"
+import { diffFields, localizedChanges } from "@/lib/admin-audit-shared"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import type { StorefrontLocale } from "@/lib/seo"
 import { loadSiteCopyMap } from "@/lib/site-content"
@@ -278,7 +279,9 @@ export async function getStaticPageSeoEditor(): Promise<StaticPageSeoEditorPage[
 
 export async function writeStaticPageSeo(
   input: Record<string, PageSeoFields>
-): Promise<{ ok: true } | { ok: false; error: string }> {
+): Promise<
+  { ok: true; changes: ReturnType<typeof diffFields> } | { ok: false; error: string }
+> {
   const current = await loadStoredPageSeo()
   const next: StoredPageSeoMap = { ...current }
 
@@ -310,12 +313,24 @@ export async function writeStaticPageSeo(
     }
   }
 
+  const changes = diffFields(
+    STATIC_SEO_PAGES.flatMap((page) => {
+      const previous = current[page.id]
+      const stored = next[page.id]
+      return [
+        ...localizedChanges(`${page.label} — Tiêu đề`, previous?.title, stored?.title),
+        ...localizedChanges(`${page.label} — Mô tả`, previous?.description, stored?.description),
+        ...localizedChanges(`${page.label} — Từ khóa`, previous?.keywords, stored?.keywords),
+      ]
+    })
+  )
+
   await db
     .insert(siteCopy)
     .values({ key: SEO_PAGES_KEY, value: next })
     .onDuplicateKeyUpdate({ set: { value: next } })
 
-  return { ok: true }
+  return { ok: true, changes }
 }
 
 export async function resolveStaticPageSeo(locale: StorefrontLocale, pageId: StaticSeoPageId) {

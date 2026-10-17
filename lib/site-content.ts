@@ -13,6 +13,7 @@ import {
   HOME_HERO_IMAGE_KEY,
   readHomeHeroImage,
 } from "@/lib/home-hero-image"
+import { diffFields, localizedChanges } from "@/lib/admin-audit-shared"
 import { sanitizePlainText, sanitizeRichTextHtml } from "@/lib/sanitize-content"
 import {
   ABOUT_FAQ_ANSWER_MAX,
@@ -1875,10 +1876,70 @@ async function upsertCopy(key: string, value: unknown) {
     .onDuplicateKeyUpdate({ set: { value } })
 }
 
+const CONTENT_PART_LABELS: Record<string, string> = {
+  year: "Năm",
+  title: "Tiêu đề",
+  body: "Nội dung",
+  imageAlt: "Mô tả ảnh",
+  image: "Ảnh",
+  question: "Câu hỏi",
+  answer: "Câu trả lời",
+}
+
+function isContentImageKey(key: string) {
+  return key === HOME_HERO_IMAGE_KEY || /^about\.milestone\.\d+\.image$/.test(key)
+}
+
+function contentFieldLabel(sections: ContentSection[], key: string) {
+  for (const section of sections) {
+    const item = section.fields.find((field) => field.key === key)
+    if (!item) continue
+    return item.group
+      ? `${section.title} — ${item.group} — ${item.label}`
+      : `${section.title} — ${item.label}`
+  }
+
+  if (key === HOME_HERO_IMAGE_KEY) return "Trang chủ — Ảnh banner"
+
+  const milestone = /^about\.milestone\.(\d+)\.(year|title|body|imageAlt|image)$/.exec(key)
+  if (milestone) {
+    return `Giới thiệu — Mốc ${Number(milestone[1]) + 1} — ${CONTENT_PART_LABELS[milestone[2]]}`
+  }
+
+  const faq = /^about\.faq\.(\d+)\.(question|answer)$/.exec(key)
+  if (faq) {
+    return `Giới thiệu — Câu hỏi ${Number(faq[1]) + 1} — ${CONTENT_PART_LABELS[faq[2]]}`
+  }
+
+  const shipping = /^shipping\.section\.(\d+)\.(title|body)$/.exec(key)
+  if (shipping) {
+    return `Chính sách giao hàng — Mục ${Number(shipping[1]) + 1} — ${CONTENT_PART_LABELS[shipping[2]]}`
+  }
+
+  return key
+}
+
+function diffSiteContent(
+  sections: ContentSection[],
+  before: Record<string, ContentPair>,
+  after: Record<string, ContentPair>
+) {
+  const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].sort((left, right) =>
+    left.localeCompare(right, "vi")
+  )
+  return diffFields(
+    keys.flatMap((key) =>
+      localizedChanges(contentFieldLabel(sections, key), before[key], after[key]).map((field) =>
+        isContentImageKey(key) ? { ...field, images: true } : field
+      )
+    )
+  )
+}
+
 export async function writeSiteContent(
   input: Record<string, ContentPair>
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { sections } = contentModel()
+): Promise<{ ok: true; changes: ReturnType<typeof diffSiteContent> } | { ok: false; error: string }> {
+  const { defaults, sections } = contentModel()
   const cleaned = cleanContent(input, sections)
   if (!cleaned.ok) return cleaned
   const shippingSectionsResult = readShippingSections(input)
@@ -2120,11 +2181,16 @@ export async function writeSiteContent(
     },
   ]
 
+  const previousValues = overlayStored(defaults, current)
+  const nextCopy: CopyMap = { ...current }
+  for (const entry of entries) nextCopy[entry.key] = entry.value
+  const changes = diffSiteContent(sections, previousValues, overlayStored(defaults, nextCopy))
+
   for (const entry of entries) {
     await upsertCopy(entry.key, entry.value)
   }
 
   await cleanupRemovedCmsImages([previousHeroImage], [imageUrl])
 
-  return { ok: true }
+  return { ok: true, changes }
 }

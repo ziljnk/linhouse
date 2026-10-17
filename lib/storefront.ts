@@ -1033,6 +1033,34 @@ export async function getStorefrontProductSlugs() {
   return rows.products.map((item) => item.slug)
 }
 
+export async function getStorefrontSitemapImages() {
+  const rows = await loadStorefrontRows()
+  const imagesByProduct = new Map<string, string[]>()
+
+  for (const image of [...rows.productImages].sort(
+    (a, b) => a.sortOrder - b.sortOrder
+  )) {
+    const url = image.url.trim()
+    if (!url) continue
+    const list = imagesByProduct.get(image.productId) ?? []
+    list.push(url)
+    imagesByProduct.set(image.productId, list)
+  }
+
+  return {
+    products: rows.products.map((item) => ({
+      slug: item.slug,
+      images: imagesByProduct.get(item.id) ?? [],
+    })),
+    collections: rows.collections
+      .filter((item) => item.coverUrl.trim())
+      .map((item) => ({
+        slug: item.slug,
+        image: item.coverUrl,
+      })),
+  }
+}
+
 export async function getStorefrontBlogSlugs() {
   const rows = await loadStorefrontRows()
   return rows.posts.map((item) => item.slug)

@@ -8,12 +8,14 @@ import { cn } from "@/lib/utils"
 
 function Thumbs({
   images,
+  alt,
   selected,
   thumbnailLabel,
   onSelect,
   className,
 }: {
   images: string[]
+  alt: string
   selected: number
   thumbnailLabel: string
   onSelect: (index: number) => void
@@ -76,7 +78,7 @@ function Thumbs({
         >
           <OptimizedImage
             src={image}
-            alt=""
+            alt={`${alt} - image ${index + 1}`}
             fill
             sizes="80px"
             className="object-cover"
@@ -157,6 +159,7 @@ export function ProductGallery({
       {canNavigate ? (
         <Thumbs
           images={images}
+          alt={alt}
           selected={selected}
           thumbnailLabel={thumbnailLabel}
           onSelect={scrollTo}
@@ -181,6 +184,7 @@ export function ProductGallery({
                     className="object-cover"
                     loading={index === 0 ? "eager" : "lazy"}
                     fetchPriority={index === 0 ? "high" : undefined}
+                    srcWidth={1200}
                   />
                 </div>
               </div>
@@ -213,6 +217,7 @@ export function ProductGallery({
       {canNavigate ? (
         <Thumbs
           images={images}
+          alt={alt}
           selected={selected}
           thumbnailLabel={thumbnailLabel}
           onSelect={scrollTo}

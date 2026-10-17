@@ -14,6 +14,8 @@ export type OptimizedImageProps = NativeImageProps & {
   src?: string
   alt: string
   fill?: boolean
+  /** Preferred variant for `src`. `srcSet` still lists 400w/800w/1200w. */
+  srcWidth?: 400 | 800 | 1200
 }
 
 export function OptimizedImage({
@@ -28,9 +30,10 @@ export function OptimizedImage({
   height,
   fill = false,
   fetchPriority,
+  srcWidth,
   ...rest
 }: OptimizedImageProps) {
-  const sources = resolveCmsImageSources({ storageKey, src })
+  const sources = resolveCmsImageSources({ storageKey, src, srcWidth })
   if (!sources) return null
 
   return (

@@ -14,7 +14,8 @@ import {
   getStorefrontContact,
   storefrontNav,
 } from "@/lib/storefront"
-import { SITE_ORIGIN } from "@/lib/seo"
+import { isIndexableDeployment, SITE_ORIGIN } from "@/lib/seo"
+import { indexableRobots } from "@/lib/storefront-metadata"
 
 export const revalidate = 60
 
@@ -46,6 +47,7 @@ export const metadata: Metadata = {
     },
   },
   manifest: "/icons/site.webmanifest",
+  ...(isIndexableDeployment() ? { robots: indexableRobots } : {}),
 }
 
 export default async function LocaleLayout({

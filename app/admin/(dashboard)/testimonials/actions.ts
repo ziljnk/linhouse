@@ -9,6 +9,13 @@ import {
   toLocalized,
   type ActionResult,
 } from "@/lib/admin-actions"
+import { recordAudit } from "@/lib/admin-audit"
+import {
+  deletedChange,
+  diffFields,
+  localizedChanges,
+} from "@/lib/admin-audit-shared"
+import { TESTIMONIAL_STATUS_LABELS } from "@/lib/admin-testimonials"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { db } from "@/lib/db"
 import { product, siteCopy, testimonial } from "@/lib/db/schema"
@@ -56,7 +63,7 @@ async function findProductIdByGown(gown: string) {
 export async function saveTestimonialAction(
   input: TestimonialInput & { id?: string }
 ): Promise<ActionResult<{ slug: string }>> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.name.trim()) return actionFail("Vui lòng nhập tên cô dâu.")
   if (!input.quoteVi.trim()) return actionFail("Vui lòng nhập lời nhận xét.")
   const imageUrl = sanitizeMediaUrl(input.imageUrl)
@@ -89,12 +96,21 @@ export async function saveTestimonialAction(
 
   if (input.id) {
     const [current] = await db
-      .select({ imageUrl: testimonial.imageUrl })
+      .select()
       .from(testimonial)
       .where(eq(testimonial.id, input.id))
       .limit(1)
     await db.update(testimonial).set(values).where(eq(testimonial.id, input.id))
     await cleanupRemovedCmsImages([current?.imageUrl ?? ""], [imageUrl])
+    if (current) {
+      await recordAudit(session, {
+        action: "update",
+        area: "testimonial",
+        entityLabel: values.name,
+        summary: `Cập nhật câu chuyện ${values.name}`,
+        changes: testimonialAuditChanges(current, values),
+      })
+    }
     await revalidateAdmin(["/", "/reviews"])
     return actionOk({ slug })
   }
@@ -103,18 +119,32 @@ export async function saveTestimonialAction(
     ...values,
     sortOrder: 99,
   })
+  await recordAudit(session, {
+    action: "create",
+    area: "testimonial",
+    entityLabel: values.name,
+    summary: `Tạo câu chuyện ${values.name}`,
+    changes: testimonialAuditChanges(null, values),
+  })
   await revalidateAdmin(["/", "/reviews"])
   return actionOk({ slug })
 }
 
 export async function deleteTestimonialAction(id: string): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   const [row] = await db
-    .select({ imageUrl: testimonial.imageUrl })
+    .select({ imageUrl: testimonial.imageUrl, name: testimonial.name })
     .from(testimonial)
     .where(eq(testimonial.id, id))
     .limit(1)
   await db.delete(testimonial).where(eq(testimonial.id, id))
+  await recordAudit(session, {
+    action: "delete",
+    area: "testimonial",
+    entityLabel: row?.name ?? "",
+    summary: `Xóa câu chuyện ${row?.name ?? ""}`,
+    changes: deletedChange(row?.name ?? ""),
+  })
   await cleanupRemovedCmsImages([row?.imageUrl ?? ""], [])
   await revalidateAdmin(["/", "/reviews"])
   return actionOk()
@@ -123,28 +153,101 @@ export async function deleteTestimonialAction(id: string): Promise<ActionResult>
 export async function saveTestimonialsSectionAction(
   input: TestimonialsSectionCopy
 ): Promise<ActionResult> {
-  await requireUsableAdminSession()
+  const session = await requireUsableAdminSession()
   if (!input.labelVi.trim() || !input.titleVi.trim()) {
     return actionFail("Vui lòng nhập nhãn và tiêu đề tiếng Việt.")
+  }
+
+  const [current] = await db
+    .select({ value: siteCopy.value })
+    .from(siteCopy)
+    .where(eq(siteCopy.key, "home.testimonials"))
+    .limit(1)
+  const previous = testimonialSectionValue(current?.value)
+  const next = {
+    label: toLocalized(input.labelVi, input.labelEn),
+    title: toLocalized(input.titleVi, input.titleEn),
   }
 
   await db
     .insert(siteCopy)
     .values({
       key: "home.testimonials",
-      value: {
-        label: toLocalized(input.labelVi, input.labelEn),
-        title: toLocalized(input.titleVi, input.titleEn),
-      },
+      value: next,
     })
     .onDuplicateKeyUpdate({
-      set: {
-        value: {
-          label: toLocalized(input.labelVi, input.labelEn),
-          title: toLocalized(input.titleVi, input.titleEn),
-        },
-      },
+      set: { value: next },
     })
+  await recordAudit(session, {
+    action: "update",
+    area: "testimonial",
+    entityLabel: "Tiêu đề câu chuyện cô dâu",
+    summary: "Cập nhật tiêu đề câu chuyện cô dâu",
+    changes: diffFields([
+      ...localizedChanges("Nhãn", previous.label, next.label),
+      ...localizedChanges("Tiêu đề", previous.title, next.title),
+    ]),
+  })
   await revalidateAdmin(["/", "/reviews"])
   return actionOk()
+}
+
+function testimonialStatusLabel(status: string) {
+  return status === "draft" ? TESTIMONIAL_STATUS_LABELS.draft : TESTIMONIAL_STATUS_LABELS.published
+}
+
+function testimonialAuditChanges(
+  before: {
+    name: string
+    quote: { vi: string; en: string }
+    imageUrl: string
+    imageAlt: { vi: string; en: string }
+    gown: string
+    year: number | null
+    status: string
+  } | null,
+  after: {
+    name: string
+    quote: { vi: string; en: string }
+    imageUrl: string
+    imageAlt: { vi: string; en: string }
+    gown: string
+    year: number | null
+    status: string
+  }
+) {
+  return diffFields([
+    { label: "Tên", before: before?.name ?? "", after: after.name },
+    ...localizedChanges("Lời nhận xét", before?.quote, after.quote),
+    { label: "Ảnh", before: before?.imageUrl ?? "", after: after.imageUrl, images: true },
+    ...localizedChanges("Mô tả ảnh", before?.imageAlt, after.imageAlt),
+    { label: "Váy", before: before?.gown ?? "", after: after.gown },
+    { label: "Năm", before: before?.year ?? "", after: after.year ?? "" },
+    {
+      label: "Trạng thái",
+      before: before ? testimonialStatusLabel(before.status) : "",
+      after: testimonialStatusLabel(after.status),
+    },
+  ])
+}
+
+function testimonialSectionValue(value: unknown) {
+  const record =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {}
+  const pair = (input: unknown) => {
+    const data =
+      input && typeof input === "object" && !Array.isArray(input)
+        ? (input as Record<string, unknown>)
+        : {}
+    return {
+      vi: typeof data.vi === "string" ? data.vi : "",
+      en: typeof data.en === "string" ? data.en : "",
+    }
+  }
+  return {
+    label: pair(record.label),
+    title: pair(record.title),
+  }
 }
