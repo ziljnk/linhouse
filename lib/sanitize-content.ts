@@ -49,8 +49,43 @@ const RICH_TEXT_OPTIONS: sanitizeHtml.IOptions = {
   },
 }
 
+const NAMED_HTML_ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: "\u00a0",
+}
+
+const HTML_TAG = /<\/?[a-z][^>]*>/i
+
+function codePointToChar(code: number) {
+  if (!Number.isInteger(code) || code < 0 || code > 0x10ffff) return null
+  if (code >= 0xd800 && code <= 0xdfff) return null
+  return String.fromCodePoint(code)
+}
+
+export function decodeHtmlEntities(value: string) {
+  return value.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, body: string) => {
+    const token = body.toLowerCase()
+    if (token.startsWith("#x")) {
+      return codePointToChar(Number.parseInt(token.slice(2), 16)) ?? entity
+    }
+    if (token.startsWith("#")) {
+      return codePointToChar(Number.parseInt(token.slice(1), 10)) ?? entity
+    }
+    return NAMED_HTML_ENTITIES[token] ?? entity
+  })
+}
+
+export function decodeStoredPlainText(value: string) {
+  if (HTML_TAG.test(value)) return value
+  return decodeHtmlEntities(value)
+}
+
 export function sanitizePlainText(text: string) {
-  return sanitizeHtml(text, PLAIN_TEXT_OPTIONS).trim()
+  return decodeHtmlEntities(sanitizeHtml(text, PLAIN_TEXT_OPTIONS).trim())
 }
 
 export function sanitizeRichTextHtml(html: string) {

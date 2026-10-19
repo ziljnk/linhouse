@@ -1,4 +1,4 @@
-import { sanitizePlainText } from "@/lib/sanitize-content"
+import { decodeStoredPlainText, sanitizePlainText } from "@/lib/sanitize-content"
 import { sanitizeExternalUrl } from "@/lib/sanitize-url"
 
 export type LocaleCode = "vi" | "en"
@@ -141,7 +141,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function asString(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value : fallback
+  return typeof value === "string" ? decodeStoredPlainText(value) : fallback
 }
 
 function asBoolean(value: unknown, fallback: boolean): boolean {

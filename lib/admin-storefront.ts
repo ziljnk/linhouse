@@ -35,6 +35,7 @@ import {
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
+import { decodeStoredPlainText } from "@/lib/sanitize-content"
 import type { LocalizedText } from "@/lib/site-settings"
 import { localizedValue } from "@/lib/site-settings"
 import {
@@ -55,11 +56,14 @@ import type {
 } from "@/lib/admin-testimonials"
 
 function textOf(value: LocalizedText | null | undefined) {
-  return localizedValue(value ?? { vi: "", en: "" }, "vi")
+  return decodeStoredPlainText(localizedValue(value ?? { vi: "", en: "" }, "vi"))
 }
 
 function asLocalized(value: LocalizedText | null | undefined): LocalizedText {
-  return { vi: value?.vi ?? "", en: value?.en ?? "" }
+  return {
+    vi: decodeStoredPlainText(value?.vi ?? ""),
+    en: decodeStoredPlainText(value?.en ?? ""),
+  }
 }
 
 export type AdminAttributeOption = {
@@ -166,8 +170,8 @@ export async function listAdminAttributeGroups(): Promise<
     id: group.id,
     slug: group.slug,
     label: textOf(group.label),
-    labelVi: group.label.vi,
-    labelEn: group.label.en,
+    labelVi: decodeStoredPlainText(group.label.vi),
+    labelEn: decodeStoredPlainText(group.label.en),
     selection: group.selection,
     kind: group.kind,
     sortOrder: group.sortOrder,
@@ -177,8 +181,8 @@ export async function listAdminAttributeGroups(): Promise<
         id: item.id,
         slug: item.slug,
         label: textOf(item.label),
-        labelVi: item.label.vi,
-        labelEn: item.label.en,
+        labelVi: decodeStoredPlainText(item.label.vi),
+        labelEn: decodeStoredPlainText(item.label.en),
         sortOrder: item.sortOrder,
       })),
   }))
@@ -374,9 +378,9 @@ export async function listAdminProducts(
     return {
       id: row.id,
       slug: row.slug,
-      name: row.name,
-      fullName: row.name,
-      code: row.code,
+      name: decodeStoredPlainText(row.name),
+      fullName: decodeStoredPlainText(row.name),
+      code: decodeStoredPlainText(row.code),
       image,
       price: row.priceVnd,
       priceDisplay: row.priceDisplay,
@@ -420,10 +424,10 @@ export async function getAdminProduct(
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
-    code: row.code,
+    name: decodeStoredPlainText(row.name),
+    code: decodeStoredPlainText(row.code),
     description: asLocalized(row.description),
-    tags: row.tags ?? [],
+    tags: (row.tags ?? []).map((tag) => decodeStoredPlainText(tag)),
     purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
     priceVnd: row.priceVnd,
     priceDisplay: row.priceDisplay,
@@ -733,13 +737,13 @@ export async function listAdminTestimonials(
     items: rows.map((row) => ({
       id: row.id,
       slug: row.slug,
-      name: row.name,
-      quoteVi: row.quote.vi,
-      quoteEn: row.quote.en,
+      name: decodeStoredPlainText(row.name),
+      quoteVi: decodeStoredPlainText(row.quote.vi),
+      quoteEn: decodeStoredPlainText(row.quote.en),
       image: row.imageUrl,
-      imageAltVi: row.imageAlt.vi,
-      imageAltEn: row.imageAlt.en,
-      gown: row.gown,
+      imageAltVi: decodeStoredPlainText(row.imageAlt.vi),
+      imageAltEn: decodeStoredPlainText(row.imageAlt.en),
+      gown: decodeStoredPlainText(row.gown),
       year: row.year ? String(row.year) : "",
       status: row.status === "draft" ? "draft" : "published",
     })),
@@ -765,13 +769,13 @@ export async function getAdminTestimonial(
   return {
     id: row.id,
     slug: row.slug,
-    name: row.name,
-    quoteVi: row.quote.vi,
-    quoteEn: row.quote.en,
+    name: decodeStoredPlainText(row.name),
+    quoteVi: decodeStoredPlainText(row.quote.vi),
+    quoteEn: decodeStoredPlainText(row.quote.en),
     image: row.imageUrl,
-    imageAltVi: row.imageAlt.vi,
-    imageAltEn: row.imageAlt.en,
-    gown: row.gown,
+    imageAltVi: decodeStoredPlainText(row.imageAlt.vi),
+    imageAltEn: decodeStoredPlainText(row.imageAlt.en),
+    gown: decodeStoredPlainText(row.gown),
     year: row.year ? String(row.year) : "",
     status: row.status === "draft" ? "draft" : "published",
   }
@@ -790,9 +794,9 @@ export async function getTestimonialsSectionCopy(): Promise<TestimonialsSectionC
   }
 
   return {
-    labelVi: value.label?.vi ?? "",
-    labelEn: value.label?.en ?? "",
-    titleVi: value.title?.vi ?? "",
-    titleEn: value.title?.en ?? "",
+    labelVi: decodeStoredPlainText(value.label?.vi ?? ""),
+    labelEn: decodeStoredPlainText(value.label?.en ?? ""),
+    titleVi: decodeStoredPlainText(value.title?.vi ?? ""),
+    titleEn: decodeStoredPlainText(value.title?.en ?? ""),
   }
 }

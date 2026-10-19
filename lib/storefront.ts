@@ -41,6 +41,7 @@ import {
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
+import { decodeStoredPlainText } from "@/lib/sanitize-content"
 import { isSearchableQuery, normalizeSearchQuery } from "@/lib/search-query"
 import { getSiteSettings } from "@/lib/site-settings-store"
 import {
@@ -102,7 +103,7 @@ function textOf(
   fallback = ""
 ) {
   const localized = localizedValue(asLocalized(value), locale).trim()
-  if (localized) return localized
+  if (localized) return decodeStoredPlainText(localized)
   return fallback
 }
 
@@ -114,7 +115,7 @@ function copyRecord(value: unknown) {
 }
 
 function copyText(value: unknown, locale: Locale, fallback: string) {
-  if (typeof value === "string" && value.trim()) return value
+  if (typeof value === "string" && value.trim()) return decodeStoredPlainText(value)
   if (isLocalizedText(value)) return textOf(value, locale, fallback)
   return fallback
 }
@@ -573,7 +574,7 @@ export async function searchStorefront({
       slug: row.slug,
       title: formatProductDisplayName(
         row.kind === "ao-dai" ? formats["ao-dai"] : formats.gown,
-        row.name,
+        decodeStoredPlainText(row.name),
         nameTokensForProduct(searchAttributes, row.id, locale)
       ),
       href: `/${locale}/product/${row.slug}`,
@@ -673,15 +674,16 @@ function mapProducts(
       attributesByGroup[item.groupSlug] = list
     }
 
+    const name = decodeStoredPlainText(row.name)
     return {
       slug: row.slug,
-      name: row.name,
+      name,
       displayName: formatProductDisplayName(
         row.kind === "ao-dai" ? formats["ao-dai"] : formats.gown,
-        row.name,
+        name,
         nameTokensForProduct(rows.productAttributes, row.id, locale)
       ),
-      code: row.code,
+      code: decodeStoredPlainText(row.code),
       image: images[0] ?? "",
       images,
       collections: collectionsByProduct.get(row.id) ?? [],
@@ -791,11 +793,11 @@ function mapTestimonials(
     label: copyText(copy.label, locale, dict.home.testimonials.label),
     title: copyText(copy.title, locale, dict.home.testimonials.title),
     items: rows.testimonials.map((row) => ({
-      name: row.name,
+      name: decodeStoredPlainText(row.name),
       quote: textOf(row.quote, locale),
       image: row.imageUrl,
-      imageAlt: textOf(row.imageAlt, locale, row.name),
-      meta: testimonialMeta(locale, row.gown, row.year),
+      imageAlt: textOf(row.imageAlt, locale, decodeStoredPlainText(row.name)),
+      meta: testimonialMeta(locale, decodeStoredPlainText(row.gown), row.year),
     })),
   }
 }

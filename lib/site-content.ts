@@ -14,7 +14,11 @@ import {
   readHomeHeroImage,
 } from "@/lib/home-hero-image"
 import { diffFields, localizedChanges } from "@/lib/admin-audit-shared"
-import { sanitizePlainText, sanitizeRichTextHtml } from "@/lib/sanitize-content"
+import {
+  decodeStoredPlainText,
+  sanitizePlainText,
+  sanitizeRichTextHtml,
+} from "@/lib/sanitize-content"
 import {
   ABOUT_FAQ_ANSWER_MAX,
   ABOUT_FAQ_QUESTION_MAX,
@@ -135,9 +139,11 @@ function isServiceMenuHref(href: string) {
 function localizedText(value: unknown, locale: Locale, fallback: string) {
   const data = record(value)
   const primary = data[locale]
-  if (typeof primary === "string" && primary.trim()) return primary.trim()
+  if (typeof primary === "string" && primary.trim()) {
+    return decodeStoredPlainText(primary.trim())
+  }
   const vi = data.vi
-  if (typeof vi === "string" && vi.trim()) return vi.trim()
+  if (typeof vi === "string" && vi.trim()) return decodeStoredPlainText(vi.trim())
   return fallback
 }
 
@@ -148,7 +154,7 @@ function localizedLines(value: unknown, locale: Locale, fallback: string[]) {
     if (!Array.isArray(list)) return []
     return list
       .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
+      .map((item) => decodeStoredPlainText(item.trim()))
       .filter(Boolean)
   }
   const primary = pick(locale)
@@ -160,8 +166,14 @@ function localizedLines(value: unknown, locale: Locale, fallback: string[]) {
 
 function displayPair(value: unknown, fallback: ContentPair): ContentPair {
   const data = record(value)
-  const vi = typeof data.vi === "string" && data.vi.trim() ? data.vi : fallback.vi
-  const en = typeof data.en === "string" && data.en.trim() ? data.en : fallback.en
+  const vi =
+    typeof data.vi === "string" && data.vi.trim()
+      ? decodeStoredPlainText(data.vi)
+      : fallback.vi
+  const en =
+    typeof data.en === "string" && data.en.trim()
+      ? decodeStoredPlainText(data.en)
+      : fallback.en
   return { vi, en }
 }
 
@@ -171,7 +183,7 @@ function displayLines(value: unknown, fallback: ContentPair): ContentPair {
     if (!Array.isArray(list)) return fallbackText
     const lines = list
       .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
+      .map((item) => decodeStoredPlainText(item.trim()))
       .filter(Boolean)
     return lines.length > 0 ? lines.join("\n") : fallbackText
   }
@@ -1692,8 +1704,8 @@ function cleanContent(
 function rawPair(value: unknown): ContentPair {
   const data = record(value)
   return {
-    vi: typeof data.vi === "string" ? data.vi : "",
-    en: typeof data.en === "string" ? data.en : "",
+    vi: typeof data.vi === "string" ? decodeStoredPlainText(data.vi) : "",
+    en: typeof data.en === "string" ? decodeStoredPlainText(data.en) : "",
   }
 }
 

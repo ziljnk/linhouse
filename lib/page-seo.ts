@@ -5,7 +5,7 @@ import { getDictionary } from "@/app/[locale]/dictionaries"
 import { db } from "@/lib/db"
 import { siteCopy } from "@/lib/db/schema"
 import { diffFields, localizedChanges } from "@/lib/admin-audit-shared"
-import { sanitizePlainText } from "@/lib/sanitize-content"
+import { decodeStoredPlainText, sanitizePlainText } from "@/lib/sanitize-content"
 import type { StorefrontLocale } from "@/lib/seo"
 import { loadSiteCopyMap } from "@/lib/site-content"
 import type { LocalizedText } from "@/lib/site-settings"
@@ -121,8 +121,8 @@ async function loadStoredPageSeo() {
 
 function pick(text: LocalizedText | undefined, locale: Locale) {
   const primary = text?.[locale]?.trim() ?? ""
-  if (primary) return primary
-  if (locale === "en") return text?.vi?.trim() ?? ""
+  if (primary) return decodeStoredPlainText(primary)
+  if (locale === "en") return decodeStoredPlainText(text?.vi?.trim() ?? "")
   return ""
 }
 
@@ -212,12 +212,12 @@ function resolveFrom(
 
 function fieldsFrom(entry: StoredPageSeo | undefined): PageSeoFields {
   return {
-    titleVi: entry?.title.vi ?? "",
-    titleEn: entry?.title.en ?? "",
-    descriptionVi: entry?.description.vi ?? "",
-    descriptionEn: entry?.description.en ?? "",
-    keywordsVi: entry?.keywords.vi ?? "",
-    keywordsEn: entry?.keywords.en ?? "",
+    titleVi: decodeStoredPlainText(entry?.title.vi ?? ""),
+    titleEn: decodeStoredPlainText(entry?.title.en ?? ""),
+    descriptionVi: decodeStoredPlainText(entry?.description.vi ?? ""),
+    descriptionEn: decodeStoredPlainText(entry?.description.en ?? ""),
+    keywordsVi: decodeStoredPlainText(entry?.keywords.vi ?? ""),
+    keywordsEn: decodeStoredPlainText(entry?.keywords.en ?? ""),
   }
 }
 
