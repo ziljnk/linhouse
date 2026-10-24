@@ -152,6 +152,8 @@ export type AdminBlogCategoryOption = {
   id: string
   slug: string
   label: string
+  labelVi: string
+  labelEn: string
 }
 
 export async function listAdminAttributeGroups(): Promise<
@@ -566,6 +568,8 @@ export async function listAdminBlogCategories(): Promise<
     id: row.id,
     slug: row.slug,
     label: textOf(row.label),
+    labelVi: decodeStoredPlainText(row.label.vi),
+    labelEn: decodeStoredPlainText(row.label.en),
   }))
 }
 

@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Plus } from "lucide-react"
+import { Plus, Tags } from "lucide-react"
 import { BlogTable } from "@/components/admin/blog-table"
 import { Button } from "@/components/ui/button"
 import {
@@ -44,10 +44,20 @@ export default async function AdminBlogPage({
             Danh sách bài viết đang có trên website.
           </p>
         </div>
-        <Button nativeButton={false} render={<Link href="/admin/blog/new" />}>
-          <Plus />
-          Tạo bài viết
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/admin/blog/categories" />}
+          >
+            <Tags />
+            Danh mục
+          </Button>
+          <Button nativeButton={false} render={<Link href="/admin/blog/new" />}>
+            <Plus />
+            Tạo bài viết
+          </Button>
+        </div>
       </div>
       <BlogTable
         posts={result.items}

@@ -1,9 +1,15 @@
 "use client"
 
-import { useMemo, useRef, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import dynamic from "next/dynamic"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { saveBlogPostAction, type BlogIntent } from "@/app/admin/(dashboard)/blog/actions"
+import { Plus } from "lucide-react"
+import {
+  createBlogCategoryAction,
+  saveBlogPostAction,
+  type BlogIntent,
+} from "@/app/admin/(dashboard)/blog/actions"
 import { persistUploadedImages } from "@/lib/persist-admin-images"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
@@ -16,6 +22,14 @@ import {
   toDatetimeLocalValue,
 } from "@/components/admin/schedule-publish-dialog"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -117,7 +131,8 @@ export function BlogForm({
   cancelHref?: string
 }) {
   const router = useRouter()
-  const categoryOptions = categories.map((item) => ({
+  const [categoryList, setCategoryList] = useState(categories)
+  const categoryOptions = categoryList.map((item) => ({
     value: item.id,
     label: item.label,
   }))
@@ -132,6 +147,13 @@ export function BlogForm({
   const [localeTab, setLocaleTab] = useState<"vi" | "en">("vi")
   const [slug, setSlug] = useState(defaultValues?.slug ?? "")
   const [categoryId, setCategoryId] = useState(defaultValues?.categoryId ?? "")
+  const [categoryMenuOpen, setCategoryMenuOpen] = useState(false)
+  const [createCategoryOpen, setCreateCategoryOpen] = useState(false)
+  const [newLabelVi, setNewLabelVi] = useState("")
+  const [newLabelEn, setNewLabelEn] = useState("")
+  const [newSlug, setNewSlug] = useState("")
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createPending, setCreatePending] = useState(false)
   const [coverImages, setCoverImages] = useState<UploadedImage[]>(
     defaultValues?.coverUrl
       ? [createUploadedImageFromUrl(defaultValues.coverUrl)]
@@ -147,6 +169,44 @@ export function BlogForm({
   )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  useEffect(() => {
+    setCategoryList(categories)
+  }, [categories])
+
+  const openCreateCategory = () => {
+    setNewLabelVi("")
+    setNewLabelEn("")
+    setNewSlug("")
+    setCreateError(null)
+    setCategoryMenuOpen(false)
+    setCreateCategoryOpen(true)
+  }
+
+  const saveNewCategory = async () => {
+    setCreatePending(true)
+    setCreateError(null)
+    const result = await createBlogCategoryAction({
+      labelVi: newLabelVi,
+      labelEn: newLabelEn,
+      slug: newSlug,
+    })
+    setCreatePending(false)
+    if (!result.ok) {
+      setCreateError(result.error)
+      toastError(result.error)
+      return
+    }
+    setCategoryList((current) =>
+      current.some((item) => item.id === result.data.id)
+        ? current
+        : [...current, result.data]
+    )
+    setCategoryId(result.data.id)
+    setCreateCategoryOpen(false)
+    toastSuccess("Đã thêm danh mục.")
+    router.refresh()
+  }
 
   const snapshot = useMemo(
     () =>
@@ -452,6 +512,8 @@ export function BlogForm({
             <Label htmlFor="blog-category">Danh mục</Label>
             <Select
               id="blog-category"
+              open={categoryMenuOpen}
+              onOpenChange={setCategoryMenuOpen}
               value={categoryId || null}
               onValueChange={(value) => setCategoryId(value ?? "")}
               items={categoryOptions}
@@ -459,7 +521,22 @@ export function BlogForm({
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Chọn danh mục" />
               </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false} className="w-(--anchor-width)">
+              <SelectContent
+                alignItemWithTrigger={false}
+                className="w-(--anchor-width)"
+                footer={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="w-full justify-start font-normal"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={openCreateCategory}
+                  >
+                    <Plus />
+                    Tạo danh mục
+                  </Button>
+                }
+              >
                 {categoryOptions.map((option) => (
                   <SelectItem
                     key={option.value}
@@ -471,6 +548,79 @@ export function BlogForm({
                 ))}
               </SelectContent>
             </Select>
+            <Link
+              href="/admin/blog/categories"
+              className="w-fit text-sm text-muted-foreground underline underline-offset-4"
+            >
+              Quản lý danh mục
+            </Link>
+            <Dialog
+              open={createCategoryOpen}
+              onOpenChange={(open) => {
+                if (!createPending) setCreateCategoryOpen(open)
+              }}
+            >
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Thêm danh mục</DialogTitle>
+                  <DialogDescription>
+                    Danh mục mới sẽ được chọn cho bài viết này.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3">
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="new-blog-category-vi">Tên tiếng Việt</Label>
+                    <Input
+                      id="new-blog-category-vi"
+                      value={newLabelVi}
+                      onChange={(event) => {
+                        const labelVi = event.target.value
+                        setNewLabelVi(labelVi)
+                        setNewSlug((current) =>
+                          nextAutoSlug(newLabelVi, current, labelVi)
+                        )
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="new-blog-category-en">Tên tiếng Anh</Label>
+                    <Input
+                      id="new-blog-category-en"
+                      value={newLabelEn}
+                      onChange={(event) => setNewLabelEn(event.target.value)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="new-blog-category-slug">Đường dẫn</Label>
+                    <Input
+                      id="new-blog-category-slug"
+                      value={newSlug}
+                      onChange={(event) => setNewSlug(slugify(event.target.value))}
+                    />
+                  </div>
+                </div>
+                {createError ? (
+                  <p className="text-sm text-destructive">{createError}</p>
+                ) : null}
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={createPending}
+                    onClick={() => setCreateCategoryOpen(false)}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={createPending}
+                    onClick={() => void saveNewCategory()}
+                  >
+                    {createPending ? "Đang lưu..." : "Lưu"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="flex flex-col gap-2">

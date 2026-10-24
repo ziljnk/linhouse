@@ -1,6 +1,7 @@
 "use server"
 
-import { eq } from "drizzle-orm"
+import { randomUUID } from "node:crypto"
+import { and, count, eq, ne } from "drizzle-orm"
 import {
   actionFail,
   actionOk,
@@ -109,7 +110,146 @@ async function blogCategoryName(id: string) {
     .from(blogCategory)
     .where(eq(blogCategory.id, id))
     .limit(1)
-  return row?.label.vi || row?.label.en || ""
+  if (!row) return null
+  return row.label.vi || row.label.en || ""
+}
+
+export type BlogCategoryInput = {
+  labelVi: string
+  labelEn?: string
+  slug: string
+}
+
+async function blogCategorySlugTaken(slug: string, excludeId?: string) {
+  const [row] = await db
+    .select({ id: blogCategory.id })
+    .from(blogCategory)
+    .where(
+      excludeId
+        ? and(eq(blogCategory.slug, slug), ne(blogCategory.id, excludeId))
+        : eq(blogCategory.slug, slug)
+    )
+    .limit(1)
+  return Boolean(row)
+}
+
+function categoryAuditChanges(
+  before: { label: LocalizedText; slug: string } | null,
+  after: { label: LocalizedText; slug: string }
+) {
+  return diffFields([
+    ...localizedChanges("Tên danh mục", before?.label, after.label),
+    { label: "Đường dẫn", before: before?.slug ?? "", after: after.slug },
+  ])
+}
+
+function parseBlogCategoryInput(input: BlogCategoryInput) {
+  if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên danh mục.")
+  const slugResult = requireSlug(input.slug, "Đường dẫn danh mục")
+  if (!slugResult.ok) return slugResult
+  return actionOk({
+    slug: slugResult.slug,
+    label: toLocalized(input.labelVi, input.labelEn),
+  })
+}
+
+export async function createBlogCategoryAction(
+  input: BlogCategoryInput
+): Promise<
+  ActionResult<{
+    id: string
+    slug: string
+    label: string
+    labelVi: string
+    labelEn: string
+  }>
+> {
+  const session = await requireUsableAdminSession()
+  const parsed = parseBlogCategoryInput(input)
+  if (!parsed.ok) return parsed
+  if (await blogCategorySlugTaken(parsed.data.slug)) {
+    return actionFail("Đường dẫn danh mục đã tồn tại.")
+  }
+
+  const id = randomUUID()
+  await db.insert(blogCategory).values({ id, ...parsed.data })
+  const name = parsed.data.label.vi || parsed.data.label.en
+  await recordAudit(session, {
+    action: "create",
+    area: "blog",
+    entityLabel: name,
+    summary: `Tạo danh mục blog ${name}`,
+    changes: categoryAuditChanges(null, parsed.data),
+  })
+  await revalidateAdmin(["/", "/blog"])
+  return actionOk({
+    id,
+    slug: parsed.data.slug,
+    label: name || parsed.data.slug,
+    labelVi: parsed.data.label.vi,
+    labelEn: parsed.data.label.en,
+  })
+}
+
+export async function updateBlogCategoryAction(
+  id: string,
+  input: BlogCategoryInput
+): Promise<ActionResult> {
+  const session = await requireUsableAdminSession()
+  const parsed = parseBlogCategoryInput(input)
+  if (!parsed.ok) return parsed
+  if (await blogCategorySlugTaken(parsed.data.slug, id)) {
+    return actionFail("Đường dẫn danh mục đã tồn tại.")
+  }
+
+  const [current] = await db
+    .select({ slug: blogCategory.slug, label: blogCategory.label })
+    .from(blogCategory)
+    .where(eq(blogCategory.id, id))
+    .limit(1)
+  if (!current) return actionFail("Không tìm thấy danh mục.")
+
+  await db.update(blogCategory).set(parsed.data).where(eq(blogCategory.id, id))
+  const name = parsed.data.label.vi || parsed.data.label.en
+  await recordAudit(session, {
+    action: "update",
+    area: "blog",
+    entityLabel: name,
+    summary: `Cập nhật danh mục blog ${name}`,
+    changes: categoryAuditChanges(current, parsed.data),
+  })
+  await revalidateAdmin(["/", "/blog"])
+  return actionOk()
+}
+
+export async function deleteBlogCategoryAction(id: string): Promise<ActionResult> {
+  const session = await requireUsableAdminSession()
+  const [usage] = await db
+    .select({ value: count() })
+    .from(blogPost)
+    .where(eq(blogPost.categoryId, id))
+  if (Number(usage?.value ?? 0) > 0) {
+    return actionFail("Không xóa được danh mục đang có bài viết.")
+  }
+
+  const [row] = await db
+    .select({ slug: blogCategory.slug, label: blogCategory.label })
+    .from(blogCategory)
+    .where(eq(blogCategory.id, id))
+    .limit(1)
+  if (!row) return actionFail("Không tìm thấy danh mục.")
+
+  await db.delete(blogCategory).where(eq(blogCategory.id, id))
+  const name = row.label.vi || row.label.en || row.slug
+  await recordAudit(session, {
+    action: "delete",
+    area: "blog",
+    entityLabel: name,
+    summary: `Xóa danh mục blog ${name}`,
+    changes: deletedChange(name),
+  })
+  await revalidateAdmin(["/", "/blog"])
+  return actionOk()
 }
 
 export async function saveBlogPostAction(
@@ -161,6 +301,9 @@ export async function saveBlogPostAction(
   if (!publish.ok) return publish
 
   const category = await blogCategoryName(input.categoryId)
+  if (category === null) {
+    return actionFail("Danh mục không còn tồn tại. Hãy tạo hoặc chọn danh mục khác.")
+  }
   const values = {
     slug: slugResult.slug,
     categoryId: input.categoryId,
@@ -214,7 +357,7 @@ export async function saveBlogPostAction(
             content: previous.content,
             imageAlt: previous.imageAlt,
             slug: previous.slug,
-            category: await blogCategoryName(previous.categoryId),
+            category: (await blogCategoryName(previous.categoryId)) ?? "",
             coverUrl: previous.coverUrl,
             status: previous.status,
             publishedAt: previous.publishedAt,

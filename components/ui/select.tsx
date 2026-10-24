@@ -58,6 +58,7 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
+  footer,
   side = "bottom",
   sideOffset = 4,
   align = "center",
@@ -68,7 +69,9 @@ function SelectContent({
   Pick<
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
-  >) {
+  > & {
+    footer?: React.ReactNode
+  }) {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
@@ -87,6 +90,11 @@ function SelectContent({
         >
           <SelectScrollUpButton />
           <SelectPrimitive.List>{children}</SelectPrimitive.List>
+          {footer ? (
+            <div className="sticky bottom-0 border-t border-border bg-popover p-1">
+              {footer}
+            </div>
+          ) : null}
           <SelectScrollDownButton />
         </SelectPrimitive.Popup>
       </SelectPrimitive.Positioner>
