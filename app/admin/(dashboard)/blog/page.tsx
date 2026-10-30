@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Plus, Tags } from "lucide-react"
 import { BlogTable } from "@/components/admin/blog-table"
+import { DraftCreateBadge, DraftListBanner } from "@/components/admin/draft-list-cues"
 import { Button } from "@/components/ui/button"
 import {
   parseAdminFilter,
@@ -53,12 +54,15 @@ export default async function AdminBlogPage({
             <Tags />
             Danh mục
           </Button>
-          <Button nativeButton={false} render={<Link href="/admin/blog/new" />}>
-            <Plus />
-            Tạo bài viết
-          </Button>
+          <DraftCreateBadge entity="blog">
+            <Button nativeButton={false} render={<Link href="/admin/blog/new" />}>
+              <Plus />
+              Tạo bài viết
+            </Button>
+          </DraftCreateBadge>
         </div>
       </div>
+      <DraftListBanner entity="blog" />
       <BlogTable
         posts={result.items}
         page={result.page}

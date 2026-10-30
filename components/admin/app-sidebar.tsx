@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Library,
   LogOut,
+  NotebookPen,
   Newspaper,
   Quote,
   Search,
@@ -18,6 +19,8 @@ import {
   Shirt,
 } from "lucide-react"
 import { authClient } from "@/lib/auth-client"
+import { clearUserDrafts } from "@/lib/admin-drafts"
+import { useUserDraftMetas } from "@/hooks/use-form-draft"
 import {
   Sidebar,
   SidebarContent,
@@ -27,6 +30,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
@@ -40,6 +44,7 @@ const navItems = [
   { title: "Danh mục", href: "/admin/catalog", icon: Library },
   { title: "Câu chuyện cô dâu", href: "/admin/testimonials", icon: Quote },
   { title: "Blog", href: "/admin/blog", icon: Newspaper },
+  { title: "Nháp chưa lưu", href: "/admin/unsaved-drafts", icon: NotebookPen },
   { title: "Nội dung", href: "/admin/content", icon: FileText },
   { title: "SEO", href: "/admin/seo", icon: Search },
 ]
@@ -58,6 +63,7 @@ function isActivePath(pathname: string, href: string) {
 export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const unsavedCount = useUserDraftMetas().length
 
   return (
     <Sidebar collapsible="icon">
@@ -103,6 +109,9 @@ export function AppSidebar() {
                     <item.icon />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
+                  {item.href === "/admin/unsaved-drafts" && unsavedCount > 0 ? (
+                    <SidebarMenuBadge>{unsavedCount}</SidebarMenuBadge>
+                  ) : null}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -143,6 +152,14 @@ export function AppSidebar() {
             <SidebarMenuButton
               tooltip="Đăng xuất"
               onClick={async () => {
+                const { data } = await authClient.getSession()
+                if (data?.user?.id) {
+                  try {
+                    await clearUserDrafts(data.user.id)
+                  } catch (error) {
+                    console.error("Could not clear admin drafts", error)
+                  }
+                }
                 await authClient.signOut()
                 router.push("/admin/login")
                 router.refresh()

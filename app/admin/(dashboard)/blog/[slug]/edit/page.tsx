@@ -58,6 +58,7 @@ export default async function EditBlogPage({
             keywordsEn: post.seoKeywords.en,
           },
         }}
+        recordUpdatedAt={post.updatedAt}
       />
     </div>
   )

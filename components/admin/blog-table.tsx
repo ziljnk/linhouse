@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { UnsavedDraftTag, useEntityDrafts } from "@/components/admin/draft-list-cues"
 import { Badge } from "@/components/ui/badge"
 import {
   BLOG_STATUS_LABELS,
@@ -93,6 +94,11 @@ export function BlogTable({
   const [deletePost, setDeletePost] = useState<AdminBlogListItem | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const editDraftIds = new Set(
+    useEntityDrafts("blog")
+      .filter((draft) => draft.recordId !== "new")
+      .map((draft) => draft.recordId)
+  )
   const hasActiveFilters =
     query !== "" || status !== "all" || category !== "all"
 
@@ -202,7 +208,10 @@ export function BlogTable({
                     </div>
                   </TableCell>
                   <TableCell className="whitespace-normal">
-                    <span className="font-medium">{post.title}</span>
+                    <div className="flex min-w-40 flex-col gap-1">
+                      <span className="font-medium">{post.title}</span>
+                      {editDraftIds.has(post.id) ? <UnsavedDraftTag /> : null}
+                    </div>
                   </TableCell>
                   <TableCell>{post.category}</TableCell>
                   <TableCell className="whitespace-normal">

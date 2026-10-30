@@ -2,6 +2,16 @@
 
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
+import { FormDraftNotices, FormDraftStatus } from "@/components/admin/form-draft-notice"
+import {
+  revokeUploadedImages,
+  useFormDraft,
+  type RestoredFormDraft,
+} from "@/hooks/use-form-draft"
+import {
+  hasActiveAdminSession,
+  isSessionExpiredFailure,
+} from "@/lib/admin-session-client"
 import { Languages, Loader2 } from "lucide-react"
 import { HomeCarouselLimitNotice } from "@/components/admin/home-carousel-card"
 import { Button } from "@/components/ui/button"
@@ -75,12 +85,27 @@ export type CollectionFormValues = {
   showOnHome?: boolean
 }
 
+type CollectionDraftFields = {
+  nameVi: string
+  nameEn: string
+  subtitleVi: string
+  subtitleEn: string
+  imageAltVi: string
+  imageAltEn: string
+  slug: string
+  year: string
+  showOnHome: boolean
+  seo: SeoLocaleValues
+}
+
 export function CollectionForm({
   defaultValues,
   homeCarouselCount = 0,
+  recordUpdatedAt = null,
 }: {
   defaultValues?: CollectionFormValues
   homeCarouselCount?: number
+  recordUpdatedAt?: string | null
 } = {}) {
   const router = useRouter()
   const [nameVi, setNameVi] = useState(defaultValues?.nameVi ?? "")
@@ -136,7 +161,61 @@ export function CollectionForm({
     }
   }
 
+  const openPath =
+    defaultValues?.id && defaultValues.slug
+      ? `/admin/collections/${defaultValues.slug}/edit`
+      : "/admin/collections/new"
+  const collectionFields: CollectionDraftFields = {
+    nameVi,
+    nameEn,
+    subtitleVi,
+    subtitleEn,
+    imageAltVi,
+    imageAltEn,
+    slug,
+    year,
+    showOnHome,
+    seo,
+  }
+  const applyCollectionDraft = (
+    restored: RestoredFormDraft<CollectionDraftFields>
+  ) => {
+    const fields = restored.fields
+    setNameVi(fields.nameVi ?? "")
+    setNameEn(fields.nameEn ?? "")
+    setSubtitleVi(fields.subtitleVi ?? "")
+    setSubtitleEn(fields.subtitleEn ?? "")
+    setImageAltVi(fields.imageAltVi ?? "")
+    setImageAltEn(fields.imageAltEn ?? "")
+    setSlug(fields.slug ?? "")
+    setYear(fields.year ?? "")
+    setShowOnHome(fields.showOnHome ?? false)
+    setSeo(fields.seo ?? emptySeo)
+    setCoverImages((current) => {
+      revokeUploadedImages(current)
+      return restored.images.cover ?? []
+    })
+    setGalleryImages((current) => {
+      revokeUploadedImages(current)
+      return restored.images.gallery ?? []
+    })
+    if (new URLSearchParams(window.location.search).get("restore") === "1") {
+      router.replace(openPath)
+    }
+  }
+  const draft = useFormDraft({
+    entity: "collection",
+    recordId: defaultValues?.id,
+    openPath,
+    title: nameVi.trim() || "Chưa có tiêu đề",
+    baselineUpdatedAt: recordUpdatedAt,
+    fields: collectionFields,
+    images: { cover: coverImages, gallery: galleryImages },
+    onRestore: applyCollectionDraft,
+  })
+
   const persistAndSave = async (intent: PublishIntent, publishedAt?: string | null) => {
+    await draft.flush()
     if (!nameVi.trim()) {
       toastError("Vui lòng nhập tên bộ sưu tập.")
       return
@@ -149,6 +228,10 @@ export function CollectionForm({
 
     setPending(true)
     try {
+      if (!(await hasActiveAdminSession())) {
+        draft.markSessionExpired()
+        return
+      }
       const uploaded = await persistUploadedImages(
         [...coverImages, ...galleryImages],
         "collections"
@@ -191,6 +274,7 @@ export function CollectionForm({
         return
       }
 
+      await draft.clear()
       setScheduleOpen(false)
       setScheduleError(null)
       if (result.data.carousel === "added") {
@@ -212,6 +296,10 @@ export function CollectionForm({
       }
       router.refresh()
     } catch (error) {
+      if (isSessionExpiredFailure(error)) {
+        draft.markSessionExpired()
+        return
+      }
       toastError(
         error instanceof Error ? error.message : "Không lưu được bộ sưu tập."
       )
@@ -258,6 +346,20 @@ export function CollectionForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
+      <FormDraftNotices
+        entity="collection"
+        offer={draft.offer}
+        recordUpdatedAt={recordUpdatedAt}
+        imageMissing={draft.imageMissing}
+        sessionExpired={draft.sessionExpired}
+        onRestore={() => {
+          const restored = draft.restore()
+          if (restored) applyCollectionDraft(restored)
+        }}
+        onDiscard={() => {
+          void draft.discard()
+        }}
+      />
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">
         <div className="mb-5">
           <h2 className="text-base font-semibold">Thông tin bộ sưu tập</h2>
@@ -501,12 +603,15 @@ export function CollectionForm({
         <p className="text-xs text-muted-foreground">
           {galleryImages.length} ảnh lookbook
         </p>
-        <PublishIntentActions
-          pending={pending}
-          isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
-          onPublish={() => void persistAndSave("publish")}
-          onSchedule={openSchedule}
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <FormDraftStatus savedAt={draft.savedAt} />
+          <PublishIntentActions
+            pending={pending}
+            isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
+            onPublish={() => void persistAndSave("publish")}
+            onSchedule={openSchedule}
+          />
+        </div>
       </div>
       <SchedulePublishDialog
         open={scheduleOpen}

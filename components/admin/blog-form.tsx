@@ -4,6 +4,16 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { FormDraftNotices, FormDraftStatus } from "@/components/admin/form-draft-notice"
+import {
+  revokeUploadedImages,
+  useFormDraft,
+  type RestoredFormDraft,
+} from "@/hooks/use-form-draft"
+import {
+  hasActiveAdminSession,
+  isSessionExpiredFailure,
+} from "@/lib/admin-session-client"
 import { Plus } from "lucide-react"
 import {
   createBlogCategoryAction,
@@ -121,13 +131,29 @@ export type BlogFormValues = {
   seo?: SeoLocaleValues
 }
 
+type BlogDraftFields = {
+  titleVi: string
+  titleEn: string
+  excerptVi: string
+  excerptEn: string
+  contentVi: string
+  contentEn: string
+  imageAltVi: string
+  imageAltEn: string
+  slug: string
+  categoryId: string
+  seo: SeoLocaleValues
+}
+
 export function BlogForm({
   categories,
   defaultValues,
+  recordUpdatedAt = null,
   cancelHref = "/admin/blog",
 }: {
   categories: AdminBlogCategoryOption[]
   defaultValues?: BlogFormValues
+  recordUpdatedAt?: string | null
   cancelHref?: string
 }) {
   const router = useRouter()
@@ -241,6 +267,54 @@ export function BlogForm({
   )
   const cleanSnapshotRef = useRef(snapshot)
   const isDirty = snapshot !== cleanSnapshotRef.current
+  const openPath =
+    defaultValues?.id && defaultValues.slug
+      ? `/admin/blog/${defaultValues.slug}/edit`
+      : "/admin/blog/new"
+  const blogFields: BlogDraftFields = {
+    titleVi,
+    titleEn,
+    excerptVi,
+    excerptEn,
+    contentVi,
+    contentEn,
+    imageAltVi,
+    imageAltEn,
+    slug,
+    categoryId,
+    seo,
+  }
+  const applyBlogDraft = (restored: RestoredFormDraft<BlogDraftFields>) => {
+    const fields = restored.fields
+    setTitleVi(fields.titleVi ?? "")
+    setTitleEn(fields.titleEn ?? "")
+    setExcerptVi(fields.excerptVi ?? "")
+    setExcerptEn(fields.excerptEn ?? "")
+    setContentVi(fields.contentVi ?? "")
+    setContentEn(fields.contentEn ?? "")
+    setImageAltVi(fields.imageAltVi ?? "")
+    setImageAltEn(fields.imageAltEn ?? "")
+    setSlug(fields.slug ?? "")
+    setCategoryId(fields.categoryId ?? "")
+    setSeo(fields.seo ?? emptySeo)
+    setCoverImages((current) => {
+      revokeUploadedImages(current)
+      return restored.images.cover ?? []
+    })
+    if (new URLSearchParams(window.location.search).get("restore") === "1") {
+      router.replace(openPath)
+    }
+  }
+  const draft = useFormDraft({
+    entity: "blog",
+    recordId: defaultValues?.id,
+    openPath,
+    title: titleVi.trim() || "Chưa có tiêu đề",
+    baselineUpdatedAt: recordUpdatedAt,
+    fields: blogFields,
+    images: { cover: coverImages },
+    onRestore: applyBlogDraft,
+  })
 
   const publishError = () => {
     if (!titleVi.trim()) return "Vui lòng nhập tiêu đề bài viết."
@@ -251,8 +325,13 @@ export function BlogForm({
   }
 
   const persistAndSave = async (intent: BlogIntent, publishedAt?: string | null) => {
+    await draft.flush()
     setPending(true)
     try {
+      if (!(await hasActiveAdminSession())) {
+        draft.markSessionExpired()
+        return
+      }
       const uploaded = coverImages.length
         ? await persistUploadedImages(coverImages, "blog")
         : [""]
@@ -284,6 +363,7 @@ export function BlogForm({
         return
       }
 
+      await draft.clear()
       cleanSnapshotRef.current = snapshot
       setScheduleOpen(false)
       setScheduleError(null)
@@ -303,6 +383,10 @@ export function BlogForm({
       }
       router.refresh()
     } catch (error) {
+      if (isSessionExpiredFailure(error)) {
+        draft.markSessionExpired()
+        return
+      }
       toastError(
         error instanceof Error ? error.message : "Không lưu được bài viết."
       )
@@ -375,11 +459,27 @@ export function BlogForm({
 
   const leavePage = () => {
     setCancelOpen(false)
-    router.push(cancelHref)
+    void draft.clear().finally(() => {
+      router.push(cancelHref)
+    })
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex w-full flex-col gap-8">
+      <FormDraftNotices
+        entity="blog"
+        offer={draft.offer}
+        recordUpdatedAt={recordUpdatedAt}
+        imageMissing={draft.imageMissing}
+        sessionExpired={draft.sessionExpired}
+        onRestore={() => {
+          const restored = draft.restore()
+          if (restored) applyBlogDraft(restored)
+        }}
+        onDiscard={() => {
+          void draft.discard()
+        }}
+      />
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">
         <div className="mb-5">
           <h2 className="text-base font-semibold">Tiêu đề</h2>
@@ -486,13 +586,13 @@ export function BlogForm({
           </TabsList>
           <TabsContent value="vi">
             <BlogRichTextEditor
-              initialContent={defaultValues?.contentVi}
+              initialContent={contentVi}
               onChange={setContentVi}
             />
           </TabsContent>
           <TabsContent value="en">
             <BlogRichTextEditor
-              initialContent={defaultValues?.contentEn}
+              initialContent={contentEn}
               onChange={setContentEn}
             />
           </TabsContent>
@@ -696,12 +796,15 @@ export function BlogForm({
         <Button type="button" variant="ghost" onClick={handleCancel}>
           Hủy
         </Button>
-        <PublishIntentActions
-          pending={pending}
-          isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
-          onPublish={publishNow}
-          onSchedule={openSchedule}
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <FormDraftStatus savedAt={draft.savedAt} />
+          <PublishIntentActions
+            pending={pending}
+            isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
+            onPublish={publishNow}
+            onSchedule={openSchedule}
+          />
+        </div>
       </div>
 
       <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>

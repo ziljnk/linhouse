@@ -113,6 +113,7 @@ export type AdminProductRecord = {
   imageUrls: string[]
   attributeIds: string[]
   collectionIds: string[]
+  updatedAt: string
 }
 
 export type AdminCollectionRecord = {
@@ -130,6 +131,7 @@ export type AdminCollectionRecord = {
   seoDescription: LocalizedText
   seoKeywords: LocalizedText
   showOnHome: boolean
+  updatedAt: string
 }
 
 export type AdminBlogRecord = {
@@ -147,6 +149,7 @@ export type AdminBlogRecord = {
   seoTitle: LocalizedText
   seoDescription: LocalizedText
   seoKeywords: LocalizedText
+  updatedAt: string
 }
 
 export type AdminBlogCategoryOption = {
@@ -444,6 +447,7 @@ export async function getAdminProduct(
     imageUrls: images.map((item) => item.url),
     attributeIds: attributeRows.map((item) => item.attributeId),
     collectionIds: collectionRows.map((item) => item.collectionId),
+    updatedAt: row.updatedAt.toISOString(),
   }
 }
 
@@ -578,6 +582,7 @@ export async function getAdminCollection(
     seoDescription: asLocalized(row.seoDescription),
     seoKeywords: asLocalized(row.seoKeywords),
     showOnHome: Boolean(row.showOnHome),
+    updatedAt: row.updatedAt.toISOString(),
   }
 }
 
@@ -699,6 +704,7 @@ export async function getAdminBlogPost(
     seoTitle: asLocalized(row.post.seoTitle),
     seoDescription: asLocalized(row.post.seoDescription),
     seoKeywords: asLocalized(row.post.seoKeywords),
+    updatedAt: row.post.updatedAt.toISOString(),
   }
 }
 
