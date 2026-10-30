@@ -79,6 +79,11 @@ export function BlogPostCard({
                 {post.date}
               </p>
             ) : null}
+            {post.excerpt ? (
+              <p className="mt-3 line-clamp-3 text-sm font-light text-charcoal/70 sm:text-[15px] lg:text-base">
+                {post.excerpt}
+              </p>
+            ) : null}
             <span className="mt-auto w-fit pt-8 text-[13px] text-charcoal transition-colors group-hover:text-burgundy">
               <span className="border-b border-charcoal pb-0.5 group-hover:border-burgundy">
                 {readMore}
