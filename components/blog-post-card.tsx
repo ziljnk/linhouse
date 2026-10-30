@@ -60,8 +60,8 @@ export function BlogPostCard({
           </div>
         </article>
       ) : (
-        <article className="relative">
-          <div className="relative mr-[22%] aspect-3/4 overflow-hidden bg-blush sm:mr-[30%]">
+        <article className="relative md:max-xl:flex md:max-xl:h-full md:max-xl:flex-col">
+          <div className="relative mr-[22%] aspect-3/4 overflow-hidden bg-blush sm:mr-[30%] md:max-xl:mr-0 md:max-xl:shrink-0">
             <OptimizedImage
               src={post.image}
               alt={post.imageAlt}
@@ -70,7 +70,7 @@ export function BlogPostCard({
               className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
             />
           </div>
-          <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[62%] -translate-y-1/2 flex-col bg-white px-5 py-6 sm:w-[54%] sm:px-7 sm:py-8 lg:px-8 lg:py-9">
+          <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[62%] -translate-y-1/2 flex-col bg-white px-5 py-6 sm:w-[54%] sm:px-7 sm:py-8 lg:px-8 lg:py-9 md:max-xl:static md:max-xl:min-h-0 md:max-xl:w-full md:max-xl:flex-1 md:max-xl:translate-y-0">
             <h3 className="font-heading text-[1.35rem] leading-tight font-medium text-charcoal sm:text-[1.55rem] lg:text-[1.7rem]">
               {post.title}
             </h3>
