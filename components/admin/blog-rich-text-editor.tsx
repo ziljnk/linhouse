@@ -1,6 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import { useEditor, useEditorState, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
@@ -39,6 +39,22 @@ const EDITOR_CLASS = cn(
   "[&_p.is-editor-empty:first-child]:before:text-muted-foreground",
   "[&_p.is-editor-empty:first-child]:before:content-[attr(data-placeholder)]"
 )
+
+function sameEditorHtml(left: string, right: string) {
+  const canonical = (html: string) => {
+    const trimmed = html.trim()
+    if (
+      !trimmed ||
+      trimmed === "<p></p>" ||
+      trimmed === "<p><br></p>" ||
+      trimmed === '<p><br class="ProseMirror-trailingBreak"></p>'
+    ) {
+      return ""
+    }
+    return trimmed
+  }
+  return canonical(left) === canonical(right)
+}
 
 function ToolbarButton({
   label,
@@ -227,6 +243,12 @@ export function BlogRichTextEditor({
       onChange?.(instance.getHTML())
     },
   })
+
+  useEffect(() => {
+    if (!editor) return
+    if (sameEditorHtml(editor.getHTML(), initialContent)) return
+    editor.commands.setContent(initialContent, { emitUpdate: false })
+  }, [editor, initialContent])
 
   if (!editor) {
     return (

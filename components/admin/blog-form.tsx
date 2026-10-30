@@ -586,13 +586,13 @@ export function BlogForm({
           </TabsList>
           <TabsContent value="vi">
             <BlogRichTextEditor
-              initialContent={defaultValues?.contentVi}
+              initialContent={contentVi}
               onChange={setContentVi}
             />
           </TabsContent>
           <TabsContent value="en">
             <BlogRichTextEditor
-              initialContent={defaultValues?.contentEn}
+              initialContent={contentEn}
               onChange={setContentEn}
             />
           </TabsContent>
