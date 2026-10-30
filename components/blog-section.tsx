@@ -7,10 +7,32 @@ import {
   ScrollRevealItem,
 } from "@/components/motion-primitives/scroll-reveal"
 
-const HOME_BLOG_LIMIT = 2
+const HOME_BLOG_LIMIT = 4
 
 const viewAllClass =
   "inline-flex items-center justify-center border border-charcoal/80 px-8 py-3 text-[11px] tracking-[0.22em] text-charcoal uppercase transition-colors hover:bg-charcoal hover:text-ivory"
+
+/**
+ * Every homepage card uses the four-up column width, capped at 20rem.
+ * Horizontal gap is 0.75rem, so the width math stays in sync with `gap-x-3`.
+ * 1 — one card, centered.
+ * 2 — two cards from 640px, centered.
+ * 3 — two from 640px (third centered), three from 1024px.
+ * 4 — two-by-two from 640px, four from 1280px.
+ * Fewer than four never stretch; they keep this width and sit in a centered group.
+ */
+function homeBlogItemClass(count: number) {
+  const capped = "w-full min-w-0 max-w-[20rem]"
+  const pair = "sm:max-xl:w-[min(20rem,calc((100%-0.75rem)/2))]"
+  const triple = "lg:max-xl:w-[min(20rem,calc((100%-1.5rem)/3))]"
+  const quad = "xl:w-[min(20rem,calc((100%-2.25rem)/4))]"
+
+  if (count <= 1) return `${capped} ${quad}`
+  if (count === 3) {
+    return `${capped} sm:max-lg:w-[min(20rem,calc((100%-0.75rem)/2))] ${triple} ${quad}`
+  }
+  return `${capped} ${pair} ${quad}`
+}
 
 export function BlogSection({
   locale,
@@ -36,9 +58,15 @@ export function BlogSection({
           </h2>
         </ScrollReveal>
 
-        <ScrollRevealGroup className="grid gap-12 md:grid-cols-2 md:gap-10 xl:gap-16" stagger={0.16}>
+        <ScrollRevealGroup
+          className="flex flex-wrap justify-center gap-x-3 gap-y-10 sm:gap-y-12"
+          stagger={0.16}
+        >
           {preview.map((post) => (
-            <ScrollRevealItem key={post.slug}>
+            <ScrollRevealItem
+              key={post.slug}
+              className={homeBlogItemClass(preview.length)}
+            >
               <BlogPostCard locale={locale} post={post} readMore={readMore} />
             </ScrollRevealItem>
           ))}
