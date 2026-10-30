@@ -88,6 +88,8 @@ export const collection = mysqlTable(
     status: mysqlEnum("status", contentStatusValues).notNull().default("draft"),
     publishedAt: timestamptz("published_at"),
     sortOrder: int("sort_order").notNull().default(0),
+    showOnHome: boolean("show_on_home").notNull().default(false),
+    homeOrder: int("home_order"),
     seoTitle: json("seo_title").$type<LocalizedText>().notNull(),
     seoDescription: json("seo_description").$type<LocalizedText>().notNull(),
     seoKeywords: json("seo_keywords").$type<LocalizedText>().notNull(),

@@ -64,6 +64,13 @@
       "when": 1790200000000,
       "tag": "0008_admin_audit_log",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1790300000000,
+      "tag": "0009_collection_home_carousel",
+      "breakpoints": true
     }
   ]
 }

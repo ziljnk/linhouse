@@ -129,6 +129,7 @@ export type AdminCollectionRecord = {
   seoTitle: LocalizedText
   seoDescription: LocalizedText
   seoKeywords: LocalizedText
+  showOnHome: boolean
 }
 
 export type AdminBlogRecord = {
@@ -454,7 +455,9 @@ export type AdminCollectionListQuery = {
 
 export async function listAdminCollections(
   query: AdminCollectionListQuery = {}
-): Promise<AdminPageResult<AdminCollectionListItem>> {
+): Promise<
+  AdminPageResult<AdminCollectionListItem> & { homeCarouselCount: number }
+> {
   const q = query.q?.trim() ?? ""
   const conditions: SQL[] = []
 
@@ -489,6 +492,24 @@ export async function listAdminCollections(
     .limit(meta.pageSize)
     .offset(meta.offset)
 
+  const selectedRows = await db
+    .select({
+      id: collection.id,
+      slug: collection.slug,
+      homeOrder: collection.homeOrder,
+    })
+    .from(collection)
+    .where(eq(collection.showOnHome, true))
+  selectedRows.sort((a, b) => {
+    const orderA = a.homeOrder ?? Number.MAX_SAFE_INTEGER
+    const orderB = b.homeOrder ?? Number.MAX_SAFE_INTEGER
+    if (orderA !== orderB) return orderA - orderB
+    return a.slug.localeCompare(b.slug)
+  })
+  const homePosition = new Map(
+    selectedRows.map((row, index) => [row.id, index + 1])
+  )
+
   const ids = rows.map((row) => row.id)
   const counts = ids.length
     ? await db
@@ -515,8 +536,11 @@ export async function listAdminCollections(
       productCount: countMap.get(row.id) ?? 0,
       status: contentAppearance(row.status, row.publishedAt),
       publishedAt: row.publishedAt?.toISOString() ?? null,
+      showOnHome: Boolean(row.showOnHome),
+      homePosition: row.showOnHome ? (homePosition.get(row.id) ?? null) : null,
     })),
     ...meta,
+    homeCarouselCount: selectedRows.length,
   }
 }
 
@@ -553,6 +577,7 @@ export async function getAdminCollection(
     seoTitle: asLocalized(row.seoTitle),
     seoDescription: asLocalized(row.seoDescription),
     seoKeywords: asLocalized(row.seoKeywords),
+    showOnHome: Boolean(row.showOnHome),
   }
 }
 

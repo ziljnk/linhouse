@@ -1,6 +1,7 @@
 import { SiteContentForm } from "@/components/admin/site-content-form"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { listAdminAttributeGroups } from "@/lib/admin-storefront"
+import { getHomeCarouselEditor } from "@/lib/home-carousel-admin"
 import { getSiteContentForm, type ContentSection } from "@/lib/site-content"
 
 export const metadata = {
@@ -49,10 +50,11 @@ function withNameTokens(
 }
 
 export default async function AdminContentPage() {
-  const [, content, groups] = await Promise.all([
+  const [, content, groups, homeCarousel] = await Promise.all([
     requireUsableAdminSession(),
     getSiteContentForm(),
     listAdminAttributeGroups(),
+    getHomeCarouselEditor(),
   ])
 
   return (
@@ -67,6 +69,7 @@ export default async function AdminContentPage() {
         sections={withNameTokens(content.sections, groups)}
         defaultValues={content.values}
         defaults={content.defaults}
+        homeCarousel={homeCarousel}
       />
     </div>
   )

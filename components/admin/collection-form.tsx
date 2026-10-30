@@ -3,7 +3,9 @@
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { Languages, Loader2 } from "lucide-react"
+import { HomeCarouselLimitNotice } from "@/components/admin/home-carousel-card"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -32,6 +34,7 @@ import { persistUploadedImages } from "@/lib/persist-admin-images"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
 import { nextAutoSlug, slugify } from "@/lib/slug"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { HOME_CAROUSEL_LIMIT } from "@/lib/home-carousel"
 import { isLivePublished, type PublishIntent } from "@/lib/content-status"
 import { PublishIntentActions } from "@/components/admin/publish-intent-actions"
 import {
@@ -69,12 +72,15 @@ export type CollectionFormValues = {
   coverUrl?: string
   galleryUrls?: string[]
   seo?: SeoLocaleValues
+  showOnHome?: boolean
 }
 
 export function CollectionForm({
   defaultValues,
+  homeCarouselCount = 0,
 }: {
   defaultValues?: CollectionFormValues
+  homeCarouselCount?: number
 } = {}) {
   const router = useRouter()
   const [nameVi, setNameVi] = useState(defaultValues?.nameVi ?? "")
@@ -105,7 +111,10 @@ export function CollectionForm({
   )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
+  const [showOnHome, setShowOnHome] = useState(defaultValues?.showOnHome ?? false)
   const [pending, setPending] = useState(false)
+  const carouselBlocked =
+    homeCarouselCount >= HOME_CAROUSEL_LIMIT && !defaultValues?.showOnHome
   const [translating, setTranslating] = useState(false)
 
   const handleTranslateToEnglish = async () => {
@@ -169,6 +178,9 @@ export function CollectionForm({
         seoDescriptionEn: seo.descriptionEn,
         seoKeywordsVi: seo.keywordsVi,
         seoKeywordsEn: seo.keywordsEn,
+        ...(showOnHome !== (defaultValues?.showOnHome ?? false)
+          ? { showOnHome }
+          : {}),
       }
       const result = defaultValues?.id
         ? await updateCollectionAction(defaultValues.id, payload)
@@ -181,6 +193,11 @@ export function CollectionForm({
 
       setScheduleOpen(false)
       setScheduleError(null)
+      if (result.data.carousel === "added") {
+        toastSuccess("Đã thêm vào carousel trang chủ.")
+      } else if (result.data.carousel === "removed") {
+        toastSuccess("Đã bỏ khỏi carousel trang chủ.")
+      }
       if (intent === "publish") {
         toastSuccess("Đã đăng bộ sưu tập.")
       } else if (intent === "schedule") {
@@ -387,6 +404,22 @@ export function CollectionForm({
               aspect="portrait"
               sizeHint={ADMIN_IMAGE_SIZE_HINTS.collectionCover}
             />
+          </div>
+
+          <div className="flex flex-col gap-2 sm:col-span-2">
+            <HomeCarouselLimitNotice blocked={carouselBlocked}>
+              <Label className="flex items-center gap-2.5 font-normal">
+                <Checkbox
+                  checked={showOnHome}
+                  disabled={carouselBlocked || pending}
+                  onCheckedChange={(value) => setShowOnHome(value === true)}
+                />
+                Hiện ở carousel trang chủ
+              </Label>
+            </HomeCarouselLimitNotice>
+            <p className="text-xs text-muted-foreground">
+              Được thêm vào cuối carousel. Sắp xếp thứ tự ở Nội dung → Bộ sưu tập.
+            </p>
           </div>
         </div>
       </section>

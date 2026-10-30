@@ -49,12 +49,12 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
         })}
       />
       <HeroSection locale={locale} copy={storefront.hero} />
-      {storefront.collections.length > 0 ? (
+      {storefront.homeCollections.length > 0 ? (
         <CollectionSection
           locale={locale}
           copy={{
             title: storefront.collectionTitle,
-            items: storefront.collections,
+            items: storefront.homeCollections,
           }}
         />
       ) : null}

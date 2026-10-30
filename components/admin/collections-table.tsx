@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { deleteCollectionAction } from "@/app/admin/(dashboard)/collections/actions"
+import { setCollectionHomeCarouselAction } from "@/app/admin/(dashboard)/collections/home-carousel-actions"
+import { HomeCarouselLimitNotice } from "@/components/admin/home-carousel-card"
 import { AdminFilterSelect } from "@/components/admin/admin-filter-select"
 import { AdminPagination } from "@/components/admin/admin-pagination"
 import {
@@ -41,6 +43,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import {
   COLLECTION_STATUS_LABELS,
   COLLECTION_STATUSES,
@@ -48,6 +51,10 @@ import {
   type AdminCollectionListItem,
   type CollectionStatus,
 } from "@/lib/admin-collections"
+import {
+  HOME_CAROUSEL_GENERIC_ERROR,
+  HOME_CAROUSEL_LIMIT,
+} from "@/lib/home-carousel"
 
 const STATUS_BADGE_VARIANT: Record<
   CollectionStatus,
@@ -74,6 +81,7 @@ export function CollectionsTable({
   pageSize,
   query,
   status,
+  homeCarouselCount,
 }: {
   collections: AdminCollectionListItem[]
   page: number
@@ -82,6 +90,7 @@ export function CollectionsTable({
   pageSize: number
   query: string
   status: string
+  homeCarouselCount: number
 }) {
   const router = useRouter()
   const { setParam, clearParams } = useAdminListParams()
@@ -90,7 +99,59 @@ export function CollectionsTable({
     useState<AdminCollectionListItem | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [homePendingId, setHomePendingId] = useState<string | null>(null)
   const hasActiveFilters = query !== "" || status !== "all"
+  const serverHomeKey = collections
+    .map((item) => `${item.id}:${item.showOnHome}:${item.homePosition ?? ""}`)
+    .join("|")
+  const [homeOverrideState, setHomeOverrideState] = useState<{
+    key: string
+    values: Record<string, boolean>
+  }>({ key: serverHomeKey, values: {} })
+  const homeOverrides =
+    homeOverrideState.key === serverHomeKey ? homeOverrideState.values : {}
+
+  const setHomeOverride = (id: string, checked: boolean | null) => {
+    setHomeOverrideState((current) => {
+      const values = current.key === serverHomeKey ? { ...current.values } : {}
+      if (checked === null) delete values[id]
+      else values[id] = checked
+      return { key: serverHomeKey, values }
+    })
+  }
+
+  const selectedCount =
+    homeCarouselCount +
+    collections.reduce((delta, item) => {
+      const next = homeOverrides[item.id]
+      if (next === undefined || next === item.showOnHome) return delta
+      return delta + (next ? 1 : -1)
+    }, 0)
+  const homeAtLimit = selectedCount >= HOME_CAROUSEL_LIMIT
+
+  const toggleHome = async (item: AdminCollectionListItem, checked: boolean) => {
+    setHomeOverride(item.id, checked)
+    setHomePendingId(item.id)
+    try {
+      const result = await setCollectionHomeCarouselAction(item.id, checked)
+      if (!result.ok) {
+        setHomeOverride(item.id, null)
+        toastError(result.error)
+        return
+      }
+      toastSuccess(
+        checked
+          ? "Đã thêm vào carousel trang chủ."
+          : "Đã bỏ khỏi carousel trang chủ."
+      )
+      router.refresh()
+    } catch {
+      setHomeOverride(item.id, null)
+      toastError(HOME_CAROUSEL_GENERIC_ERROR)
+    } finally {
+      setHomePendingId(null)
+    }
+  }
 
   const confirmDelete = async () => {
     if (!deleteCollection) return
@@ -155,6 +216,7 @@ export function CollectionsTable({
               <TableHead>Tên bộ sưu tập</TableHead>
               <TableHead>Sản phẩm</TableHead>
               <TableHead>Trạng thái</TableHead>
+              <TableHead>Trang chủ</TableHead>
               <TableHead className="w-10">
                 <span className="sr-only">Thao tác</span>
               </TableHead>
@@ -163,7 +225,7 @@ export function CollectionsTable({
           <TableBody>
             {collections.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   {hasActiveFilters
                     ? "Không tìm thấy bộ sưu tập phù hợp."
                     : "Chưa có bộ sưu tập nào."}
@@ -208,6 +270,24 @@ export function CollectionsTable({
                         </span>
                       ) : null}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <HomeCarouselCell
+                      name={collection.name}
+                      checked={homeOverrides[collection.id] ?? collection.showOnHome}
+                      position={
+                        (homeOverrides[collection.id] ?? collection.showOnHome) &&
+                        collection.showOnHome
+                          ? collection.homePosition
+                          : null
+                      }
+                      pending={homePendingId === collection.id}
+                      blocked={
+                        homeAtLimit &&
+                        !(homeOverrides[collection.id] ?? collection.showOnHome)
+                      }
+                      onCheckedChange={(checked) => void toggleHome(collection, checked)}
+                    />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -299,5 +379,45 @@ export function CollectionsTable({
         </AlertDialogContent>
       </AlertDialog>
     </>
+  )
+}
+
+function HomeCarouselCell({
+  name,
+  checked,
+  position,
+  pending,
+  blocked,
+  onCheckedChange,
+}: {
+  name: string
+  checked: boolean
+  position: number | null
+  pending: boolean
+  blocked: boolean
+  onCheckedChange: (checked: boolean) => void
+}) {
+  const control = (
+    <span className="inline-flex items-center gap-2">
+      <Switch
+        checked={checked}
+        disabled={pending || blocked}
+        aria-label={
+          checked
+            ? `Bỏ ${name} khỏi carousel trang chủ`
+            : `Thêm ${name} vào carousel trang chủ`
+        }
+        onCheckedChange={onCheckedChange}
+      />
+      {position != null ? (
+        <Badge variant="outline" className="tabular-nums">
+          #{position}
+        </Badge>
+      ) : null}
+    </span>
+  )
+
+  return (
+    <HomeCarouselLimitNotice blocked={blocked}>{control}</HomeCarouselLimitNotice>
   )
 }

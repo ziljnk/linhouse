@@ -1,13 +1,17 @@
 import { AdminBackButton } from "@/components/admin/back-button"
 import { CollectionForm } from "@/components/admin/collection-form"
 import { requireUsableAdminSession } from "@/lib/admin-session"
+import { countCollectionsOnHome } from "@/lib/home-carousel-admin"
 
 export const metadata = {
   title: "Tạo bộ sưu tập",
 }
 
 export default async function NewCollectionPage() {
-  await requireUsableAdminSession()
+  const [, homeCarouselCount] = await Promise.all([
+    requireUsableAdminSession(),
+    countCollectionsOnHome(),
+  ])
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-6">
@@ -22,7 +26,7 @@ export default async function NewCollectionPage() {
           Thêm tên, mô tả, ảnh bìa, lookbook và SEO cho bộ sưu tập.
         </p>
       </div>
-      <CollectionForm />
+      <CollectionForm homeCarouselCount={homeCarouselCount} />
     </div>
   )
 }
