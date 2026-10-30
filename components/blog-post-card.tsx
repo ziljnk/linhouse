@@ -11,6 +11,9 @@ export type BlogCardPost = {
   excerpt?: string
 }
 
+/** Homepage cover. The inset portrait peaks near 270px, so one slot is enough. */
+const HOME_COVER_SIZES = "270px"
+
 export function BlogPostCard({
   locale,
   post,
@@ -60,31 +63,29 @@ export function BlogPostCard({
           </div>
         </article>
       ) : (
-        <article className="relative md:max-lg:flex md:max-lg:h-full md:max-lg:flex-col">
-          <div className="relative mr-[22%] aspect-3/4 overflow-hidden bg-blush sm:mr-[30%] md:max-lg:mr-0 md:max-lg:shrink-0">
+        <article className="relative">
+          <div className="relative mr-[16%] aspect-3/4 overflow-hidden bg-blush">
             <OptimizedImage
               src={post.image}
               alt={post.imageAlt}
               fill
-              sizes="(max-width: 768px) 80vw, 40vw"
+              sizes={HOME_COVER_SIZES}
               className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
             />
           </div>
-          <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[62%] -translate-y-1/2 flex-col bg-white px-5 py-6 sm:w-[54%] sm:px-7 sm:py-8 lg:px-8 lg:py-9 lg:max-xl:w-[62%] lg:max-xl:px-6 lg:max-xl:py-7 md:max-lg:static md:max-lg:min-h-0 md:max-lg:w-full md:max-lg:flex-1 md:max-lg:translate-y-0">
-            <h3 className="font-heading text-[1.35rem] leading-tight font-medium text-charcoal sm:text-[1.55rem] lg:text-[1.7rem] lg:max-xl:text-[1.35rem]">
+          <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[66%] -translate-y-1/2 flex-col bg-white px-3 py-3.5 sm:px-3.5 sm:py-4">
+            <h3 className="font-heading line-clamp-3 text-base leading-snug font-medium text-charcoal">
               {post.title}
             </h3>
             {post.date ? (
-              <p className="mt-3 text-[13px] font-light text-charcoal/50">
-                {post.date}
-              </p>
+              <p className="mt-1.5 text-xs font-light text-charcoal/70">{post.date}</p>
             ) : null}
             {post.excerpt ? (
-              <p className="mt-3 line-clamp-3 text-sm font-light text-charcoal/70 sm:text-[15px] lg:text-base lg:max-xl:text-sm">
+              <p className="mt-1.5 line-clamp-2 text-[13px] leading-snug font-light text-charcoal/75">
                 {post.excerpt}
               </p>
             ) : null}
-            <span className="mt-auto w-fit pt-8 text-[13px] text-charcoal transition-colors group-hover:text-burgundy lg:max-xl:pt-6">
+            <span className="mt-auto w-fit pt-3 text-[13px] text-charcoal transition-colors group-hover:text-burgundy">
               <span className="border-b border-charcoal pb-0.5 group-hover:border-burgundy">
                 {readMore}
               </span>
