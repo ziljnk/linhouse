@@ -52,6 +52,7 @@ export default async function AdminCollectionsPage({
         pageSize={result.pageSize}
         query={q}
         status={status || "all"}
+        homeCarouselCount={result.homeCarouselCount}
       />
     </div>
   )

@@ -37,7 +37,9 @@ import {
   withShippingSections,
 } from "@/lib/shipping-policy-sections"
 import { cn } from "@/lib/utils"
+import { HomeCarouselCard } from "@/components/admin/home-carousel-card"
 import { HeroSection } from "@/components/hero-section"
+import type { HomeCarouselEditorData } from "@/lib/home-carousel"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -85,10 +87,12 @@ export function SiteContentForm({
   sections,
   defaultValues,
   defaults,
+  homeCarousel,
 }: {
   sections: ContentSection[]
   defaultValues: Record<string, ContentPair>
   defaults: Record<string, ContentPair>
+  homeCarousel: HomeCarouselEditorData
 }) {
   const router = useRouter()
   const [values, setValues] = useState(() => cloneValues(defaultValues))
@@ -112,6 +116,10 @@ export function SiteContentForm({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const active = document.activeElement
+    if (active instanceof HTMLElement && active.closest("[data-home-carousel]")) {
+      return
+    }
     setPending(true)
     try {
       const result = await saveSiteContentAction(values)
@@ -266,6 +274,9 @@ export function SiteContentForm({
                       />
                     ) : null}
                   </div>
+                  {section.id === "home" && group.title === "Bộ sưu tập" ? (
+                    <HomeCarouselCard key={homeCarousel.version} editor={homeCarousel} />
+                  ) : null}
                   {section.id === "about" && group.title === "Hành trình" ? (
                     <AboutMilestonesEditor
                       locale={locale}

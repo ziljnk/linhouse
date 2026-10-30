@@ -20,6 +20,8 @@ export type AdminCollectionListItem = {
   productCount: number
   status: CollectionStatus
   publishedAt: string | null
+  showOnHome: boolean
+  homePosition: number | null
 }
 
 export const COLLECTION_STATUS_LABELS = CONTENT_LIST_FILTER_LABELS
@@ -49,6 +51,8 @@ export function toAdminCollectionListItems(
       ).length,
       status: "published",
       publishedAt: null,
+      showOnHome: false,
+      homePosition: null,
     }
   })
 }

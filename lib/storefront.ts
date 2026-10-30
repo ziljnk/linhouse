@@ -735,6 +735,28 @@ function mapCollections(rows: StorefrontRows, locale: Locale): CollectionItem[] 
   })
 }
 
+function mapHomeCollections(
+  rows: StorefrontRows,
+  locale: Locale,
+  fallback: CollectionItem[]
+) {
+  const selected = rows.collections
+    .filter((row) => row.showOnHome && row.coverUrl.trim())
+    .slice()
+    .sort((a, b) => {
+      const orderA = a.homeOrder ?? Number.MAX_SAFE_INTEGER
+      const orderB = b.homeOrder ?? Number.MAX_SAFE_INTEGER
+      if (orderA !== orderB) return orderA - orderB
+      return a.slug.localeCompare(b.slug)
+    })
+
+  if (selected.length === 0) return fallback
+
+  return mapCollections({ ...rows, collections: selected }, locale).filter(
+    (item) => item.image
+  )
+}
+
 function mapFilterGroups(
   rows: StorefrontRows,
   locale: Locale
@@ -980,6 +1002,7 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
   const formats = await loadProductNameFormats(locale)
   const products = mapProducts(rows, locale, formats).filter((item) => item.image)
   const collections = mapCollections(rows, locale).filter((item) => item.image)
+  const homeCollections = mapHomeCollections(rows, locale, collections)
   const filterGroups = mapFilterGroups(rows, locale)
   const featuredSource = rows.products.filter((row) => row.featured)
   const featuredRows = (featuredSource.length > 0 ? featuredSource : rows.products)
@@ -996,6 +1019,7 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
     products,
     featuredProducts,
     collections,
+    homeCollections,
     filterGroups,
     blogPosts,
     testimonials: mapTestimonials(rows, locale, dict),

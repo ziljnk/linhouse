@@ -3,6 +3,7 @@ import { AdminBackButton } from "@/components/admin/back-button"
 import { CollectionForm } from "@/components/admin/collection-form"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { getAdminCollection } from "@/lib/admin-storefront"
+import { countCollectionsOnHome } from "@/lib/home-carousel-admin"
 
 export const metadata = {
   title: "Sửa bộ sưu tập",
@@ -12,8 +13,11 @@ export default async function EditCollectionPage({
   params,
 }: PageProps<"/admin/collections/[slug]/edit">) {
   const { slug } = await params
-  await requireUsableAdminSession()
-  const collection = await getAdminCollection(slug)
+  const [, collection, homeCarouselCount] = await Promise.all([
+    requireUsableAdminSession(),
+    getAdminCollection(slug),
+    countCollectionsOnHome(),
+  ])
 
   if (!collection) notFound()
 
@@ -53,7 +57,9 @@ export default async function EditCollectionPage({
             keywordsVi: collection.seoKeywords.vi,
             keywordsEn: collection.seoKeywords.en,
           },
+          showOnHome: collection.showOnHome,
         }}
+        homeCarouselCount={homeCarouselCount}
       />
     </div>
   )

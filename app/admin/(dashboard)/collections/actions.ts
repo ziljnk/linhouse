@@ -34,6 +34,11 @@ import {
 import { sanitizeMediaUrl, sanitizeMediaUrls } from "@/lib/sanitize-url"
 import type { LocalizedText } from "@/lib/site-settings"
 import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
+import { selectCollectionsForUpdate } from "@/lib/home-carousel-admin"
+import {
+  HOME_CAROUSEL_GENERIC_ERROR,
+  planHomeCarouselMembership,
+} from "@/lib/home-carousel"
 
 export type CollectionInput = {
   nameVi: string
@@ -54,6 +59,7 @@ export type CollectionInput = {
   seoDescriptionEn?: string
   seoKeywordsVi?: string
   seoKeywordsEn?: string
+  showOnHome?: boolean
 }
 
 function collectionStorefrontPaths(slugs: Array<string | undefined>) {
@@ -73,6 +79,8 @@ type CollectionAuditSnapshot = {
   seoTitle: LocalizedText
   seoDescription: LocalizedText
   seoKeywords: LocalizedText
+  showOnHome: boolean
+  homeOrder: number | null
 }
 
 function collectionAuditChanges(
@@ -102,6 +110,16 @@ function collectionAuditChanges(
       before: before ? formatAuditDate(before.publishedAt) : "",
       after: formatAuditDate(after.publishedAt),
     },
+    {
+      label: "Carousel trang chủ",
+      before: before?.showOnHome ? "Hiện" : "Ẩn",
+      after: after.showOnHome ? "Hiện" : "Ẩn",
+    },
+    {
+      label: "Thứ tự carousel",
+      before: before?.homeOrder ?? "",
+      after: after.homeOrder ?? "",
+    },
     ...localizedChanges("Tiêu đề SEO", before?.seoTitle, after.seoTitle),
     ...localizedChanges("Mô tả SEO", before?.seoDescription, after.seoDescription),
     ...localizedChanges("Từ khóa SEO", before?.seoKeywords, after.seoKeywords),
@@ -129,14 +147,19 @@ async function loadCollectionAudit(id: string): Promise<CollectionAuditSnapshot 
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
     seoKeywords: row.seoKeywords,
+    showOnHome: Boolean(row.showOnHome),
+    homeOrder: row.homeOrder == null ? null : Number(row.homeOrder),
   }
 }
 
 export async function createCollectionAction(
   input: CollectionInput
-): Promise<ActionResult<{ slug: string }>> {
+): Promise<ActionResult<{ slug: string; carousel: "added" | "removed" | null }>> {
   const session = await requireUsableAdminSession()
   if (!input.nameVi.trim()) return actionFail("Vui lòng nhập tên bộ sưu tập.")
+  if (input.showOnHome !== undefined && typeof input.showOnHome !== "boolean") {
+    return actionFail(HOME_CAROUSEL_GENERIC_ERROR)
+  }
   const coverUrl = sanitizeMediaUrl(input.coverUrl)
   if (!coverUrl) return actionFail("Vui lòng tải lên ảnh bìa.")
   const galleryUrls = sanitizeMediaUrls(input.galleryUrls ?? [])
@@ -167,33 +190,54 @@ export async function createCollectionAction(
     seoDescription: toLocalized(input.seoDescriptionVi ?? "", input.seoDescriptionEn),
     seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
   }
-  const [row] = await db
-    .insert(collection)
-    .values({
-      ...values,
-      sortOrder: 99,
-    })
-    .$returningId()
+  const created = await db.transaction(async (tx) => {
+    const rows = await selectCollectionsForUpdate(tx)
+    const plan = planHomeCarouselMembership(rows, null, input.showOnHome === true)
+    if (!plan.ok) return plan
+    const [row] = await tx
+      .insert(collection)
+      .values({
+        ...values,
+        sortOrder: 99,
+        showOnHome: plan.showOnHome,
+        homeOrder: plan.homeOrder,
+      })
+      .$returningId()
+    if (!row) return actionFail("Không tạo được bộ sưu tập.")
+    return actionOk({ id: row.id, plan })
+  })
+  if (!created.ok) return created
 
-  if (!row) return actionFail("Không tạo được bộ sưu tập.")
-  await replaceCollectionImages(row.id, coverUrl, galleryUrls)
+  await replaceCollectionImages(created.data.id, coverUrl, galleryUrls)
   await recordAudit(session, {
     action: "create",
     area: "collection",
     entityLabel: values.name.vi,
     summary: `Tạo bộ sưu tập ${values.name.vi}`,
-    changes: collectionAuditChanges(null, { ...values, galleryUrls }),
+    changes: collectionAuditChanges(null, {
+      ...values,
+      galleryUrls,
+      showOnHome: created.data.plan.showOnHome,
+      homeOrder: created.data.plan.homeOrder,
+    }),
   })
   await revalidateAdmin(collectionStorefrontPaths([slugResult.slug]))
-  return actionOk({ slug: slugResult.slug })
+  return actionOk({
+    slug: slugResult.slug,
+    carousel:
+      created.data.plan.changed && created.data.plan.showOnHome ? "added" : null,
+  })
 }
 
 export async function updateCollectionAction(
   id: string,
   input: CollectionInput
-): Promise<ActionResult<{ slug: string }>> {
+): Promise<ActionResult<{ slug: string; carousel: "added" | "removed" | null }>> {
   const session = await requireUsableAdminSession()
   if (!input.nameVi.trim()) return actionFail("Vui lòng nhập tên bộ sưu tập.")
+  if (input.showOnHome !== undefined && typeof input.showOnHome !== "boolean") {
+    return actionFail(HOME_CAROUSEL_GENERIC_ERROR)
+  }
   const coverUrl = sanitizeMediaUrl(input.coverUrl)
   if (!coverUrl) return actionFail("Vui lòng tải lên ảnh bìa.")
   const galleryUrls = sanitizeMediaUrls(input.galleryUrls ?? [])
@@ -227,7 +271,25 @@ export async function updateCollectionAction(
     seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
   }
 
-  await db.update(collection).set(values).where(eq(collection.id, id))
+  const saved = await db.transaction(async (tx) => {
+    const rows = await selectCollectionsForUpdate(tx)
+    const locked = rows.find((row) => row.id === id)
+    if (!locked) return actionFail("Không tìm thấy bộ sưu tập.")
+    const enabled =
+      typeof input.showOnHome === "boolean" ? input.showOnHome : locked.showOnHome
+    const plan = planHomeCarouselMembership(rows, locked, enabled)
+    if (!plan.ok) return plan
+    await tx
+      .update(collection)
+      .set({
+        ...values,
+        showOnHome: plan.showOnHome,
+        homeOrder: plan.homeOrder,
+      })
+      .where(eq(collection.id, id))
+    return actionOk({ plan, locked })
+  })
+  if (!saved.ok) return saved
 
   await replaceCollectionImages(id, coverUrl, galleryUrls)
   if (current) {
@@ -236,13 +298,30 @@ export async function updateCollectionAction(
       area: "collection",
       entityLabel: values.name.vi,
       summary: `Cập nhật bộ sưu tập ${values.name.vi}`,
-      changes: collectionAuditChanges(current, { ...values, galleryUrls }),
+      changes: collectionAuditChanges(
+        {
+          ...current,
+          showOnHome: saved.data.locked.showOnHome,
+          homeOrder: saved.data.locked.homeOrder,
+        },
+        {
+          ...values,
+          galleryUrls,
+          showOnHome: saved.data.plan.showOnHome,
+          homeOrder: saved.data.plan.homeOrder,
+        }
+      ),
     })
   }
   await revalidateAdmin(
     collectionStorefrontPaths([current?.slug, slugResult.slug])
   )
-  return actionOk({ slug: slugResult.slug })
+  const carousel = saved.data.plan.changed
+    ? saved.data.plan.showOnHome
+      ? "added"
+      : "removed"
+    : null
+  return actionOk({ slug: slugResult.slug, carousel })
 }
 
 export async function deleteCollectionAction(id: string): Promise<ActionResult> {
