@@ -11,13 +11,8 @@ export type BlogCardPost = {
   excerpt?: string
 }
 
-/**
- * Homepage cover slot. The card is capped at 20rem, and from 1280px it is one
- * column of the four-up row (about 279–311px). The portrait is inset 16%, so
- * the image itself peaks near 270px.
- */
-const HOME_COVER_SIZES =
-  "(min-width: 1280px) 270px, (min-width: 640px) 270px, 270px"
+/** Homepage cover. The inset portrait peaks near 270px, so one slot is enough. */
+const HOME_COVER_SIZES = "270px"
 
 export function BlogPostCard({
   locale,
@@ -79,7 +74,7 @@ export function BlogPostCard({
             />
           </div>
           <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[66%] -translate-y-1/2 flex-col bg-white px-3 py-3.5 sm:px-3.5 sm:py-4">
-            <h3 className="font-heading text-base leading-snug font-medium text-charcoal">
+            <h3 className="font-heading line-clamp-3 text-base leading-snug font-medium text-charcoal">
               {post.title}
             </h3>
             {post.date ? (

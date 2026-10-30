@@ -15,23 +15,18 @@ const viewAllClass =
 /**
  * Every homepage card uses the four-up column width, capped at 20rem.
  * Horizontal gap is 0.75rem, so the width math stays in sync with `gap-x-3`.
- * 1 — one card, centered.
- * 2 — two cards from 640px, centered.
- * 3 — two from 640px (third centered), three from 1024px.
- * 4 — two-by-two from 640px, four from 1280px.
- * Fewer than four never stretch; they keep this width and sit in a centered group.
+ * Under 1280px only the first two cards are shown (`hidden xl:block` on the rest):
+ * one per row below 640px, two in a single centered row from 640px.
+ * From 1280px, up to four cards share one row and stay centered when fewer.
  */
-function homeBlogItemClass(count: number) {
+function homeBlogItemClass(count: number, index: number) {
   const capped = "w-full min-w-0 max-w-[20rem]"
   const pair = "sm:max-xl:w-[min(20rem,calc((100%-0.75rem)/2))]"
-  const triple = "lg:max-xl:w-[min(20rem,calc((100%-1.5rem)/3))]"
   const quad = "xl:w-[min(20rem,calc((100%-2.25rem)/4))]"
+  const conceal = index >= 2 ? "hidden xl:block" : ""
 
   if (count <= 1) return `${capped} ${quad}`
-  if (count === 3) {
-    return `${capped} sm:max-lg:w-[min(20rem,calc((100%-0.75rem)/2))] ${triple} ${quad}`
-  }
-  return `${capped} ${pair} ${quad}`
+  return `${capped} ${pair} ${quad} ${conceal}`.trim()
 }
 
 export function BlogSection({
@@ -62,10 +57,10 @@ export function BlogSection({
           className="flex flex-wrap justify-center gap-x-3 gap-y-10 sm:gap-y-12"
           stagger={0.16}
         >
-          {preview.map((post) => (
+          {preview.map((post, index) => (
             <ScrollRevealItem
               key={post.slug}
-              className={homeBlogItemClass(preview.length)}
+              className={homeBlogItemClass(preview.length, index)}
             >
               <BlogPostCard locale={locale} post={post} readMore={readMore} />
             </ScrollRevealItem>
