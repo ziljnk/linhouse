@@ -260,8 +260,13 @@ export function HomeCarouselCard({ editor }: { editor: HomeCarouselEditorData })
       </CardHeader>
       <CardContent className="gap-4">
         <p className="text-sm font-medium tabular-nums">
-          Đang hiện {visibleCount}/{HOME_CAROUSEL_LIMIT}
+          Đã chọn {selected.length}/{HOME_CAROUSEL_LIMIT} · {visibleCount} đang hiện
         </p>
+        {visibleCount === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Trang chủ đang tự hiện tất cả bộ sưu tập đã đăng.
+          </p>
+        ) : null}
         {selected.length > 0 && visibleCount < 4 ? (
           <p className="text-sm text-amber-800">
             Nên chọn ít nhất 4 bộ sưu tập để carousel lấp đầy một hàng trên máy tính.
@@ -270,9 +275,6 @@ export function HomeCarouselCard({ editor }: { editor: HomeCarouselEditorData })
         {selected.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border px-3 py-4">
             <p className="text-sm font-medium">Chưa chọn bộ sưu tập nào</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Trang chủ đang tự hiện tất cả bộ sưu tập đã đăng.
-            </p>
           </div>
         ) : (
           <DndContext

@@ -178,7 +178,9 @@ export function CollectionForm({
         seoDescriptionEn: seo.descriptionEn,
         seoKeywordsVi: seo.keywordsVi,
         seoKeywordsEn: seo.keywordsEn,
-        showOnHome,
+        ...(showOnHome !== (defaultValues?.showOnHome ?? false)
+          ? { showOnHome }
+          : {}),
       }
       const result = defaultValues?.id
         ? await updateCollectionAction(defaultValues.id, payload)

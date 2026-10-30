@@ -191,20 +191,28 @@ export async function createCollectionAction(
     seoKeywords: toLocalized(input.seoKeywordsVi ?? "", input.seoKeywordsEn),
   }
   const created = await db.transaction(async (tx) => {
-    const rows = await selectCollectionsForUpdate(tx)
-    const plan = planHomeCarouselMembership(rows, null, input.showOnHome === true)
-    if (!plan.ok) return plan
+    let showOnHome = false
+    let homeOrder: number | null = null
+    if (input.showOnHome === true) {
+      const rows = await selectCollectionsForUpdate(tx)
+      const plan = planHomeCarouselMembership(rows, null, true)
+      if (!plan.ok) return plan
+      showOnHome = plan.showOnHome
+      homeOrder = plan.homeOrder
+    }
     const [row] = await tx
       .insert(collection)
       .values({
         ...values,
         sortOrder: 99,
-        showOnHome: plan.showOnHome,
-        homeOrder: plan.homeOrder,
+        ...(showOnHome ? { showOnHome, homeOrder } : {}),
       })
       .$returningId()
     if (!row) return actionFail("Không tạo được bộ sưu tập.")
-    return actionOk({ id: row.id, plan })
+    return actionOk({
+      id: row.id,
+      plan: { showOnHome, homeOrder, changed: showOnHome },
+    })
   })
   if (!created.ok) return created
 
@@ -275,19 +283,28 @@ export async function updateCollectionAction(
     const rows = await selectCollectionsForUpdate(tx)
     const locked = rows.find((row) => row.id === id)
     if (!locked) return actionFail("Không tìm thấy bộ sưu tập.")
-    const enabled =
-      typeof input.showOnHome === "boolean" ? input.showOnHome : locked.showOnHome
-    const plan = planHomeCarouselMembership(rows, locked, enabled)
-    if (!plan.ok) return plan
+
+    let carousel: {
+      changed: boolean
+      showOnHome: boolean
+      homeOrder: number | null
+    } | null = null
+    if (typeof input.showOnHome === "boolean") {
+      const plan = planHomeCarouselMembership(rows, locked, input.showOnHome)
+      if (!plan.ok) return plan
+      carousel = plan
+    }
+
     await tx
       .update(collection)
       .set({
         ...values,
-        showOnHome: plan.showOnHome,
-        homeOrder: plan.homeOrder,
+        ...(carousel?.changed
+          ? { showOnHome: carousel.showOnHome, homeOrder: carousel.homeOrder }
+          : {}),
       })
       .where(eq(collection.id, id))
-    return actionOk({ plan, locked })
+    return actionOk({ carousel, locked })
   })
   if (!saved.ok) return saved
 
@@ -307,8 +324,12 @@ export async function updateCollectionAction(
         {
           ...values,
           galleryUrls,
-          showOnHome: saved.data.plan.showOnHome,
-          homeOrder: saved.data.plan.homeOrder,
+          showOnHome: saved.data.carousel
+            ? saved.data.carousel.showOnHome
+            : saved.data.locked.showOnHome,
+          homeOrder: saved.data.carousel
+            ? saved.data.carousel.homeOrder
+            : saved.data.locked.homeOrder,
         }
       ),
     })
@@ -316,8 +337,8 @@ export async function updateCollectionAction(
   await revalidateAdmin(
     collectionStorefrontPaths([current?.slug, slugResult.slug])
   )
-  const carousel = saved.data.plan.changed
-    ? saved.data.plan.showOnHome
+  const carousel = saved.data.carousel?.changed
+    ? saved.data.carousel.showOnHome
       ? "added"
       : "removed"
     : null
