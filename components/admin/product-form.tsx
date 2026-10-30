@@ -2,6 +2,16 @@
 
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
+import { FormDraftNotices, FormDraftStatus } from "@/components/admin/form-draft-notice"
+import {
+  revokeUploadedImages,
+  useFormDraft,
+  type RestoredFormDraft,
+} from "@/hooks/use-form-draft"
+import {
+  hasActiveAdminSession,
+  isSessionExpiredFailure,
+} from "@/lib/admin-session-client"
 import { Languages, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -189,14 +199,33 @@ export type ProductFormValues = {
   seo?: SeoLocaleValues
 }
 
+type ProductDraftFields = {
+  name: string
+  code: string
+  descriptionVi: string
+  descriptionEn: string
+  attributeIds: string[]
+  collectionIds: string[]
+  tags: string[]
+  purchaseOptions: ProductPurchaseOption[]
+  slug: string
+  priceDisplay: PriceDisplay
+  priceInput: string
+  kind: ProductKind
+  isOld: boolean
+  seo: SeoLocaleValues
+}
+
 export function ProductForm({
   groups,
   collections: collectionOptions,
   defaultValues,
+  recordUpdatedAt = null,
 }: {
   groups: AdminAttributeGroupOption[]
   collections: AdminCollectionOption[]
   defaultValues?: ProductFormValues
+  recordUpdatedAt?: string | null
 }) {
   const router = useRouter()
   const [name, setName] = useState(defaultValues?.name ?? "")
@@ -291,7 +320,63 @@ export function ProductForm({
     setAttributeIds((current) => current.filter((id) => allowed.has(id)))
   }
 
+  const openPath =
+    defaultValues?.id && defaultValues.slug
+      ? `/admin/products/${defaultValues.slug}/edit`
+      : "/admin/products/new"
+  const productFields: ProductDraftFields = {
+    name,
+    code,
+    descriptionVi,
+    descriptionEn,
+    attributeIds,
+    collectionIds,
+    tags,
+    purchaseOptions,
+    slug,
+    priceDisplay,
+    priceInput,
+    kind,
+    isOld,
+    seo,
+  }
+  const applyProductDraft = (restored: RestoredFormDraft<ProductDraftFields>) => {
+    const fields = restored.fields
+    setName(fields.name ?? "")
+    setCode(fields.code ?? "")
+    setDescriptionVi(fields.descriptionVi ?? "")
+    setDescriptionEn(fields.descriptionEn ?? "")
+    setAttributeIds(fields.attributeIds ?? [])
+    setCollectionIds(fields.collectionIds ?? [])
+    setTags(fields.tags ?? [])
+    setPurchaseOptions(fields.purchaseOptions ?? [])
+    setSlug(fields.slug ?? "")
+    setPriceDisplay(fields.priceDisplay ?? "contact")
+    setPriceInput(fields.priceInput ?? "")
+    setKind(fields.kind ?? "gown")
+    setIsOld(fields.isOld ?? false)
+    setSeo(fields.seo ?? emptySeo)
+    setImages((current) => {
+      revokeUploadedImages(current)
+      return restored.images.images ?? []
+    })
+    if (new URLSearchParams(window.location.search).get("restore") === "1") {
+      router.replace(openPath)
+    }
+  }
+  const draft = useFormDraft({
+    entity: "product",
+    recordId: defaultValues?.id,
+    openPath,
+    title: name.trim() || "Chưa có tiêu đề",
+    baselineUpdatedAt: recordUpdatedAt,
+    fields: productFields,
+    images: { images },
+    onRestore: applyProductDraft,
+  })
+
   const persistAndSave = async (intent: PublishIntent, publishedAt?: string | null) => {
+    await draft.flush()
     if (!name.trim()) {
       toastError("Vui lòng nhập tên sản phẩm.")
       return
@@ -309,6 +394,10 @@ export function ProductForm({
 
     setPending(true)
     try {
+      if (!(await hasActiveAdminSession())) {
+        draft.markSessionExpired()
+        return
+      }
       const imageUrls = images.length
         ? await persistUploadedImages(images, "products")
         : []
@@ -345,6 +434,7 @@ export function ProductForm({
         return
       }
 
+      await draft.clear()
       setScheduleOpen(false)
       setScheduleError(null)
       if (intent === "publish") {
@@ -361,6 +451,10 @@ export function ProductForm({
       }
       router.refresh()
     } catch (error) {
+      if (isSessionExpiredFailure(error)) {
+        draft.markSessionExpired()
+        return
+      }
       toastError(
         error instanceof Error ? error.message : "Không lưu được sản phẩm."
       )
@@ -411,6 +505,20 @@ export function ProductForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex w-full flex-col gap-8">
+      <FormDraftNotices
+        entity="product"
+        offer={draft.offer}
+        recordUpdatedAt={recordUpdatedAt}
+        imageMissing={draft.imageMissing}
+        sessionExpired={draft.sessionExpired}
+        onRestore={() => {
+          const restored = draft.restore()
+          if (restored) applyProductDraft(restored)
+        }}
+        onDiscard={() => {
+          void draft.discard()
+        }}
+      />
       <section className="rounded-xl border border-border bg-card p-6 shadow-xs">
         <div className="mb-5">
           <h2 className="text-base font-semibold">Thông tin sản phẩm</h2>
@@ -796,12 +904,15 @@ export function ProductForm({
         <p className="text-xs text-muted-foreground">
           {images.length} ảnh · ảnh bìa là ảnh đầu tiên
         </p>
-        <PublishIntentActions
-          pending={pending}
-          isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
-          onPublish={() => void persistAndSave("publish")}
-          onSchedule={openSchedule}
-        />
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          <FormDraftStatus savedAt={draft.savedAt} />
+          <PublishIntentActions
+            pending={pending}
+            isLive={isLivePublished(defaultValues?.status, defaultValues?.publishedAt)}
+            onPublish={() => void persistAndSave("publish")}
+            onSchedule={openSchedule}
+          />
+        </div>
       </div>
       <SchedulePublishDialog
         open={scheduleOpen}

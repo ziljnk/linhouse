@@ -2,6 +2,13 @@ import type { UploadedImage } from "@/components/admin/image-uploader"
 import type { CmsImageType } from "@/lib/cms-image"
 import { parseCmsStorageKey } from "@/lib/cms-image"
 
+export class AdminSessionExpiredError extends Error {
+  constructor() {
+    super("Phiên đăng nhập đã hết hạn.")
+    this.name = "AdminSessionExpiredError"
+  }
+}
+
 const UPLOAD_ATTEMPTS = 3
 const RETRY_DELAYS_MS = [1000, 3000]
 const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504, 524])
@@ -49,11 +56,14 @@ async function postImageFile(file: File, type: CmsImageType) {
   try {
     payload = (await response.json()) as UploadPayload
   } catch {
+    if (response.status === 401) throw new AdminSessionExpiredError()
     throw new ImageUploadError(
       "Không tải được ảnh lên máy chủ.",
       RETRYABLE_STATUSES.has(response.status) || response.status >= 500
     )
   }
+
+  if (response.status === 401) throw new AdminSessionExpiredError()
 
   if (response.ok && payload.storageKey) {
     return payload.storageKey
@@ -76,6 +86,7 @@ async function uploadImageFile(file: File, type: CmsImageType) {
     try {
       return await postImageFile(file, type)
     } catch (error) {
+      if (error instanceof AdminSessionExpiredError) throw error
       const normalized =
         error instanceof ImageUploadError
           ? error

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { CollectionsTable } from "@/components/admin/collections-table"
+import { DraftCreateBadge, DraftListBanner } from "@/components/admin/draft-list-cues"
 import { Button } from "@/components/ui/button"
 import {
   parseAdminFilter,
@@ -36,14 +37,17 @@ export default async function AdminCollectionsPage({
             Danh sách bộ sưu tập đang có trên website.
           </p>
         </div>
-        <Button
-          nativeButton={false}
-          render={<Link href="/admin/collections/new" />}
-        >
-          <Plus />
-          Tạo bộ sưu tập
-        </Button>
+        <DraftCreateBadge entity="collection">
+          <Button
+            nativeButton={false}
+            render={<Link href="/admin/collections/new" />}
+          >
+            <Plus />
+            Tạo bộ sưu tập
+          </Button>
+        </DraftCreateBadge>
       </div>
+      <DraftListBanner entity="collection" />
       <CollectionsTable
         collections={result.items}
         page={result.page}

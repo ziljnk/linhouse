@@ -41,6 +41,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { UnsavedDraftTag, useEntityDrafts } from "@/components/admin/draft-list-cues"
 import { Badge } from "@/components/ui/badge"
 import {
   formatProductPrice,
@@ -112,6 +113,11 @@ export function ProductsTable({
   const [deleteIds, setDeleteIds] = useState<string[] | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const editDraftIds = new Set(
+    useEntityDrafts("product")
+      .filter((draft) => draft.recordId !== "new")
+      .map((draft) => draft.recordId)
+  )
 
   useEffect(() => {
     const visible = new Set(products.map((product) => product.id))
@@ -347,6 +353,7 @@ export function ProductsTable({
                     <TableCell className="whitespace-normal">
                       <div className="flex min-w-40 flex-col">
                         <span className="font-medium">{product.name}</span>
+                        {editDraftIds.has(product.id) ? <UnsavedDraftTag /> : null}
                         <span className="text-xs text-muted-foreground">
                           {product.collections.length > 0
                             ? product.collections.join(" · ")

@@ -60,6 +60,7 @@ export default async function EditCollectionPage({
           showOnHome: collection.showOnHome,
         }}
         homeCarouselCount={homeCarouselCount}
+        recordUpdatedAt={collection.updatedAt}
       />
     </div>
   )

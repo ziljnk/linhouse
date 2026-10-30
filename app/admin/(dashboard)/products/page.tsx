@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Plus } from "lucide-react"
 import { ProductsTable } from "@/components/admin/products-table"
+import { DraftCreateBadge, DraftListBanner } from "@/components/admin/draft-list-cues"
 import { Button } from "@/components/ui/button"
 import {
   parseAdminFilter,
@@ -51,11 +52,14 @@ export default async function AdminProductsPage({
             Danh sách sản phẩm đang có trên website.
           </p>
         </div>
-        <Button nativeButton={false} render={<Link href="/admin/products/new" />}>
-          <Plus />
-          Tạo sản phẩm mới
-        </Button>
+        <DraftCreateBadge entity="product">
+          <Button nativeButton={false} render={<Link href="/admin/products/new" />}>
+            <Plus />
+            Tạo sản phẩm mới
+          </Button>
+        </DraftCreateBadge>
       </div>
+      <DraftListBanner entity="product" />
       <ProductsTable
         products={result.items}
         page={result.page}

@@ -42,6 +42,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { UnsavedDraftTag, useEntityDrafts } from "@/components/admin/draft-list-cues"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -100,6 +101,11 @@ export function CollectionsTable({
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [homePendingId, setHomePendingId] = useState<string | null>(null)
+  const editDraftIds = new Set(
+    useEntityDrafts("collection")
+      .filter((draft) => draft.recordId !== "new")
+      .map((draft) => draft.recordId)
+  )
   const hasActiveFilters = query !== "" || status !== "all"
   const serverHomeKey = collections
     .map((item) => `${item.id}:${item.showOnHome}:${item.homePosition ?? ""}`)
@@ -250,6 +256,7 @@ export function CollectionsTable({
                   <TableCell className="whitespace-normal">
                     <div className="flex min-w-40 flex-col">
                       <span className="font-medium">{collection.name}</span>
+                      {editDraftIds.has(collection.id) ? <UnsavedDraftTag /> : null}
                       <span className="text-xs text-muted-foreground">
                         {collection.subtitle}
                       </span>

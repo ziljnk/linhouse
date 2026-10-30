@@ -64,6 +64,7 @@ export default async function EditProductPage({
             keywordsEn: product.seoKeywords.en,
           },
         }}
+        recordUpdatedAt={product.updatedAt}
       />
     </div>
   )
