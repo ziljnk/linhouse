@@ -1,13 +1,16 @@
 import { createHash } from "node:crypto"
 import { and, eq } from "drizzle-orm"
+import { resolvePageviewReferrerHost } from "@/lib/analytics-source"
+import { isLiveContent } from "@/lib/content-schedule"
 import { db } from "@/lib/db"
 import { blogPost, product } from "@/lib/db/schema"
-import { isLiveContent } from "@/lib/content-schedule"
 import type {
   AnalyticsDeviceType,
   AnalyticsEntityType,
 } from "@/lib/db/schema/analytics"
 import { analyticsPageview } from "@/lib/db/schema/analytics"
+
+export { referrerHostFrom } from "@/lib/analytics-source"
 
 const BOT_UA =
   /bot|crawler|spider|crawling|slurp|wget|curl|python-requests|facebookexternalhit|preview|discordbot|telegram|whatsapp|linkedinbot|embedly|pinterest|redditbot|applebot|bingbot|yandex|baiduspider|duckduckbot|semrush|ahrefs|mj12bot|bytespider|gptbot|claudebot|ccbot/i
@@ -16,13 +19,13 @@ const PRODUCT_PATH = /^\/(vi|en)\/product\/([^/?#]+)\/?$/
 const BLOG_PATH = /^\/(vi|en)\/blog\/([^/?#]+)\/?$/
 const RATE_WINDOW_MS = 8_000
 const MAX_PATH_LENGTH = 300
-const MAX_REFERRER_LENGTH = 500
 
 const recentViews = new Map<string, number>()
 
 export type AnalyticsViewInput = {
   path: string
   referrer?: string
+  source?: string
 }
 
 function isLiveProduct() {
@@ -91,21 +94,6 @@ export function localeFromPath(path: string) {
   if (path.startsWith("/vi")) return "vi"
   if (path.startsWith("/en")) return "en"
   return null
-}
-
-export function referrerHostFrom(referrer: string, siteHost: string) {
-  const value = referrer.trim().slice(0, MAX_REFERRER_LENGTH)
-  if (!value) return "(direct)"
-
-  try {
-    const url = new URL(value)
-    const incoming = url.hostname.replace(/^www\./i, "").toLowerCase()
-    const site = siteHost.replace(/^www\./i, "").toLowerCase().split(":")[0]
-    if (!incoming || incoming === site) return "(direct)"
-    return incoming.slice(0, 120)
-  } catch {
-    return "(direct)"
-  }
 }
 
 function clientIp(headers: Headers) {
@@ -200,7 +188,11 @@ export async function recordPageview(
     entityType: entity.entityType,
     entityId: entity.entityId,
     countryCode: countryFromHeaders(headers),
-    referrerHost: referrerHostFrom(input.referrer ?? "", siteHost(headers)),
+    referrerHost: resolvePageviewReferrerHost({
+      source: input.source,
+      referrer: input.referrer,
+      siteHost: siteHost(headers),
+    }),
     deviceType: deviceFromUserAgent(userAgent),
   })
 

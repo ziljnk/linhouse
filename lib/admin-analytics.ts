@@ -1,3 +1,4 @@
+import { normalizeReferrerHost } from "@/lib/analytics-source"
 import { firstSearchParam } from "@/lib/admin-pagination"
 
 export const ANALYTICS_RANGES = ["today", "7d", "30d"] as const
@@ -48,6 +49,19 @@ export function parseAnalyticsRange(
 
 export function formatAnalyticsCount(value: number) {
   return new Intl.NumberFormat("vi-VN").format(value)
+}
+
+const REFERRER_LABELS: Record<string, string> = {
+  "facebook.com": "Facebook",
+  "instagram.com": "Instagram",
+  "tiktok.com": "TikTok",
+  "zalo.me": "Zalo",
+  "youtube.com": "YouTube",
+}
+
+export function analyticsReferrerLabel(host: string) {
+  if (host === "(direct)") return "Truy cập trực tiếp"
+  return REFERRER_LABELS[normalizeReferrerHost(host)] ?? host
 }
 
 export function formatAnalyticsShare(views: number, total: number) {
