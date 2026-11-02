@@ -38,8 +38,9 @@ export function ShareLinkCard() {
       <div className="mb-5">
         <h2 className="text-base font-semibold">Tạo link chia sẻ</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Gắn nguồn để lượt xem từ Facebook, TikTok, Instagram, Zalo và YouTube
-          được tính đúng kênh, kể cả khi trình duyệt trong app không gửi referrer.
+          Gắn nguồn để lượt xem từ Facebook, Messenger, Instagram, Threads, TikTok,
+          Zalo, YouTube và Pinterest được tính đúng kênh, kể cả khi trình duyệt
+          trong app không gửi referrer.
         </p>
       </div>
 

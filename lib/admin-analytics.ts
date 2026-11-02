@@ -57,6 +57,9 @@ const REFERRER_LABELS: Record<string, string> = {
   "tiktok.com": "TikTok",
   "zalo.me": "Zalo",
   "youtube.com": "YouTube",
+  "messenger.com": "Messenger",
+  "threads.net": "Threads",
+  "pinterest.com": "Pinterest",
 }
 
 export function analyticsReferrerLabel(host: string) {

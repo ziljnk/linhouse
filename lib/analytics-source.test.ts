@@ -19,6 +19,9 @@ describe("utm source allowlist", () => {
       ["zalo", "zalo.me"],
       ["youtube", "youtube.com"],
       ["yt", "youtube.com"],
+      ["messenger", "messenger.com"],
+      ["  Threads ", "threads.net"],
+      ["pinterest", "pinterest.com"],
     ]
 
     for (const [source, host] of cases) {
@@ -45,6 +48,9 @@ describe("utm source allowlist", () => {
       "facebook script",
       "fb/../admin",
       "youtube.com",
+      "messenger.com",
+      "threads.net",
+      "pin.it",
     ]
 
     for (const source of rejected) {
@@ -89,6 +95,14 @@ describe("referrer hosts", () => {
       ["https://vm.tiktok.com/abc", "tiktok.com"],
       ["https://m.tiktok.com/@linhouse", "tiktok.com"],
       ["https://www.youtube.com/watch?v=1", "youtube.com"],
+      ["https://l.messenger.com/l.php", "messenger.com"],
+      ["https://m.me/linhouse", "messenger.com"],
+      ["https://l.threads.net/", "threads.net"],
+      ["https://threads.com/@linhouse", "threads.net"],
+      ["https://www.threads.com/@linhouse", "threads.net"],
+      ["https://br.pinterest.com/pin/1", "pinterest.com"],
+      ["https://www.pinterest.com/pin/1", "pinterest.com"],
+      ["https://pin.it/abc", "pinterest.com"],
     ]
 
     for (const [referrer, host] of cases) {
@@ -125,6 +139,14 @@ describe("analytics referrer labels", () => {
     assert.equal(analyticsReferrerLabel("zalo.me"), "Zalo")
     assert.equal(analyticsReferrerLabel("youtube.com"), "YouTube")
     assert.equal(analyticsReferrerLabel("www.youtube.com"), "YouTube")
+    assert.equal(analyticsReferrerLabel("messenger.com"), "Messenger")
+    assert.equal(analyticsReferrerLabel("l.messenger.com"), "Messenger")
+    assert.equal(analyticsReferrerLabel("m.me"), "Messenger")
+    assert.equal(analyticsReferrerLabel("threads.net"), "Threads")
+    assert.equal(analyticsReferrerLabel("threads.com"), "Threads")
+    assert.equal(analyticsReferrerLabel("pinterest.com"), "Pinterest")
+    assert.equal(analyticsReferrerLabel("pin.it"), "Pinterest")
+    assert.equal(analyticsReferrerLabel("id.pinterest.com"), "Pinterest")
     assert.equal(analyticsReferrerLabel("news.example"), "news.example")
   })
 })

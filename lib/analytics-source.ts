@@ -13,6 +13,9 @@ const UTM_SOURCE_ALIASES = {
   zalo: "zalo",
   youtube: "youtube",
   yt: "youtube",
+  messenger: "messenger",
+  threads: "threads",
+  pinterest: "pinterest",
 } as const
 
 export type TrackedUtmSource = (typeof UTM_SOURCE_ALIASES)[keyof typeof UTM_SOURCE_ALIASES]
@@ -24,6 +27,9 @@ export const TRACKED_SOURCE_HOSTS: Record<TrackedUtmSource, string> = {
   tiktok: "tiktok.com",
   zalo: "zalo.me",
   youtube: "youtube.com",
+  messenger: "messenger.com",
+  threads: "threads.net",
+  pinterest: "pinterest.com",
 }
 
 const REFERRER_HOST_ALIASES: Record<string, string> = {
@@ -33,6 +39,11 @@ const REFERRER_HOST_ALIASES: Record<string, string> = {
   "l.instagram.com": "instagram.com",
   "vm.tiktok.com": "tiktok.com",
   "m.tiktok.com": "tiktok.com",
+  "l.messenger.com": "messenger.com",
+  "m.me": "messenger.com",
+  "l.threads.net": "threads.net",
+  "threads.com": "threads.net",
+  "pin.it": "pinterest.com",
 }
 
 export function normalizeUtmSource(value: unknown): TrackedUtmSource | null {
@@ -58,6 +69,9 @@ export function firstTouchUtmSource(
 
 export function normalizeReferrerHost(hostname: string) {
   const bare = hostname.replace(/^www\./i, "").toLowerCase()
+  if (bare === "pinterest.com" || bare.endsWith(".pinterest.com")) {
+    return "pinterest.com"
+  }
   return REFERRER_HOST_ALIASES[bare] ?? bare
 }
 

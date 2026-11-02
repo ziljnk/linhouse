@@ -4,10 +4,13 @@ const HOMEPAGE_PATH = "/vi"
 
 export const SHARE_PLATFORMS = [
   { id: "facebook", label: "Facebook" },
-  { id: "tiktok", label: "TikTok" },
+  { id: "messenger", label: "Messenger" },
   { id: "instagram", label: "Instagram" },
+  { id: "threads", label: "Threads" },
+  { id: "tiktok", label: "TikTok" },
   { id: "zalo", label: "Zalo" },
   { id: "youtube", label: "YouTube" },
+  { id: "pinterest", label: "Pinterest" },
 ] as const
 
 export type SharePlatformId = (typeof SHARE_PLATFORMS)[number]["id"]

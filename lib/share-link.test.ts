@@ -7,12 +7,29 @@ import { SHARE_PLATFORMS, shareHomepageLink } from "./share-link"
 
 describe("share homepage links", () => {
   it("copies the Vietnamese homepage with only source and medium", () => {
+    assert.deepEqual(
+      SHARE_PLATFORMS.map((platform) => platform.id),
+      [
+        "facebook",
+        "messenger",
+        "instagram",
+        "threads",
+        "tiktok",
+        "zalo",
+        "youtube",
+        "pinterest",
+      ]
+    )
+
     const expected = {
       facebook: "https://linhouse.com.vn/vi?utm_source=facebook&utm_medium=social",
-      tiktok: "https://linhouse.com.vn/vi?utm_source=tiktok&utm_medium=social",
+      messenger: "https://linhouse.com.vn/vi?utm_source=messenger&utm_medium=social",
       instagram: "https://linhouse.com.vn/vi?utm_source=instagram&utm_medium=social",
+      threads: "https://linhouse.com.vn/vi?utm_source=threads&utm_medium=social",
+      tiktok: "https://linhouse.com.vn/vi?utm_source=tiktok&utm_medium=social",
       zalo: "https://linhouse.com.vn/vi?utm_source=zalo&utm_medium=social",
       youtube: "https://linhouse.com.vn/vi?utm_source=youtube&utm_medium=social",
+      pinterest: "https://linhouse.com.vn/vi?utm_source=pinterest&utm_medium=social",
     } as const
 
     for (const platform of SHARE_PLATFORMS) {
