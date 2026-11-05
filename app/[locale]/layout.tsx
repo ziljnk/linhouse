@@ -67,7 +67,8 @@ export default async function LocaleLayout({
     dict.nav,
     storefront.collections,
     storefront.featuredProducts,
-    storefront.filterGroups
+    storefront.filterGroups,
+    storefront.productKinds
   )
 
   return (

@@ -4,6 +4,7 @@ import { requireUsableAdminSession } from "@/lib/admin-session"
 import {
   listAdminAttributeGroups,
   listAdminCollectionOptions,
+  listAdminProductKinds,
 } from "@/lib/admin-storefront"
 
 export const metadata = {
@@ -12,9 +13,10 @@ export const metadata = {
 
 export default async function NewProductPage() {
   await requireUsableAdminSession()
-  const [groups, collections] = await Promise.all([
+  const [groups, collections, kinds] = await Promise.all([
     listAdminAttributeGroups(),
     listAdminCollectionOptions(),
+    listAdminProductKinds(),
   ])
 
   return (
@@ -28,7 +30,7 @@ export default async function NewProductPage() {
           Thêm thông tin, ảnh và SEO cho sản phẩm.
         </p>
       </div>
-      <ProductForm groups={groups} collections={collections} />
+      <ProductForm groups={groups} collections={collections} kinds={kinds} />
     </div>
   )
 }

@@ -46,8 +46,7 @@ import { Badge } from "@/components/ui/badge"
 import {
   formatProductPrice,
   formatScheduledAt,
-  PRODUCT_KIND_LABELS,
-  PRODUCT_KINDS,
+  productKindLabel,
   PRODUCT_STATUS_LABELS,
   PRODUCT_STATUSES,
   type AdminProductListItem,
@@ -62,14 +61,6 @@ const STATUS_BADGE_VARIANT: Record<
   scheduled: "secondary",
   draft: "outline",
 }
-
-const KIND_FILTER_OPTIONS = [
-  { value: "all", label: "Tất cả loại" },
-  ...PRODUCT_KINDS.map((kind) => ({
-    value: kind,
-    label: PRODUCT_KIND_LABELS[kind],
-  })),
-]
 
 const STATUS_FILTER_OPTIONS = [
   { value: "all", label: "Tất cả trạng thái" },
@@ -92,6 +83,7 @@ export function ProductsTable({
   category,
   collectionOptions,
   categoryOptions,
+  kindOptions,
 }: {
   products: AdminProductListItem[]
   page: number
@@ -105,6 +97,7 @@ export function ProductsTable({
   category: string
   collectionOptions: { value: string; label: string }[]
   categoryOptions: { value: string; label: string }[]
+  kindOptions: { value: string; label: string }[]
 }) {
   const router = useRouter()
   const { setParam, setParams, clearParams } = useAdminListParams()
@@ -215,7 +208,10 @@ export function ProductsTable({
               aria-label="Lọc loại sản phẩm"
               value={kind}
               onValueChange={(value) => setParams({ kind: value, category: "all" })}
-              items={KIND_FILTER_OPTIONS}
+              items={[
+                { value: "all", label: "Tất cả loại" },
+                ...kindOptions,
+              ]}
             />
             <AdminFilterSelect
               id="filter-category"
@@ -361,7 +357,10 @@ export function ProductsTable({
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{PRODUCT_KIND_LABELS[product.kind]}</TableCell>
+                    <TableCell>
+                      {kindOptions.find((item) => item.value === product.kind)?.label ??
+                        productKindLabel(product.kind)}
+                    </TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell className="whitespace-normal">
                       <div className="flex flex-col gap-1">

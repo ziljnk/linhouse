@@ -6,10 +6,13 @@ import { Pencil, Plus, Trash2 } from "lucide-react"
 import {
   createAttributeGroupAction,
   createCatalogAttributeAction,
+  createProductKindAction,
   deleteAttributeGroupAction,
   deleteCatalogAttributeAction,
+  deleteProductKindAction,
   updateAttributeGroupAction,
   updateCatalogAttributeAction,
+  updateProductKindAction,
 } from "@/app/admin/(dashboard)/catalog/actions"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,12 +33,12 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { AdminAttributeGroupOption } from "@/lib/admin-storefront"
+import type { AdminAttributeGroupOption, AdminProductKindOption } from "@/lib/admin-storefront"
 import {
-  PRODUCT_KIND_LABELS,
-  PRODUCT_KINDS,
+  productKindLabel,
   type ProductKind,
 } from "@/lib/admin-products"
+import { isBuiltinProductKind } from "@/lib/product-kinds"
 import { nextAutoSlug, slugify } from "@/lib/slug"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
 
@@ -63,12 +66,6 @@ type AttributeDraft = {
   sortOrder: string
 }
 
-const EMPTY_COPY: Record<ProductKind, string> = {
-  gown: "Chưa có nhóm danh mục váy cưới. Thêm nhóm như Dáng váy, Kiểu cổ, Chất liệu.",
-  "ao-dai":
-    "Chưa có nhóm danh mục áo dài. Thêm nhóm như Màu sắc, Chất liệu, Kiểu dáng.",
-}
-
 const emptyGroup = (kind: ProductKind): GroupDraft => ({
   slug: "",
   labelVi: "",
@@ -77,6 +74,14 @@ const emptyGroup = (kind: ProductKind): GroupDraft => ({
   kind,
   sortOrder: "99",
 })
+
+type KindDraft = {
+  id?: string
+  slug: string
+  labelVi: string
+  labelEn: string
+  lockSlug: boolean
+}
 
 function CatalogGroupCard({
   group,
@@ -181,28 +186,44 @@ function emptyAttribute(groupId: string): AttributeDraft {
 
 export function CatalogManager({
   groups: initialGroups,
+  kinds: initialKinds,
 }: {
   groups: AdminAttributeGroupOption[]
+  kinds: AdminProductKindOption[]
 }) {
   const router = useRouter()
   const [groups, setGroups] = useState(initialGroups)
+  const [kinds, setKinds] = useState(initialKinds)
   const [groupDraft, setGroupDraft] = useState<GroupDraft | null>(null)
   const [attributeDraft, setAttributeDraft] = useState<AttributeDraft | null>(null)
+  const [kindDraft, setKindDraft] = useState<KindDraft | null>(null)
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null)
   const [deleteAttributeId, setDeleteAttributeId] = useState<string | null>(null)
+  const [deleteKindId, setDeleteKindId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [kindTab, setKindTab] = useState<ProductKind>("gown")
+  const [kindTab, setKindTab] = useState(initialKinds[0]?.slug ?? "gown")
 
   useEffect(() => {
     setGroups(initialGroups)
   }, [initialGroups])
 
+  useEffect(() => {
+    setKinds(initialKinds)
+    setKindTab((current) =>
+      initialKinds.some((item) => item.slug === current)
+        ? current
+        : (initialKinds[0]?.slug ?? "gown")
+    )
+  }, [initialKinds])
+
   const closeDialogs = () => {
     setGroupDraft(null)
     setAttributeDraft(null)
+    setKindDraft(null)
     setDeleteGroupId(null)
     setDeleteAttributeId(null)
+    setDeleteKindId(null)
     setError(null)
   }
 
@@ -292,8 +313,76 @@ export function CatalogManager({
   const groupsForKind = (kind: ProductKind) =>
     groups.filter((group) => group.kind === kind)
 
+  const kindLabel = (slug: string) =>
+    kinds.find((item) => item.slug === slug)?.label ?? productKindLabel(slug)
+
+  const activeKind = kinds.find((item) => item.slug === kindTab) ?? null
+
   const openNewGroup = (kind: ProductKind) => {
+    setError(null)
     setGroupDraft(emptyGroup(kind))
+  }
+
+  const openNewKind = () => {
+    setError(null)
+    setKindDraft({
+      slug: "",
+      labelVi: "",
+      labelEn: "",
+      lockSlug: false,
+    })
+  }
+
+  const openEditKind = () => {
+    if (!activeKind) return
+    setError(null)
+    setKindDraft({
+      id: activeKind.id,
+      slug: activeKind.slug,
+      labelVi: activeKind.labelVi,
+      labelEn: activeKind.labelEn,
+      lockSlug: isBuiltinProductKind(activeKind.slug),
+    })
+  }
+
+  const saveKind = async () => {
+    if (!kindDraft) return
+    setPending(true)
+    setError(null)
+    const payload = {
+      slug: kindDraft.slug,
+      labelVi: kindDraft.labelVi,
+      labelEn: kindDraft.labelEn,
+    }
+    const result = kindDraft.id
+      ? await updateProductKindAction(kindDraft.id, payload)
+      : await createProductKindAction(payload)
+    setPending(false)
+    if (!result.ok) {
+      setError(result.error)
+      toastError(result.error)
+      return
+    }
+    toastSuccess(kindDraft.id ? "Đã lưu loại sản phẩm." : "Đã thêm loại sản phẩm.")
+    setKindTab(result.data.slug)
+    closeDialogs()
+    router.refresh()
+  }
+
+  const confirmDeleteKind = async () => {
+    if (!deleteKindId) return
+    setPending(true)
+    setError(null)
+    const result = await deleteProductKindAction(deleteKindId)
+    setPending(false)
+    if (!result.ok) {
+      setError(result.error)
+      toastError(result.error)
+      return
+    }
+    toastSuccess("Đã xóa loại sản phẩm.")
+    closeDialogs()
+    router.refresh()
   }
 
   return (
@@ -301,35 +390,57 @@ export function CatalogManager({
       <Tabs
         value={kindTab}
         onValueChange={(value) => {
-          if (value === "gown" || value === "ao-dai") setKindTab(value)
+          if (kinds.some((item) => item.slug === value)) setKindTab(value)
         }}
         className="gap-4"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-            {PRODUCT_KINDS.map((kind) => (
-              <TabsTrigger key={kind} value={kind} className="px-4">
-                {PRODUCT_KIND_LABELS[kind]}
-                <span className="text-muted-foreground">
-                  ({groupsForKind(kind).length})
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <Button type="button" onClick={() => openNewGroup(kindTab)}>
-            <Plus />
-            Thêm nhóm
-          </Button>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+            <TabsList className="h-auto! w-full flex-wrap justify-start sm:w-auto">
+              {kinds.map((kind) => (
+                <TabsTrigger key={kind.slug} value={kind.slug} className="px-4">
+                  {kind.label}
+                  <span className="text-muted-foreground">
+                    ({groupsForKind(kind.slug).length})
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <Button type="button" variant="outline" onClick={openNewKind}>
+              <Plus />
+              Thêm loại
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!activeKind}
+              onClick={openEditKind}
+            >
+              <Pencil />
+              Sửa loại
+            </Button>
+            <Button
+              type="button"
+              disabled={!activeKind}
+              onClick={() => openNewGroup(kindTab)}
+            >
+              <Plus />
+              Thêm nhóm
+            </Button>
+          </div>
         </div>
 
-        {PRODUCT_KINDS.map((kind) => {
-          const kindGroups = groupsForKind(kind)
+        {kinds.map((kind) => {
+          const kindGroups = groupsForKind(kind.slug)
 
           return (
-            <TabsContent key={kind} value={kind} className="flex flex-col gap-6">
+            <TabsContent key={kind.slug} value={kind.slug} className="flex flex-col gap-6">
               {kindGroups.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
-                  {EMPTY_COPY[kind]}
+                  Chưa có nhóm danh mục cho {kind.label.toLowerCase()}. Thêm nhóm như
+                  dáng, màu sắc hoặc chất liệu.
                 </div>
               ) : (
                 kindGroups.map((group) => (
@@ -384,7 +495,7 @@ export function CatalogManager({
             <DialogDescription>
               Nhóm bộ lọc cho{" "}
               {groupDraft
-                ? PRODUCT_KIND_LABELS[groupDraft.kind].toLowerCase()
+                ? kindLabel(groupDraft.kind).toLowerCase()
                 : "sản phẩm"}
               .
             </DialogDescription>
@@ -632,6 +743,130 @@ export function CatalogManager({
               variant="destructive"
               disabled={pending}
               onClick={() => void confirmDeleteAttribute()}
+            >
+              {pending ? "Đang xóa..." : "Xóa"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={kindDraft !== null}
+        onOpenChange={(open) => {
+          if (!open) closeDialogs()
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {kindDraft?.id ? "Sửa loại sản phẩm" : "Thêm loại sản phẩm"}
+            </DialogTitle>
+            <DialogDescription>
+              Loại mới xuất hiện thành một tab riêng, dùng khi tạo sản phẩm và trên
+              catalog.
+            </DialogDescription>
+          </DialogHeader>
+          {kindDraft ? (
+            <div className="grid gap-3">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="kind-label-vi">Tên tiếng Việt</Label>
+                <Input
+                  id="kind-label-vi"
+                  value={kindDraft.labelVi}
+                  onChange={(event) => {
+                    const labelVi = event.target.value
+                    setKindDraft({
+                      ...kindDraft,
+                      labelVi,
+                      slug: kindDraft.lockSlug
+                        ? kindDraft.slug
+                        : nextAutoSlug(kindDraft.labelVi, kindDraft.slug, labelVi),
+                    })
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="kind-label-en">Tên tiếng Anh</Label>
+                <Input
+                  id="kind-label-en"
+                  value={kindDraft.labelEn}
+                  onChange={(event) =>
+                    setKindDraft({ ...kindDraft, labelEn: event.target.value })
+                  }
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="kind-slug">Đường dẫn</Label>
+                <Input
+                  id="kind-slug"
+                  value={kindDraft.slug}
+                  disabled={kindDraft.lockSlug}
+                  onChange={(event) =>
+                    setKindDraft({
+                      ...kindDraft,
+                      slug: slugify(event.target.value),
+                    })
+                  }
+                />
+                {kindDraft.lockSlug ? (
+                  <p className="text-xs text-muted-foreground">
+                    Váy cưới và áo dài giữ nguyên đường dẫn.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <DialogFooter>
+            {kindDraft?.id ? (
+              <Button
+                type="button"
+                variant="destructive"
+                className="sm:mr-auto"
+                disabled={pending}
+                onClick={() => {
+                  setDeleteKindId(kindDraft.id ?? null)
+                  setKindDraft(null)
+                  setError(null)
+                }}
+              >
+                Xóa
+              </Button>
+            ) : null}
+            <Button type="button" variant="outline" onClick={closeDialogs}>
+              Hủy
+            </Button>
+            <Button type="button" disabled={pending} onClick={() => void saveKind()}>
+              {pending ? "Đang lưu..." : "Lưu"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteKindId !== null}
+        onOpenChange={(open) => {
+          if (!open) closeDialogs()
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xóa loại sản phẩm?</DialogTitle>
+            <DialogDescription>
+              Không xóa được loại đang có sản phẩm hoặc nhóm danh mục. Cần giữ ít
+              nhất một loại.
+            </DialogDescription>
+          </DialogHeader>
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={closeDialogs}>
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={pending}
+              onClick={() => void confirmDeleteKind()}
             >
               {pending ? "Đang xóa..." : "Xóa"}
             </Button>

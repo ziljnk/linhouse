@@ -12,6 +12,7 @@ import { requireUsableAdminSession } from "@/lib/admin-session"
 import {
   listAdminCollectionOptions,
   listAdminProductCategoryOptions,
+  listAdminProductKinds,
   listAdminProducts,
 } from "@/lib/admin-storefront"
 
@@ -30,7 +31,7 @@ export default async function AdminProductsPage({
   const collection = parseAdminFilter(params.collection)
   const category = parseAdminFilter(params.category)
 
-  const [result, collections, categories] = await Promise.all([
+  const [result, collections, categories, kinds] = await Promise.all([
     listAdminProducts({
       q,
       page: parseAdminPage(params.page),
@@ -41,6 +42,7 @@ export default async function AdminProductsPage({
     }),
     listAdminCollectionOptions(),
     listAdminProductCategoryOptions(kind),
+    listAdminProductKinds(),
   ])
 
   return (
@@ -76,6 +78,10 @@ export default async function AdminProductsPage({
           label: item.name,
         }))}
         categoryOptions={categories}
+        kindOptions={kinds.map((item) => ({
+          value: item.slug,
+          label: item.label,
+        }))}
       />
     </div>
   )

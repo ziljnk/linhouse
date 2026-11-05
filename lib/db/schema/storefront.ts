@@ -33,7 +33,17 @@ export const emptyLocalizedText = (): LocalizedText => ({ vi: "", en: "" })
 const contentStatusValues = ["draft", "scheduled", "published"] as const
 const attributeSelectionValues = ["single", "multiple"] as const
 const priceDisplayValues = ["amount", "contact"] as const
-const productKindValues = ["gown", "ao-dai"] as const
+export const productKind = mysqlTable("product_kind", {
+  id: uuidPk(),
+  slug: varchar("slug", { length: 64 }).notNull().unique("product_kind_slug_key"),
+  label: json("label").$type<LocalizedText>().notNull(),
+  sortOrder: int("sort_order").notNull().default(0),
+  createdAt: timestamptz("created_at").defaultNow().notNull(),
+  updatedAt: timestamptz("updated_at")
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+})
 
 export const attributeGroup = mysqlTable("attribute_group", {
   id: uuidPk(),
@@ -42,7 +52,7 @@ export const attributeGroup = mysqlTable("attribute_group", {
   selection: mysqlEnum("selection", attributeSelectionValues)
     .notNull()
     .default("single"),
-  kind: mysqlEnum("kind", productKindValues).notNull().default("gown"),
+  kind: varchar("kind", { length: 64 }).notNull().default("gown"),
   sortOrder: int("sort_order").notNull().default(0),
   createdAt: timestamptz("created_at").defaultNow().notNull(),
   updatedAt: timestamptz("updated_at")
@@ -142,7 +152,7 @@ export const product = mysqlTable(
     priceDisplay: mysqlEnum("price_display", priceDisplayValues)
       .notNull()
       .default("contact"),
-    kind: mysqlEnum("kind", productKindValues).notNull().default("gown"),
+    kind: varchar("kind", { length: 64 }).notNull().default("gown"),
     featured: boolean("featured").notNull().default(true),
     isOld: boolean("is_old").notNull().default(false),
     status: mysqlEnum("status", contentStatusValues).notNull().default("draft"),

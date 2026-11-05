@@ -32,6 +32,7 @@ import {
   productAttribute,
   productCollection,
   productImage,
+  productKind,
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
@@ -46,6 +47,7 @@ import { contentAppearance, toContentStatus } from "@/lib/content-status"
 import type { AdminBlogListItem } from "@/lib/admin-blog"
 import type { AdminCollectionListItem } from "@/lib/admin-collections"
 import type { AdminProductListItem, ProductKind } from "@/lib/admin-products"
+import { productKindLabel } from "@/lib/admin-products"
 import {
   parsePurchaseOptions,
   type ProductPurchaseOption,
@@ -160,6 +162,40 @@ export type AdminBlogCategoryOption = {
   labelEn: string
 }
 
+export type AdminProductKindOption = {
+  id: string
+  slug: string
+  label: string
+  labelVi: string
+  labelEn: string
+  sortOrder: number
+}
+
+export async function listAdminProductKinds(): Promise<AdminProductKindOption[]> {
+  const rows = await db
+    .select()
+    .from(productKind)
+    .orderBy(asc(productKind.sortOrder), asc(productKind.slug))
+
+  return rows.map((row) => ({
+    id: row.id,
+    slug: row.slug,
+    label: textOf(row.label) || row.slug,
+    labelVi: decodeStoredPlainText(row.label.vi),
+    labelEn: decodeStoredPlainText(row.label.en),
+    sortOrder: row.sortOrder,
+  }))
+}
+
+export async function adminProductKindLabel(slug: string) {
+  const [row] = await db
+    .select({ label: productKind.label })
+    .from(productKind)
+    .where(eq(productKind.slug, slug))
+    .limit(1)
+  return textOf(row?.label) || productKindLabel(slug)
+}
+
 export async function listAdminAttributeGroups(): Promise<
   AdminAttributeGroupOption[]
 > {
@@ -256,26 +292,36 @@ function productHasAttributeSlug(slug: string) {
 }
 
 export async function listAdminProductCategoryOptions(kind?: string) {
-  const groupSlug =
-    kind === "ao-dai" ? "ao-dai-color" : kind === "gown" ? "silhouette" : null
   const rows = await db
     .select({
       slug: catalogAttribute.slug,
       label: catalogAttribute.label,
+      groupSlug: attributeGroup.slug,
+      groupSort: attributeGroup.sortOrder,
+      kind: attributeGroup.kind,
     })
     .from(catalogAttribute)
     .innerJoin(attributeGroup, eq(catalogAttribute.groupId, attributeGroup.id))
-    .where(
-      groupSlug
-        ? eq(attributeGroup.slug, groupSlug)
-        : inArray(attributeGroup.slug, ["silhouette", "ao-dai-color"])
-    )
     .orderBy(asc(attributeGroup.sortOrder), asc(catalogAttribute.sortOrder))
 
-  return rows.map((row) => ({
-    value: row.slug,
-    label: textOf(row.label),
-  }))
+  const primarySlug = (itemKind: string) => {
+    if (itemKind === "gown") return "silhouette"
+    if (itemKind === "ao-dai") return "ao-dai-color"
+    return rows
+      .filter((row) => row.kind === itemKind)
+      .sort((left, right) => left.groupSort - right.groupSort)[0]?.groupSlug
+  }
+  const kinds = kind ? [kind] : [...new Set(rows.map((row) => row.kind))]
+  const groupSlugs = new Set(
+    kinds.map((item) => primarySlug(item)).filter((item): item is string => Boolean(item))
+  )
+
+  return rows
+    .filter((row) => groupSlugs.has(row.groupSlug) && (!kind || row.kind === kind))
+    .map((row) => ({
+      value: row.slug,
+      label: textOf(row.label),
+    }))
 }
 
 export async function listAdminProducts(
@@ -284,7 +330,7 @@ export async function listAdminProducts(
   const q = query.q?.trim() ?? ""
   const conditions: SQL[] = []
 
-  if (query.kind === "gown" || query.kind === "ao-dai") {
+  if (query.kind && query.kind !== "all") {
     conditions.push(eq(product.kind, query.kind))
   }
   const statusFilter = adminListStatusCondition(
@@ -346,6 +392,7 @@ export async function listAdminProducts(
           .select({
             productId: productAttribute.productId,
             groupSlug: attributeGroup.slug,
+            groupSort: attributeGroup.sortOrder,
             label: catalogAttribute.label,
           })
           .from(productAttribute)
@@ -366,20 +413,14 @@ export async function listAdminProducts(
       images
         .filter((item) => item.productId === row.id)
         .sort((a, b) => a.sortOrder - b.sortOrder)[0]?.url ?? ""
-    const silhouette = attributes.find(
-      (item) => item.productId === row.id && item.groupSlug === "silhouette"
-    )
-    const aoDaiColor = attributes.find(
-      (item) => item.productId === row.id && item.groupSlug === "ao-dai-color"
-    )
-    const category =
+    const mine = attributes.filter((item) => item.productId === row.id)
+    const categoryAttribute =
       row.kind === "ao-dai"
-        ? aoDaiColor
-          ? textOf(aoDaiColor.label)
-          : "—"
-        : silhouette
-          ? textOf(silhouette.label)
-          : "—"
+        ? mine.find((item) => item.groupSlug === "ao-dai-color")
+        : row.kind === "gown"
+          ? mine.find((item) => item.groupSlug === "silhouette")
+          : [...mine].sort((left, right) => left.groupSort - right.groupSort)[0]
+    const category = categoryAttribute ? textOf(categoryAttribute.label) : "—"
 
     return {
       id: row.id,

@@ -1,7 +1,8 @@
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
+import { kindFromCatalogSlug } from "@/lib/product-kinds"
 
 export const PRODUCT_KINDS = ["gown", "ao-dai"] as const
-export type ProductKind = (typeof PRODUCT_KINDS)[number]
+export type ProductKind = string
 
 export const PRODUCT_PURCHASE_OPTIONS = [
   "rent",
@@ -201,10 +202,19 @@ export function productKindOf(product: { kind?: ProductKind }): ProductKind {
 
 export function catalogKindForSlug(
   slug: string,
-  groups: CatalogFilterGroup[]
+  groups: CatalogFilterGroup[],
+  kinds: { slug: string }[] = []
 ): ProductKind | null {
-  if (slug === "all-gowns") return "gown"
-  if (slug === "all-ao-dai") return "ao-dai"
+  const fromPath = kindFromCatalogSlug(slug)
+  if (
+    fromPath &&
+    (fromPath === "gown" ||
+      fromPath === "ao-dai" ||
+      kinds.some((item) => item.slug === fromPath) ||
+      groups.some((group) => group.kind === fromPath))
+  ) {
+    return fromPath
+  }
   const group = groups.find((item) =>
     item.options.some((option) => option.value === slug)
   )
@@ -213,9 +223,10 @@ export function catalogKindForSlug(
 
 export function filterGroupsForCatalogSlug(
   slug: string,
-  groups: CatalogFilterGroup[]
+  groups: CatalogFilterGroup[],
+  kinds: { slug: string }[] = []
 ) {
-  const kind = catalogKindForSlug(slug, groups)
+  const kind = catalogKindForSlug(slug, groups, kinds)
   if (!kind) return groups
   return groups.filter((group) => (group.kind ?? "gown") === kind)
 }
@@ -246,11 +257,12 @@ function fallbackGroupSlugs(product: CatalogProduct, key: string) {
 }
 
 export function catalogProductsForSlug(catalog: CatalogProduct[], slug: string) {
-  if (slug === "all-gowns") {
-    return catalog.filter((product) => productKindOf(product) === "gown")
+  const kind = kindFromCatalogSlug(slug)
+  if (kind === "gown" || kind === "ao-dai") {
+    return catalog.filter((product) => productKindOf(product) === kind)
   }
-  if (slug === "all-ao-dai") {
-    return catalog.filter((product) => productKindOf(product) === "ao-dai")
+  if (kind && catalog.some((product) => productKindOf(product) === kind)) {
+    return catalog.filter((product) => productKindOf(product) === kind)
   }
 
   const inCollection = catalog.filter((product) =>

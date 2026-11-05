@@ -65,8 +65,6 @@ import {
   parsePriceVnd,
   PRICE_DISPLAY_LABELS,
   PRICE_DISPLAYS,
-  PRODUCT_KIND_LABELS,
-  PRODUCT_KINDS,
   PRODUCT_PURCHASE_OPTION_LABELS,
   PRODUCT_PURCHASE_OPTIONS,
   type PriceDisplay,
@@ -85,6 +83,7 @@ import {
 import type {
   AdminAttributeGroupOption,
   AdminCollectionOption,
+  AdminProductKindOption,
 } from "@/lib/admin-storefront"
 import { nextAutoSlug, slugify } from "@/lib/slug"
 import {
@@ -219,11 +218,13 @@ type ProductDraftFields = {
 export function ProductForm({
   groups,
   collections: collectionOptions,
+  kinds,
   defaultValues,
   recordUpdatedAt = null,
 }: {
   groups: AdminAttributeGroupOption[]
   collections: AdminCollectionOption[]
+  kinds: AdminProductKindOption[]
   defaultValues?: ProductFormValues
   recordUpdatedAt?: string | null
 }) {
@@ -256,7 +257,8 @@ export function ProductForm({
   const [priceInput, setPriceInput] = useState(
     defaultValues?.priceVnd ? formatPriceInput(String(defaultValues.priceVnd)) : ""
   )
-  const [kind, setKind] = useState<ProductKind>(defaultValues?.kind ?? "gown")
+  const fallbackKind = kinds.find((item) => item.slug === "gown")?.slug ?? kinds[0]?.slug ?? "gown"
+  const [kind, setKind] = useState<ProductKind>(defaultValues?.kind ?? fallbackKind)
   const [isOld, setIsOld] = useState(defaultValues?.isOld ?? false)
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [scheduleValue, setScheduleValue] = useState(
@@ -309,6 +311,9 @@ export function ProductForm({
     selectedIdsForGroup(group)[0] ?? ""
 
   const visibleGroups = groups.filter((group) => group.kind === kind)
+  const kindChoices = kinds.some((item) => item.slug === kind)
+    ? kinds
+    : [...kinds, { id: kind, slug: kind, label: kind, labelVi: kind, labelEn: "", sortOrder: 0 }]
 
   const handleKindChange = (value: ProductKind) => {
     setKind(value)
@@ -560,20 +565,20 @@ export function ProductForm({
             <RadioGroup
               value={kind}
               onValueChange={(value) => {
-                if (value === "gown" || value === "ao-dai") {
+                if (kindChoices.some((item) => item.slug === value)) {
                   handleKindChange(value)
                 }
               }}
               className="grid gap-2 sm:grid-cols-2"
             >
-              {PRODUCT_KINDS.map((option) => (
+              {kindChoices.map((option) => (
                 <Label
-                  key={option}
-                  htmlFor={`product-kind-${option}`}
+                  key={option.slug}
+                  htmlFor={`product-kind-${option.slug}`}
                   className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 font-normal"
                 >
-                  <RadioGroupItem id={`product-kind-${option}`} value={option} />
-                  <span>{PRODUCT_KIND_LABELS[option]}</span>
+                  <RadioGroupItem id={`product-kind-${option.slug}`} value={option.slug} />
+                  <span>{option.label}</span>
                 </Label>
               ))}
             </RadioGroup>

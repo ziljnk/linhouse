@@ -1,7 +1,8 @@
 import { revalidatePath } from "next/cache"
 import { and, eq, ne } from "drizzle-orm"
 import { db } from "@/lib/db"
-import { catalogAttribute, collection } from "@/lib/db/schema"
+import { catalogAttribute, collection, productKind } from "@/lib/db/schema"
+import { kindFromCatalogSlug } from "@/lib/product-kinds"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import type { LocalizedText } from "@/lib/site-settings"
 import { slugify } from "@/lib/slug"
@@ -91,5 +92,16 @@ export async function isCatalogSlugTaken(
     )
     .limit(1)
 
-  return Boolean(attributeRow)
+  if (attributeRow) return true
+
+  const reservedKind = kindFromCatalogSlug(slug)
+  if (!reservedKind) return false
+
+  const [kindRow] = await db
+    .select({ id: productKind.id })
+    .from(productKind)
+    .where(eq(productKind.slug, reservedKind))
+    .limit(1)
+
+  return Boolean(kindRow)
 }

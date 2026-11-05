@@ -29,9 +29,14 @@ export const PRODUCT_PURCHASE_OPTION_LABELS: Record<
   "ready-to-purchase": "Sẵn sàng mua",
 }
 
-export const PRODUCT_KIND_LABELS: Record<ProductKind, string> = {
+export const PRODUCT_KIND_LABELS: Record<(typeof PRODUCT_KINDS)[number], string> = {
   gown: "Váy cưới",
   "ao-dai": "Áo dài",
+}
+
+export function productKindLabel(kind: string) {
+  if (kind === "gown" || kind === "ao-dai") return PRODUCT_KIND_LABELS[kind]
+  return kind
 }
 
 export const PRODUCT_STATUSES = CONTENT_LIST_FILTERS

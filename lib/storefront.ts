@@ -15,6 +15,11 @@ import {
 } from "drizzle-orm"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { VIRTUAL_CATALOG_SLUGS } from "@/lib/admin-actions"
+import {
+  catalogPathForKind,
+  catalogSlugForKind,
+  kindFromCatalogSlug,
+} from "@/lib/product-kinds"
 import { isLiveContent } from "@/lib/content-schedule"
 import {
   parseCatalogSort,
@@ -29,6 +34,7 @@ import { db } from "@/lib/db"
 import { formatProductDisplayName, type ProductNameToken } from "@/lib/product-name-format"
 import { jsonLocalizedContains, textContains } from "@/lib/db/search-sql"
 import {
+  analyticsPageview,
   attributeGroup,
   blogPost,
   catalogAttribute,
@@ -38,6 +44,7 @@ import {
   productAttribute,
   productCollection,
   productImage,
+  productKind,
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
@@ -173,6 +180,15 @@ function newProductsFirst() {
   return asc(product.isOld)
 }
 
+function productViewCount() {
+  return sql<number>`(
+    select count(*)
+    from ${analyticsPageview}
+    where ${analyticsPageview.entityType} = 'product'
+      and ${analyticsPageview.entityId} = ${product.id}
+  )`
+}
+
 function catalogOrderBy(sort: CatalogSort): SQL[] {
   switch (sort) {
     case "newest":
@@ -204,6 +220,7 @@ function catalogOrderBy(sort: CatalogSort): SQL[] {
     default:
       return [
         newProductsFirst(),
+        desc(productViewCount()),
         asc(product.sortOrder),
         asc(product.sortNumber),
         asc(product.name),
@@ -295,16 +312,26 @@ function productMatchesFilterGroup(groupSlug: string, values: string[]) {
   )
 }
 
+async function catalogKindSlug(slug: string) {
+  const candidate = kindFromCatalogSlug(slug)
+  if (!candidate) return null
+  const [row] = await db
+    .select({ slug: productKind.slug })
+    .from(productKind)
+    .where(eq(productKind.slug, candidate))
+    .limit(1)
+  return row?.slug ?? null
+}
+
 async function catalogProductWhere(
   slug: string,
   filters: CatalogQueryFilters
 ) {
   const conditions = [isLiveProduct(), hasProductImage()]
+  const kindSlug = await catalogKindSlug(slug)
 
-  if (slug === "all-gowns") {
-    conditions.push(eq(product.kind, "gown"))
-  } else if (slug === "all-ao-dai") {
-    conditions.push(eq(product.kind, "ao-dai"))
+  if (kindSlug) {
+    conditions.push(eq(product.kind, kindSlug))
   } else {
     const [collectionRow] = await db
       .select({ id: collection.id })
@@ -898,6 +925,7 @@ const loadStorefrontRows = cache(async () => {
     posts,
     testimonials,
     copyRows,
+    productKinds,
   ] = await Promise.all([
     db
       .select()
@@ -956,6 +984,10 @@ const loadStorefrontRows = cache(async () => {
       .where(eq(testimonial.status, "published"))
       .orderBy(asc(testimonial.sortOrder), asc(testimonial.name)),
     db.select().from(siteCopy),
+    db
+      .select()
+      .from(productKind)
+      .orderBy(asc(productKind.sortOrder), asc(productKind.slug)),
   ])
 
   return {
@@ -970,6 +1002,7 @@ const loadStorefrontRows = cache(async () => {
     posts,
     testimonials,
     copy: Object.fromEntries(copyRows.map((row) => [row.key, row.value])),
+    productKinds,
   }
 })
 
@@ -1004,6 +1037,10 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
   const collections = mapCollections(rows, locale).filter((item) => item.image)
   const homeCollections = mapHomeCollections(rows, locale, collections)
   const filterGroups = mapFilterGroups(rows, locale)
+  const productKinds = rows.productKinds.map((row) => ({
+    slug: row.slug,
+    label: textOf(row.label, locale, row.slug),
+  }))
   const featuredSource = rows.products.filter((row) => row.featured)
   const featuredRows = (featuredSource.length > 0 ? featuredSource : rows.products)
     .slice()
@@ -1021,6 +1058,7 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
     collections,
     homeCollections,
     filterGroups,
+    productKinds,
     blogPosts,
     testimonials: mapTestimonials(rows, locale, dict),
     hero: mapHero(rows, locale, dict),
@@ -1050,6 +1088,7 @@ export async function getStorefrontCatalogSlugs() {
 
   for (const item of rows.collections) slugs.add(item.slug)
   for (const item of rows.attributes) slugs.add(item.slug)
+  for (const item of rows.productKinds) slugs.add(catalogSlugForKind(item.slug))
 
   return [...slugs]
 }
@@ -1103,8 +1142,15 @@ export function catalogTitle(
   slug: string,
   collections: CollectionItem[],
   groups: CatalogFilterGroup[],
-  dict: Dictionary
+  dict: Dictionary,
+  kinds: { slug: string; label: string }[] = []
 ) {
+  const kindSlug = kindFromCatalogSlug(slug)
+  if (kindSlug && kindSlug !== "gown" && kindSlug !== "ao-dai") {
+    const kind = kinds.find((item) => item.slug === kindSlug)
+    if (kind) return kind.label
+  }
+
   const collection = findStorefrontCollection(collections, slug)
   if (collection) return collection.name
 
@@ -1132,8 +1178,11 @@ export function storefrontNav(
   nav: Dictionary["nav"],
   collections: CollectionItem[],
   products: CatalogProduct[],
-  groups: CatalogFilterGroup[]
-): Dictionary["nav"] {
+  groups: CatalogFilterGroup[],
+  kinds: { slug: string; label: string }[] = []
+): Dictionary["nav"] & {
+  kindMenus: { title: string; columns: Dictionary["nav"]["bridalColumns"] }[]
+} {
   const collectionColumns = collectionNavColumns(collections, nav.collection)
   const gownGroups = groups.filter((group) => (group.kind ?? "gown") === "gown")
   const aoDaiGroups = groups.filter((group) => group.kind === "ao-dai")
@@ -1198,6 +1247,30 @@ export function storefrontNav(
     return column
   })
 
+  const kindMenus = kinds
+    .filter((kind) => kind.slug !== "gown" && kind.slug !== "ao-dai")
+    .map((kind) => {
+      const kindGroups = groups.filter((group) => group.kind === kind.slug)
+      const allLink = {
+        label: kind.label,
+        href: catalogPathForKind(kind.slug),
+      }
+      const columns =
+        kindGroups.length === 0
+          ? [{ title: kind.label, links: [allLink] }]
+          : kindGroups.map((group, index) => ({
+              title: group.title,
+              links: [
+                ...(index === 0 ? [allLink] : []),
+                ...group.options.map((option) => ({
+                  label: option.label,
+                  href: `/catalog/${option.value}`,
+                })),
+              ],
+            }))
+      return { title: kind.label, columns }
+    })
+
   return {
     ...nav,
     homeColumns,
@@ -1208,6 +1281,7 @@ export function storefrontNav(
         ? [...bridalFromDb, ...extraBridal]
         : nav.bridalColumns,
     aodaiColumns: aoDaiGroups.length > 0 ? aodaiFromDb : nav.aodaiColumns,
+    kindMenus,
   }
 }
 

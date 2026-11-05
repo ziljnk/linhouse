@@ -55,18 +55,23 @@ const iconButtonClass = "inline-flex size-9 items-center justify-center"
 
 type MegaColumn = Dictionary["nav"]["homeColumns"][number]
 
-function navSections(nav: Dictionary["nav"]) {
+function navSections(
+  nav: Dictionary["nav"] & {
+    kindMenus?: { title: string; columns: MegaColumn[] }[]
+  }
+) {
   return [
     // { title: nav.newIn, columns: nav.homeColumns },
     { title: nav.collection, columns: nav.collectionColumns },
     { title: nav.bridal, columns: nav.bridalColumns },
     { title: nav.aodai, columns: nav.aodaiColumns },
+    ...(nav.kindMenus ?? []),
     { title: nav.services, columns: [{ title: nav.services, links: nav.serviceItems }] },
   ]
 }
 
 function isFeaturedNavLink(href: string) {
-  return href === "/catalog/all-gowns" || href === "/catalog/all-ao-dai"
+  return href.startsWith("/catalog/all-")
 }
 
 function MegaColumns({

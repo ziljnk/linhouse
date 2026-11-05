@@ -71,6 +71,13 @@
       "when": 1790300000000,
       "tag": "0009_collection_home_carousel",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1790400000000,
+      "tag": "0010_product_kinds",
+      "breakpoints": true
     }
   ]
 }

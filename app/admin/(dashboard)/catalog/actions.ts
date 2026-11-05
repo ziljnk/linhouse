@@ -1,6 +1,7 @@
 "use server"
 
-import { count, eq, inArray } from "drizzle-orm"
+import { count, eq, inArray, max } from "drizzle-orm"
+import { randomUUID } from "node:crypto"
 import {
   actionFail,
   actionOk,
@@ -17,21 +18,28 @@ import {
   diffFields,
   localizedChanges,
 } from "@/lib/admin-audit-shared"
-import { PRODUCT_KIND_LABELS } from "@/lib/admin-products"
+import { adminProductKindLabel } from "@/lib/admin-storefront"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { db } from "@/lib/db"
 import {
   attributeGroup,
   catalogAttribute,
+  product,
   productAttribute,
+  productKind,
 } from "@/lib/db/schema"
+import {
+  catalogPathForKind,
+  catalogSlugForKind,
+  isBuiltinProductKind,
+} from "@/lib/product-kinds"
 
 export type AttributeGroupInput = {
   slug: string
   labelVi: string
   labelEn?: string
   selection: "single" | "multiple"
-  kind?: "gown" | "ao-dai"
+  kind?: string
   sortOrder?: number
 }
 
@@ -59,13 +67,13 @@ const SELECTION_LABELS = {
   multiple: "Chọn nhiều",
 } as const
 
-function groupAuditChanges(
+async function groupAuditChanges(
   before: {
     slug: string
     labelVi: string
     labelEn: string
     selection: "single" | "multiple"
-    kind: "gown" | "ao-dai"
+    kind: string
     sortOrder: number
   } | null,
   after: {
@@ -73,7 +81,7 @@ function groupAuditChanges(
     labelVi: string
     labelEn: string
     selection: "single" | "multiple"
-    kind: "gown" | "ao-dai"
+    kind: string
     sortOrder: number
   }
 ) {
@@ -91,8 +99,8 @@ function groupAuditChanges(
     },
     {
       label: "Loại",
-      before: before ? PRODUCT_KIND_LABELS[before.kind] : "",
-      after: PRODUCT_KIND_LABELS[after.kind],
+      before: before ? await adminProductKindLabel(before.kind) : "",
+      after: await adminProductKindLabel(after.kind),
     },
     { label: "Thứ tự", before: before?.sortOrder ?? "", after: after.sortOrder },
   ])
@@ -135,6 +143,16 @@ async function groupLabel(id: string) {
   return row?.label.vi || row?.label.en || ""
 }
 
+async function requireAttributeKind(slug: string) {
+  const [row] = await db
+    .select({ slug: productKind.slug })
+    .from(productKind)
+    .where(eq(productKind.slug, slug))
+    .limit(1)
+  if (!row) return actionFail("Loại sản phẩm không tồn tại.")
+  return null
+}
+
 export async function createAttributeGroupAction(
   input: AttributeGroupInput
 ): Promise<ActionResult> {
@@ -142,6 +160,9 @@ export async function createAttributeGroupAction(
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên nhóm.")
   const slugResult = requireSlug(input.slug, "Slug nhóm")
   if (!slugResult.ok) return slugResult
+  const kind = input.kind ?? "gown"
+  const kindError = await requireAttributeKind(kind)
+  if (kindError) return kindError
 
   const [existing] = await db
     .select({ id: attributeGroup.id })
@@ -155,7 +176,7 @@ export async function createAttributeGroupAction(
     labelVi: input.labelVi.trim(),
     labelEn: input.labelEn?.trim() ?? "",
     selection: input.selection,
-    kind: input.kind ?? "gown",
+    kind,
     sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
   }
   await db.insert(attributeGroup).values({
@@ -170,7 +191,7 @@ export async function createAttributeGroupAction(
     area: "catalog",
     entityLabel: next.labelVi,
     summary: `Tạo nhóm danh mục ${next.labelVi}`,
-    changes: groupAuditChanges(null, next),
+    changes: await groupAuditChanges(null, next),
   })
   await revalidateAdmin(["/"])
   return actionOk()
@@ -184,6 +205,9 @@ export async function updateAttributeGroupAction(
   if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên nhóm.")
   const slugResult = requireSlug(input.slug, "Slug nhóm")
   if (!slugResult.ok) return slugResult
+  const kind = input.kind ?? "gown"
+  const kindError = await requireAttributeKind(kind)
+  if (kindError) return kindError
 
   const [existing] = await db
     .select({ id: attributeGroup.id })
@@ -203,7 +227,7 @@ export async function updateAttributeGroupAction(
     labelVi: input.labelVi.trim(),
     labelEn: input.labelEn?.trim() ?? "",
     selection: input.selection,
-    kind: input.kind ?? "gown",
+    kind,
     sortOrder: input.sortOrder ?? DEFAULT_SORT_ORDER,
   }
   await db
@@ -222,7 +246,7 @@ export async function updateAttributeGroupAction(
       area: "catalog",
       entityLabel: next.labelVi,
       summary: `Cập nhật nhóm danh mục ${next.labelVi}`,
-      changes: groupAuditChanges(
+      changes: await groupAuditChanges(
         {
           slug: current.slug,
           labelVi: current.label.vi,
@@ -416,5 +440,187 @@ export async function deleteCatalogAttributeAction(
     changes: deletedChange(name),
   })
   await revalidateAdmin(catalogAttributeStorefrontPaths([row?.slug]))
+  return actionOk()
+}
+
+export type ProductKindInput = {
+  labelVi: string
+  labelEn?: string
+  slug: string
+}
+
+function parseProductKindInput(input: ProductKindInput) {
+  if (!input.labelVi.trim()) return actionFail("Vui lòng nhập tên loại sản phẩm.")
+  const slugResult = requireSlug(input.slug, "Đường dẫn")
+  if (!slugResult.ok) return slugResult
+  if (slugResult.slug.length > 64) return actionFail("Đường dẫn quá dài.")
+  const catalogSlug = catalogSlugForKind(slugResult.slug)
+  if (
+    (catalogSlug === "all-gowns" && slugResult.slug !== "gown") ||
+    (catalogSlug === "all-ao-dai" && slugResult.slug !== "ao-dai")
+  ) {
+    return actionFail("Đường dẫn này trùng trang váy cưới hoặc áo dài.")
+  }
+  return actionOk({
+    slug: slugResult.slug,
+    label: toLocalized(input.labelVi, input.labelEn),
+    catalogSlug,
+  })
+}
+
+export async function createProductKindAction(
+  input: ProductKindInput
+): Promise<ActionResult<{ slug: string }>> {
+  const session = await requireUsableAdminSession()
+  const parsed = parseProductKindInput(input)
+  if (!parsed.ok) return parsed
+
+  const [existing] = await db
+    .select({ id: productKind.id })
+    .from(productKind)
+    .where(eq(productKind.slug, parsed.data.slug))
+    .limit(1)
+  if (existing) return actionFail("Đường dẫn loại sản phẩm đã tồn tại.")
+  if (await isCatalogSlugTaken(parsed.data.catalogSlug)) {
+    return actionFail("Đường dẫn đã dùng cho bộ sưu tập hoặc danh mục khác.")
+  }
+
+  const [last] = await db
+    .select({ value: max(productKind.sortOrder) })
+    .from(productKind)
+  const name = parsed.data.label.vi || parsed.data.label.en
+  await db.insert(productKind).values({
+    id: randomUUID(),
+    slug: parsed.data.slug,
+    label: parsed.data.label,
+    sortOrder: (last?.value ?? 0) + 1,
+  })
+  await recordAudit(session, {
+    action: "create",
+    area: "catalog",
+    entityLabel: name,
+    summary: `Tạo loại sản phẩm ${name}`,
+    changes: diffFields([
+      ...localizedChanges("Tên loại", null, parsed.data.label),
+      { label: "Đường dẫn", before: "", after: parsed.data.slug },
+    ]),
+  })
+  await revalidateAdmin(["/", catalogPathForKind(parsed.data.slug)])
+  return actionOk({ slug: parsed.data.slug })
+}
+
+export async function updateProductKindAction(
+  id: string,
+  input: ProductKindInput
+): Promise<ActionResult<{ slug: string }>> {
+  const session = await requireUsableAdminSession()
+  const parsed = parseProductKindInput(input)
+  if (!parsed.ok) return parsed
+
+  const [current] = await db
+    .select()
+    .from(productKind)
+    .where(eq(productKind.id, id))
+    .limit(1)
+  if (!current) return actionFail("Không tìm thấy loại sản phẩm.")
+
+  const nextSlug = isBuiltinProductKind(current.slug)
+    ? current.slug
+    : parsed.data.slug
+  const catalogSlug = catalogSlugForKind(nextSlug)
+  if (
+    (catalogSlug === "all-gowns" && nextSlug !== "gown") ||
+    (catalogSlug === "all-ao-dai" && nextSlug !== "ao-dai")
+  ) {
+    return actionFail("Đường dẫn này trùng trang váy cưới hoặc áo dài.")
+  }
+
+  const [existing] = await db
+    .select({ id: productKind.id })
+    .from(productKind)
+    .where(eq(productKind.slug, nextSlug))
+    .limit(1)
+  if (existing && existing.id !== id) {
+    return actionFail("Đường dẫn loại sản phẩm đã tồn tại.")
+  }
+  if (nextSlug !== current.slug && (await isCatalogSlugTaken(catalogSlug))) {
+    return actionFail("Đường dẫn đã dùng cho bộ sưu tập hoặc danh mục khác.")
+  }
+
+  const name = parsed.data.label.vi || parsed.data.label.en
+  await db.transaction(async (tx) => {
+    await tx
+      .update(productKind)
+      .set({ slug: nextSlug, label: parsed.data.label })
+      .where(eq(productKind.id, id))
+    if (nextSlug !== current.slug) {
+      await tx
+        .update(product)
+        .set({ kind: nextSlug })
+        .where(eq(product.kind, current.slug))
+      await tx
+        .update(attributeGroup)
+        .set({ kind: nextSlug })
+        .where(eq(attributeGroup.kind, current.slug))
+    }
+  })
+  await recordAudit(session, {
+    action: "update",
+    area: "catalog",
+    entityLabel: name,
+    summary: `Cập nhật loại sản phẩm ${name}`,
+    changes: diffFields([
+      ...localizedChanges("Tên loại", current.label, parsed.data.label),
+      { label: "Đường dẫn", before: current.slug, after: nextSlug },
+    ]),
+  })
+  await revalidateAdmin([
+    "/",
+    catalogPathForKind(current.slug),
+    catalogPathForKind(nextSlug),
+  ])
+  return actionOk({ slug: nextSlug })
+}
+
+export async function deleteProductKindAction(id: string): Promise<ActionResult> {
+  const session = await requireUsableAdminSession()
+  const [current] = await db
+    .select()
+    .from(productKind)
+    .where(eq(productKind.id, id))
+    .limit(1)
+  if (!current) return actionFail("Không tìm thấy loại sản phẩm.")
+
+  const [total] = await db.select({ value: count() }).from(productKind)
+  if (Number(total?.value ?? 0) <= 1) {
+    return actionFail("Cần giữ ít nhất một loại sản phẩm.")
+  }
+
+  const [productsUsing] = await db
+    .select({ value: count() })
+    .from(product)
+    .where(eq(product.kind, current.slug))
+  if (Number(productsUsing?.value ?? 0) > 0) {
+    return actionFail("Không xóa được loại đang có sản phẩm.")
+  }
+
+  const [groupsUsing] = await db
+    .select({ value: count() })
+    .from(attributeGroup)
+    .where(eq(attributeGroup.kind, current.slug))
+  if (Number(groupsUsing?.value ?? 0) > 0) {
+    return actionFail("Hãy xóa các nhóm danh mục của loại này trước.")
+  }
+
+  await db.delete(productKind).where(eq(productKind.id, id))
+  const name = current.label.vi || current.label.en || current.slug
+  await recordAudit(session, {
+    action: "delete",
+    area: "catalog",
+    entityLabel: name,
+    summary: `Xóa loại sản phẩm ${name}`,
+    changes: deletedChange(name),
+  })
+  await revalidateAdmin(["/", catalogPathForKind(current.slug)])
   return actionOk()
 }

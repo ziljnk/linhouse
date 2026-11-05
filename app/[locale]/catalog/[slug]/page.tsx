@@ -10,6 +10,7 @@ import {
   collectionGallery,
   filterGroupsForCatalogSlug,
 } from "@/lib/catalog"
+import { catalogSlugForKind } from "@/lib/product-kinds"
 import {
   catalogTitle,
   findStorefrontCollection,
@@ -46,7 +47,8 @@ export async function generateMetadata({
     slug,
     storefront.collections,
     storefront.filterGroups,
-    dict
+    dict,
+    storefront.productKinds
   )
 
   return withStorefrontSeo(locale, `/catalog/${slug}`, {
@@ -104,6 +106,7 @@ export default async function CatalogPage({
   }
 
   const knownSlug =
+    storefront.productKinds.some((item) => catalogSlugForKind(item.slug) === slug) ||
     slug === "all-gowns" ||
     slug === "all-ao-dai" ||
     storefront.filterGroups.some((group) =>
@@ -128,9 +131,14 @@ export default async function CatalogPage({
     slug,
     storefront.collections,
     storefront.filterGroups,
-    dict
+    dict,
+    storefront.productKinds
   )
-  const groups = filterGroupsForCatalogSlug(slug, storefront.filterGroups)
+  const groups = filterGroupsForCatalogSlug(
+    slug,
+    storefront.filterGroups,
+    storefront.productKinds
+  )
 
   return (
     <main className="overflow-x-clip bg-ivory">

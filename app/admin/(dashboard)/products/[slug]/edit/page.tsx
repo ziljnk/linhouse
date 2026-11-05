@@ -6,6 +6,7 @@ import {
   getAdminProduct,
   listAdminAttributeGroups,
   listAdminCollectionOptions,
+  listAdminProductKinds,
 } from "@/lib/admin-storefront"
 
 export const metadata = {
@@ -17,10 +18,11 @@ export default async function EditProductPage({
 }: PageProps<"/admin/products/[slug]/edit">) {
   const { slug } = await params
   await requireUsableAdminSession()
-  const [product, groups, collections] = await Promise.all([
+  const [product, groups, collections, kinds] = await Promise.all([
     getAdminProduct(slug),
     listAdminAttributeGroups(),
     listAdminCollectionOptions(),
+    listAdminProductKinds(),
   ])
 
   if (!product) notFound()
@@ -37,6 +39,7 @@ export default async function EditProductPage({
       <ProductForm
         groups={groups}
         collections={collections}
+        kinds={kinds}
         defaultValues={{
           id: product.id,
           name: product.name,

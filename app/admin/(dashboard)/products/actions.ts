@@ -20,8 +20,8 @@ import {
 } from "@/lib/admin-audit-shared"
 import {
   PRICE_DISPLAY_LABELS,
-  PRODUCT_KIND_LABELS,
   PRODUCT_PURCHASE_OPTION_LABELS,
+  productKindLabel,
 } from "@/lib/admin-products"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { db } from "@/lib/db"
@@ -33,6 +33,7 @@ import {
   productAttribute,
   productCollection,
   productImage,
+  productKind,
 } from "@/lib/db/schema"
 import type { PriceDisplay, ProductKind } from "@/lib/admin-products"
 import {
@@ -43,6 +44,7 @@ import {
   resolvePublishFields,
   type PublishIntent,
 } from "@/lib/content-schedule"
+import { catalogPathForKind } from "@/lib/product-kinds"
 import { sanitizePlainText } from "@/lib/sanitize-content"
 import { sanitizeMediaUrls } from "@/lib/sanitize-url"
 import { cleanupRemovedCmsImages } from "@/lib/cms-image-storage"
@@ -70,6 +72,32 @@ export type ProductInput = {
   seoDescriptionEn?: string
   seoKeywordsVi?: string
   seoKeywordsEn?: string
+}
+
+async function requireProductKind(slug: string | undefined) {
+  const kind = slug?.trim() || "gown"
+  const [row] = await db
+    .select({ slug: productKind.slug, label: productKind.label })
+    .from(productKind)
+    .where(eq(productKind.slug, kind))
+    .limit(1)
+  if (!row) return actionFail("Loại sản phẩm không tồn tại.")
+  return actionOk({
+    slug: row.slug,
+    label: row.label.vi || row.label.en || productKindLabel(row.slug),
+  })
+}
+
+async function kindLabelMap() {
+  const rows = await db
+    .select({ slug: productKind.slug, label: productKind.label })
+    .from(productKind)
+  return Object.fromEntries(
+    rows.map((row) => [
+      row.slug,
+      row.label.vi || row.label.en || productKindLabel(row.slug),
+    ])
+  )
 }
 
 async function nextSortNumber() {
@@ -138,10 +166,6 @@ async function replaceJoins(
     previous.map((row) => row.url),
     imageUrls
   )
-}
-
-function catalogPathForKind(kind: ProductKind) {
-  return kind === "ao-dai" ? "/catalog/all-ao-dai" : "/catalog/all-gowns"
 }
 
 function productStorefrontPaths(input: {
@@ -269,7 +293,8 @@ function sortedLabels(values: string[]) {
 
 function productAuditChanges(
   before: ProductAuditSnapshot | null,
-  after: ProductAuditSnapshot
+  after: ProductAuditSnapshot,
+  kindLabels: Record<string, string>
 ) {
   return diffFields([
     { label: "Tên", before: before?.name ?? "", after: after.name },
@@ -284,8 +309,8 @@ function productAuditChanges(
     },
     {
       label: "Loại",
-      before: before ? PRODUCT_KIND_LABELS[before.kind] : "",
-      after: PRODUCT_KIND_LABELS[after.kind],
+      before: before ? (kindLabels[before.kind] ?? productKindLabel(before.kind)) : "",
+      after: kindLabels[after.kind] ?? productKindLabel(after.kind),
     },
     {
       label: "Mẫu cũ",
@@ -422,7 +447,9 @@ export async function createProductAction(
   })
   if (!publish.ok) return publish
 
-  const kind = input.kind ?? "gown"
+  const kindResult = await requireProductKind(input.kind)
+  if (!kindResult.ok) return kindResult
+  const kind = kindResult.data.slug
   const sortNumber = await nextSortNumber()
   const name = sanitizePlainText(input.name)
   const values = {
@@ -465,12 +492,16 @@ export async function createProductAction(
     area: "product",
     entityLabel: name,
     summary: `Tạo sản phẩm ${name}`,
-    changes: productAuditChanges(null, {
-      ...values,
-      imageUrls: parsed.imageUrls,
-      attributeLabels: await attributeLabels(attributeIds),
-      collectionNames: await collectionNames(collectionIds),
-    }),
+    changes: productAuditChanges(
+      null,
+      {
+        ...values,
+        imageUrls: parsed.imageUrls,
+        attributeLabels: await attributeLabels(attributeIds),
+        collectionNames: await collectionNames(collectionIds),
+      },
+      await kindLabelMap()
+    ),
   }))
   await revalidateAdmin(
     productStorefrontPaths({
@@ -508,7 +539,9 @@ export async function updateProductAction(
   if (!publish.ok) return publish
 
   const previous = await loadProductStorefrontContext([id])
-  const kind = input.kind ?? "gown"
+  const kindResult = await requireProductKind(input.kind)
+  if (!kindResult.ok) return kindResult
+  const kind = kindResult.data.slug
   const attributeIds = await attributeIdsForKind(input.attributeIds ?? [], kind)
   const collectionIds = input.collectionIds ?? []
   const catalogSlugs = await catalogSlugsForIds(collectionIds, attributeIds)
@@ -542,12 +575,16 @@ export async function updateProductAction(
       area: "product",
       entityLabel: name,
       summary: `Cập nhật sản phẩm ${name}`,
-      changes: productAuditChanges(current, {
-        ...values,
-        imageUrls: parsed.imageUrls,
-        attributeLabels: await attributeLabels(attributeIds),
-        collectionNames: await collectionNames(collectionIds),
-      }),
+      changes: productAuditChanges(
+        current,
+        {
+          ...values,
+          imageUrls: parsed.imageUrls,
+          attributeLabels: await attributeLabels(attributeIds),
+          collectionNames: await collectionNames(collectionIds),
+        },
+        await kindLabelMap()
+      ),
     }))
   }
   await revalidateAdmin(
