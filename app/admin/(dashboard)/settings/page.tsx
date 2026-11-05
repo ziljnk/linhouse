@@ -1,5 +1,6 @@
 import { ChangePasswordForm } from "@/components/admin/change-password-form"
 import { SettingsForm } from "@/components/admin/settings-form"
+import { ShareLinkCard } from "@/components/admin/share-link-card"
 import { requireUsableAdminSession } from "@/lib/admin-session"
 import { getSiteSettings } from "@/lib/site-settings-store"
 
@@ -19,6 +20,7 @@ export default async function AdminSettingsPage() {
           Tài khoản đăng nhập và thông tin hiển thị trên website.
         </p>
       </div>
+      <ShareLinkCard />
       <ChangePasswordForm email={session.user.email} />
       <SettingsForm defaultValues={settings} />
     </div>

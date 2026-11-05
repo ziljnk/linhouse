@@ -5,10 +5,11 @@ import { and, count, desc, eq, gte } from "drizzle-orm"
 import { countryCodeHintVi, countryLabelVi } from "@/lib/country-labels"
 import { db } from "@/lib/db"
 import { analyticsPageview, blogPost, product } from "@/lib/db/schema"
-import type {
-  AnalyticsOverview,
-  AnalyticsRange,
-  AnalyticsRankItem,
+import {
+  analyticsReferrerLabel,
+  type AnalyticsOverview,
+  type AnalyticsRange,
+  type AnalyticsRankItem,
 } from "@/lib/admin-analytics"
 
 const DEVICE_LABELS: Record<string, string> = {
@@ -176,10 +177,7 @@ export async function getAnalyticsOverview(
     })),
     referrers: referrers.map((row) => ({
       key: row.referrerHost,
-      label:
-        row.referrerHost === "(direct)"
-          ? "Truy cập trực tiếp"
-          : row.referrerHost,
+      label: analyticsReferrerLabel(row.referrerHost),
       views: row.views,
     })),
     devices: devices.map((row) => ({
