@@ -38,8 +38,10 @@ import {
 } from "@/lib/shipping-policy-sections"
 import { cn } from "@/lib/utils"
 import { HomeCarouselCard } from "@/components/admin/home-carousel-card"
+import { HomeProductCarouselCard } from "@/components/admin/home-product-carousel-card"
 import { HeroSection } from "@/components/hero-section"
 import type { HomeCarouselEditorData } from "@/lib/home-carousel"
+import type { HomeProductCarouselEditorData } from "@/lib/home-product-carousels"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -88,11 +90,13 @@ export function SiteContentForm({
   defaultValues,
   defaults,
   homeCarousel,
+  productCarousels,
 }: {
   sections: ContentSection[]
   defaultValues: Record<string, ContentPair>
   defaults: Record<string, ContentPair>
   homeCarousel: HomeCarouselEditorData
+  productCarousels: HomeProductCarouselEditorData
 }) {
   const router = useRouter()
   const [values, setValues] = useState(() => cloneValues(defaultValues))
@@ -117,7 +121,11 @@ export function SiteContentForm({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const active = document.activeElement
-    if (active instanceof HTMLElement && active.closest("[data-home-carousel]")) {
+    if (
+      active instanceof HTMLElement &&
+      (active.closest("[data-home-carousel]") ||
+        active.closest("[data-home-product-carousel]"))
+    ) {
       return
     }
     setPending(true)
@@ -276,6 +284,17 @@ export function SiteContentForm({
                   </div>
                   {section.id === "home" && group.title === "Bộ sưu tập" ? (
                     <HomeCarouselCard key={homeCarousel.version} editor={homeCarousel} />
+                  ) : null}
+                  {section.id === "home" && group.title === "Đặt hàng từ nước ngoài" ? (
+                    <div className="flex flex-col gap-4">
+                      {productCarousels.carousels.map((carousel) => (
+                        <HomeProductCarouselCard
+                          key={`${carousel.slot}-${carousel.version}`}
+                          carousel={carousel}
+                          products={productCarousels.products}
+                        />
+                      ))}
+                    </div>
                   ) : null}
                   {section.id === "about" && group.title === "Hành trình" ? (
                     <AboutMilestonesEditor

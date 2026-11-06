@@ -40,6 +40,7 @@ import {
   catalogAttribute,
   collection,
   collectionImage,
+  homeProductCarouselItem,
   product,
   productAttribute,
   productCollection,
@@ -48,6 +49,10 @@ import {
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
+import {
+  HOME_PRODUCT_CAROUSEL_SLOTS,
+  homeProductCarouselTitleKey,
+} from "@/lib/home-product-carousels"
 import { decodeStoredPlainText } from "@/lib/sanitize-content"
 import { isSearchableQuery, normalizeSearchQuery } from "@/lib/search-query"
 import { getSiteSettings } from "@/lib/site-settings-store"
@@ -762,6 +767,32 @@ function mapCollections(rows: StorefrontRows, locale: Locale): CollectionItem[] 
   })
 }
 
+function mapHomeProductCarousels(
+  rows: StorefrontRows,
+  locale: Locale,
+  products: CatalogProduct[]
+) {
+  const productBySlug = new Map(products.map((item) => [productSlug(item), item]))
+  const slugById = new Map(rows.products.map((row) => [row.id, row.slug]))
+
+  return HOME_PRODUCT_CAROUSEL_SLOTS.map((slot) => ({
+    slot,
+    title: copyText(rows.copy[homeProductCarouselTitleKey(slot)], locale, ""),
+    products: rows.productCarouselItems
+      .filter((item) => Number(item.slot) === slot)
+      .slice()
+      .sort(
+        (a, b) =>
+          a.sortOrder - b.sortOrder || a.productId.localeCompare(b.productId)
+      )
+      .flatMap((item) => {
+        const slug = slugById.get(item.productId)
+        const product = slug ? productBySlug.get(slug) : undefined
+        return product?.image ? [product] : []
+      }),
+  }))
+}
+
 function mapHomeCollections(
   rows: StorefrontRows,
   locale: Locale,
@@ -926,6 +957,7 @@ const loadStorefrontRows = cache(async () => {
     testimonials,
     copyRows,
     productKinds,
+    productCarouselItems,
   ] = await Promise.all([
     db
       .select()
@@ -988,6 +1020,18 @@ const loadStorefrontRows = cache(async () => {
       .select()
       .from(productKind)
       .orderBy(asc(productKind.sortOrder), asc(productKind.slug)),
+    db
+      .select({
+        slot: homeProductCarouselItem.slot,
+        productId: homeProductCarouselItem.productId,
+        sortOrder: homeProductCarouselItem.sortOrder,
+      })
+      .from(homeProductCarouselItem)
+      .orderBy(
+        asc(homeProductCarouselItem.slot),
+        asc(homeProductCarouselItem.sortOrder),
+        asc(homeProductCarouselItem.productId)
+      ),
   ])
 
   return {
@@ -1003,6 +1047,7 @@ const loadStorefrontRows = cache(async () => {
     testimonials,
     copy: Object.fromEntries(copyRows.map((row) => [row.key, row.value])),
     productKinds,
+    productCarouselItems,
   }
 })
 
@@ -1051,10 +1096,12 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
     formats
   ).filter((item) => item.image)
   const blogPosts = mapBlogPosts(rows, locale)
+  const productCarousels = mapHomeProductCarousels(rows, locale, products)
 
   return {
     products,
     featuredProducts,
+    productCarousels,
     collections,
     homeCollections,
     filterGroups,

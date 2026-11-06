@@ -248,6 +248,27 @@ export const productCollection = mysqlTable(
   ]
 )
 
+export const homeProductCarouselItem = mysqlTable(
+  "home_product_carousel_item",
+  {
+    slot: int("slot").notNull(),
+    productId: uuidColumn("product_id").notNull(),
+    sortOrder: int("sort_order").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({
+      name: "home_product_carousel_item_pkey",
+      columns: [table.slot, table.productId],
+    }),
+    index("home_product_carousel_item_slot_sort_idx").on(table.slot, table.sortOrder),
+    foreignKey({
+      name: "home_product_carousel_item_product_id_fkey",
+      columns: [table.productId],
+      foreignColumns: [product.id],
+    }).onDelete("cascade"),
+  ]
+)
+
 export const blogCategory = mysqlTable("blog_category", {
   id: uuidPk(),
   slug: slug().notNull().unique("blog_category_slug_key"),
@@ -393,7 +414,18 @@ export const productRelations = relations(product, ({ many }) => ({
   attributes: many(productAttribute),
   collections: many(productCollection),
   testimonials: many(testimonial),
+  homeCarouselItems: many(homeProductCarouselItem),
 }))
+
+export const homeProductCarouselItemRelations = relations(
+  homeProductCarouselItem,
+  ({ one }) => ({
+    product: one(product, {
+      fields: [homeProductCarouselItem.productId],
+      references: [product.id],
+    }),
+  })
+)
 
 export const productImageRelations = relations(productImage, ({ one }) => ({
   product: one(product, {

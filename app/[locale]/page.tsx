@@ -5,6 +5,7 @@ import { BlogSection } from "@/components/blog-section"
 import { CollectionSection } from "@/components/collection-section"
 import { FeaturedProducts } from "@/components/featured-products"
 import { HeroSection } from "@/components/hero-section"
+import { HomeProductCarousels } from "@/components/home-product-carousels"
 import { TestimonialSection } from "@/components/testimonial-section"
 import { JsonLd } from "@/components/json-ld"
 import { getStorefront, getStorefrontContact } from "@/lib/storefront"
@@ -69,6 +70,11 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
         />
       ) : null}
       <AboutSection copy={storefront.about} />
+      <HomeProductCarousels
+        carousels={storefront.productCarousels}
+        locale={locale}
+        contactLabel={dict.products.contact}
+      />
       {storefront.testimonials.items.length > 0 ? (
         <TestimonialSection locale={locale} copy={storefront.testimonials} />
       ) : null}

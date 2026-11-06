@@ -645,7 +645,7 @@ export function contentModel() {
       id: "home",
       title: "Trang chủ",
       description:
-        "Banner, tiêu đề các section và phần đặt hàng từ nước ngoài. Có thể tải ảnh banner. Tiêu đề câu chuyện cô dâu sửa ở trang Câu chuyện cô dâu.",
+        "Banner, tiêu đề các section và phần đặt hàng từ nước ngoài. Hai carousel sản phẩm nằm giữa phần bốn bước và Kinh nghiệm cưới. Có thể tải ảnh banner. Tiêu đề câu chuyện cô dâu sửa ở trang Câu chuyện cô dâu.",
       fields: [
         field("home.headline", "Tiêu đề lớn", { group: "Banner", maxLength: MEDIUM }),
         field("home.subhead", "Tiêu đề phụ", { group: "Banner", maxLength: MEDIUM }),
