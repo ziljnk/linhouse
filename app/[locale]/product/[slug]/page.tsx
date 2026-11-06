@@ -9,6 +9,7 @@ import {
   getStorefrontProductSlugs,
   seoKeywordList,
 } from "@/lib/storefront"
+import { productShareDescription } from "@/lib/product-url"
 import { withStorefrontSeo } from "@/lib/storefront-metadata"
 import { productStructuredData } from "@/lib/structured-data"
 import { getDictionary, hasLocale } from "../../dictionaries"
@@ -38,7 +39,11 @@ export async function generateMetadata({
   const title = product.seoTitle || productTitle(product)
   return withStorefrontSeo(locale, `/product/${slug}`, {
     title: `${title} | LINHouse`,
-    description: product.seoDescription || productTitle(product),
+    description: productShareDescription({
+      seoDescription: product.seoDescription,
+      description: product.description,
+      title: productTitle(product),
+    }),
     keywords: seoKeywordList(product.seoKeywords),
     image: product.image,
     imageAlt: title,

@@ -74,7 +74,8 @@ export function BlogPostCard({
             />
           </div>
           <div className="absolute top-1/2 right-0 z-10 flex min-h-[78%] w-[66%] -translate-y-1/2 flex-col bg-white px-3 py-3.5 sm:px-3.5 sm:py-4">
-            <h3 className="font-heading line-clamp-3 text-base leading-snug font-medium text-charcoal">
+            {/* Six lines fill the overlay gap. Longer titles still clamp, so Read more stays put. */}
+            <h3 className="font-heading line-clamp-6 text-base leading-snug font-medium text-charcoal">
               {post.title}
             </h3>
             {post.date ? (
