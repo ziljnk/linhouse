@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Check } from "lucide-react"
 import type { Dictionary, Locale } from "@/app/[locale]/dictionaries"
 import { ProductBookingCta } from "@/components/product-booking-cta"
+import { ProductCopyLink } from "@/components/product-copy-link"
 import { ProductFavoriteCta } from "@/components/product-favorite-cta"
 import { ProductGallery } from "@/components/product-gallery"
 import { ProductSuggestions } from "@/components/product-suggestions"
@@ -21,6 +22,7 @@ import {
   type CatalogProduct,
   type CollectionItem,
 } from "@/lib/catalog"
+import { productCanonicalUrl } from "@/lib/product-url"
 
 function interpolate(
   template: string,
@@ -199,7 +201,22 @@ export function ProductDetail({
             ) : null}
           </dl>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <ProductCopyLink
+            url={productCanonicalUrl(locale, productSlug(product))}
+            tooltip={copy.copyLink}
+            label={copy.copyLinkLabel}
+            copied={copy.copyLinkCopied}
+            failed={copy.copyLinkFailed}
+            beside={
+              <ProductFavoriteCta
+                slug={productSlug(product)}
+                name={productTitle(product)}
+                image={product.image}
+                addLabel={copy.addToWishlist}
+                removeLabel={copy.removeFromWishlist}
+              />
+            }
+          >
             <ProductBookingCta
               label={copy.book}
               locale={locale}
@@ -212,14 +229,7 @@ export function ProductDetail({
                 name: productTitle(product),
               }}
             />
-            <ProductFavoriteCta
-              slug={productSlug(product)}
-              name={productTitle(product)}
-              image={product.image}
-              addLabel={copy.addToWishlist}
-              removeLabel={copy.removeFromWishlist}
-            />
-          </div>
+          </ProductCopyLink>
 
           <section className="mt-12">
             <h2 className="text-[11px] tracking-[0.18em] text-gold uppercase">
