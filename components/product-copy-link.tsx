@@ -109,7 +109,7 @@ export function ProductCopyLink({
       onClick={() => {
         void onCopy()
       }}
-      className="inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-charcoal/80 text-charcoal transition-colors hover:bg-charcoal hover:text-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy motion-reduce:transition-none"
+      className="inline-flex size-12 shrink-0 items-center justify-center rounded-none border border-charcoal/80 text-charcoal transition-colors hover:bg-charcoal hover:text-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-burgundy motion-reduce:transition-none"
     >
       {icon}
     </button>
