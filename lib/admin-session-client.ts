@@ -1,26 +1,23 @@
 "use client"
 
 import { authClient } from "@/lib/auth-client"
-import { AdminSessionExpiredError } from "@/lib/persist-admin-images"
+import {
+  interpretSessionProbe,
+  isLoginRedirect,
+  isUnauthenticatedAdminError,
+} from "@/lib/admin-request-errors"
+
+export { isLoginRedirect }
 
 export async function hasActiveAdminSession() {
   try {
-    const { data, error } = await authClient.getSession()
-    if (error) return true
-    return Boolean(data?.session)
-  } catch {
-    return true
+    const result = await authClient.getSession()
+    return interpretSessionProbe(result) !== "anonymous"
+  } catch (error) {
+    return interpretSessionProbe(null, error) !== "anonymous"
   }
-}
-
-export function isLoginRedirect(error: unknown) {
-  if (typeof error !== "object" || error === null || !("digest" in error)) {
-    return false
-  }
-  const digest = String((error as { digest?: unknown }).digest ?? "")
-  return digest.includes("NEXT_REDIRECT") && digest.includes("/admin/login")
 }
 
 export function isSessionExpiredFailure(error: unknown) {
-  return isLoginRedirect(error) || error instanceof AdminSessionExpiredError
+  return isUnauthenticatedAdminError(error)
 }

@@ -41,6 +41,8 @@ import {
 import { isBuiltinProductKind } from "@/lib/product-kinds"
 import { nextAutoSlug, slugify } from "@/lib/slug"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
+import { ADMIN_SERVER_BUSY_MESSAGE } from "@/lib/admin-request-errors"
 
 const SELECTION_OPTIONS = [
   { value: "single", label: "Chọn một" },
@@ -239,9 +241,16 @@ export function CatalogManager({
       kind: groupDraft.kind,
       sortOrder: Number(groupDraft.sortOrder) || 0,
     }
-    const result = groupDraft.id
-      ? await updateAttributeGroupAction(groupDraft.id, payload)
-      : await createAttributeGroupAction(payload)
+    const result = await runCatalogMutation(
+      () =>
+        groupDraft.id
+          ? updateAttributeGroupAction(groupDraft.id, payload)
+          : createAttributeGroupAction(payload),
+      () => {
+        void saveGroup()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)
@@ -264,9 +273,16 @@ export function CatalogManager({
       labelEn: attributeDraft.labelEn,
       sortOrder: Number(attributeDraft.sortOrder) || 0,
     }
-    const result = attributeDraft.id
-      ? await updateCatalogAttributeAction(attributeDraft.id, payload)
-      : await createCatalogAttributeAction(payload)
+    const result = await runCatalogMutation(
+      () =>
+        attributeDraft.id
+          ? updateCatalogAttributeAction(attributeDraft.id, payload)
+          : createCatalogAttributeAction(payload),
+      () => {
+        void saveAttribute()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)
@@ -282,7 +298,13 @@ export function CatalogManager({
     if (!deleteGroupId) return
     setPending(true)
     setError(null)
-    const result = await deleteAttributeGroupAction(deleteGroupId)
+    const result = await runCatalogMutation(
+      () => deleteAttributeGroupAction(deleteGroupId),
+      () => {
+        void confirmDeleteGroup()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)
@@ -298,7 +320,13 @@ export function CatalogManager({
     if (!deleteAttributeId) return
     setPending(true)
     setError(null)
-    const result = await deleteCatalogAttributeAction(deleteAttributeId)
+    const result = await runCatalogMutation(
+      () => deleteCatalogAttributeAction(deleteAttributeId),
+      () => {
+        void confirmDeleteAttribute()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)
@@ -315,6 +343,29 @@ export function CatalogManager({
 
   const kindLabel = (slug: string) =>
     kinds.find((item) => item.slug === slug)?.label ?? productKindLabel(slug)
+
+  async function runCatalogMutation<T extends { ok: boolean }>(
+    work: () => Promise<T>,
+    retry: () => void
+  ) {
+    try {
+      return await work()
+    } catch (error) {
+      const outcome = reportAdminFailure(error, {
+        fallback: "Không lưu được.",
+        onRetry: retry,
+      })
+      setPending(false)
+      setError(
+        outcome === "busy"
+          ? ADMIN_SERVER_BUSY_MESSAGE
+          : outcome === "unauthenticated"
+            ? "Phiên đăng nhập đã hết hạn."
+            : "Không lưu được."
+      )
+      return undefined
+    }
+  }
 
   const activeKind = kinds.find((item) => item.slug === kindTab) ?? null
 
@@ -354,9 +405,16 @@ export function CatalogManager({
       labelVi: kindDraft.labelVi,
       labelEn: kindDraft.labelEn,
     }
-    const result = kindDraft.id
-      ? await updateProductKindAction(kindDraft.id, payload)
-      : await createProductKindAction(payload)
+    const result = await runCatalogMutation(
+      () =>
+        kindDraft.id
+          ? updateProductKindAction(kindDraft.id, payload)
+          : createProductKindAction(payload),
+      () => {
+        void saveKind()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)
@@ -373,7 +431,13 @@ export function CatalogManager({
     if (!deleteKindId) return
     setPending(true)
     setError(null)
-    const result = await deleteProductKindAction(deleteKindId)
+    const result = await runCatalogMutation(
+      () => deleteProductKindAction(deleteKindId),
+      () => {
+        void confirmDeleteKind()
+      }
+    )
+    if (!result) return
     setPending(false)
     if (!result.ok) {
       setError(result.error)

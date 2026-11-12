@@ -6,6 +6,7 @@ import { Languages, Loader2 } from "lucide-react"
 import { saveTestimonialAction } from "@/app/admin/(dashboard)/testimonials/actions"
 import { translateViToEnAction } from "@/app/admin/(dashboard)/translate/actions"
 import { persistUploadedImages } from "@/lib/persist-admin-images"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -180,9 +181,17 @@ export function TestimonialForm({
       }
       router.refresh()
     } catch (error) {
-      setFormError(
-        error instanceof Error ? error.message : "Không lưu được câu chuyện."
-      )
+      const outcome = reportAdminFailure(error, {
+        fallback: "Không lưu được câu chuyện.",
+        onRetry: () => {
+          void handleSubmit(event)
+        },
+      })
+      if (outcome === "other") {
+        setFormError(
+          error instanceof Error ? error.message : "Không lưu được câu chuyện."
+        )
+      }
     } finally {
       setPending(false)
     }

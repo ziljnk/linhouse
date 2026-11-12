@@ -9,6 +9,7 @@ import {
   validatePasswordChange,
 } from "@/lib/admin-password"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { Button } from "@/components/ui/button"
 import {
   InputGroup,
@@ -164,10 +165,16 @@ export function ChangePasswordForm({
       }
 
       router.refresh()
-    } catch {
-      const message = "Không thể đổi mật khẩu. Vui lòng thử lại."
-      setError(message)
-      toastError(message)
+    } catch (error) {
+      const outcome = reportAdminFailure(error, {
+        fallback: "Không thể đổi mật khẩu. Vui lòng thử lại.",
+        onRetry: () => {
+          void handleSubmit(event)
+        },
+      })
+      if (outcome === "other") {
+        setError("Không thể đổi mật khẩu. Vui lòng thử lại.")
+      }
     } finally {
       setIsPending(false)
     }

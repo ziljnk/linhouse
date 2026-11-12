@@ -1,4 +1,6 @@
 import type { UploadedImage } from "@/components/admin/image-uploader"
+import { compressAdminImage } from "@/lib/admin-image-compress"
+import { ADMIN_SERVER_BUSY_MESSAGE, isBusyHttpStatus } from "@/lib/admin-request-errors"
 import type { CmsImageType } from "@/lib/cms-image"
 import { parseCmsStorageKey } from "@/lib/cms-image"
 
@@ -9,13 +11,35 @@ export class AdminSessionExpiredError extends Error {
   }
 }
 
+export class AdminServerBusyError extends Error {
+  constructor() {
+    super(ADMIN_SERVER_BUSY_MESSAGE)
+    this.name = "AdminServerBusyError"
+  }
+}
+
 const UPLOAD_ATTEMPTS = 3
 const RETRY_DELAYS_MS = [1000, 3000]
-const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504, 524])
+const RETRYABLE_STATUSES = new Set([429, 500])
 
 type UploadPayload = {
   storageKey?: string
   error?: string
+}
+
+type UploadListener = (imageId: string | null) => void
+
+const uploadListeners = new Set<UploadListener>()
+
+export function subscribeAdminUploadProgress(listener: UploadListener) {
+  uploadListeners.add(listener)
+  return () => {
+    uploadListeners.delete(listener)
+  }
+}
+
+function emitUploadProgress(imageId: string | null) {
+  for (const listener of uploadListeners) listener(imageId)
 }
 
 class ImageUploadError extends Error {
@@ -45,21 +69,21 @@ async function postImageFile(file: File, type: CmsImageType) {
       method: "POST",
       body,
     })
-  } catch (error) {
-    throw new ImageUploadError(
-      error instanceof Error ? error.message : "Không tải được ảnh lên máy chủ.",
-      true
-    )
+  } catch {
+    throw new AdminServerBusyError()
   }
+
+  if (isBusyHttpStatus(response.status)) throw new AdminServerBusyError()
 
   let payload: UploadPayload = {}
   try {
     payload = (await response.json()) as UploadPayload
   } catch {
     if (response.status === 401) throw new AdminSessionExpiredError()
+    if (response.status >= 500 || response.status === 408) throw new AdminServerBusyError()
     throw new ImageUploadError(
       "Không tải được ảnh lên máy chủ.",
-      RETRYABLE_STATUSES.has(response.status) || response.status >= 500
+      RETRYABLE_STATUSES.has(response.status)
     )
   }
 
@@ -76,6 +100,7 @@ async function postImageFile(file: File, type: CmsImageType) {
 }
 
 async function uploadImageFile(file: File, type: CmsImageType) {
+  const prepared = await compressAdminImage(file)
   let lastError: Error | undefined
 
   for (let attempt = 0; attempt < UPLOAD_ATTEMPTS; attempt += 1) {
@@ -84,9 +109,10 @@ async function uploadImageFile(file: File, type: CmsImageType) {
     }
 
     try {
-      return await postImageFile(file, type)
+      return await postImageFile(prepared, type)
     } catch (error) {
       if (error instanceof AdminSessionExpiredError) throw error
+      if (error instanceof AdminServerBusyError) throw error
       const normalized =
         error instanceof ImageUploadError
           ? error
@@ -112,13 +138,18 @@ export async function persistUploadedImages(
 ) {
   const stored: string[] = []
 
-  for (const image of images) {
-    if (!image.file) {
-      stored.push(parseCmsStorageKey(image.url) ?? image.url)
-      continue
-    }
+  try {
+    for (const image of images) {
+      if (!image.file) {
+        stored.push(parseCmsStorageKey(image.url) ?? image.url)
+        continue
+      }
 
-    stored.push(await uploadImageFile(image.file, type))
+      emitUploadProgress(image.id)
+      stored.push(await uploadImageFile(image.file, type))
+    }
+  } finally {
+    emitUploadProgress(null)
   }
 
   return stored

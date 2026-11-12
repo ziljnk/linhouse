@@ -12,6 +12,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import type { PageSeoFields, StaticPageSeoEditorPage } from "@/lib/page-seo"
 
 function isCustomized(value: PageSeoFields) {
@@ -28,13 +29,20 @@ export function PageSeoForm({ pages }: { pages: StaticPageSeoEditorPage[] }) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     startTransition(async () => {
-      const result = await saveStaticPageSeoAction(values)
-      if (!result.ok) {
-        toastError(result.error)
-        return
+      try {
+        const result = await saveStaticPageSeoAction(values)
+        if (!result.ok) {
+          toastError(result.error)
+          return
+        }
+        toastSuccess("Đã lưu thẻ SEO.")
+        router.refresh()
+      } catch (error) {
+        reportAdminFailure(error, {
+          fallback: "Không lưu được thẻ SEO.",
+          onRetry: () => handleSubmit(event),
+        })
       }
-      toastSuccess("Đã lưu thẻ SEO.")
-      router.refresh()
     })
   }
 

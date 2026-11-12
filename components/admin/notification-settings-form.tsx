@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import {
   MAX_NOTIFICATION_EMAILS,
   validateNotificationEmails,
@@ -52,24 +53,31 @@ export function NotificationSettingsForm({
     }
 
     startTransition(async () => {
-      const response = await saveNotificationEmailsAction(result.data)
-      if (!response.ok) {
-        toastError(response.error)
-        return
-      }
+      try {
+        const response = await saveNotificationEmailsAction(result.data)
+        if (!response.ok) {
+          toastError(response.error)
+          return
+        }
 
-      setEmails(
-        result.data.length > 0
-          ? result.data.map((value) => createRow(value))
-          : [createRow()]
-      )
-      toastSuccess(
-        "Đã lưu cài đặt thông báo.",
-        result.data.length > 0
-          ? `Thông báo đặt lịch sẽ gửi tới ${result.data.length} email.`
-          : `Chưa có email nhận thông báo. Hệ thống sẽ gửi tới ${fallbackEmail}.`
-      )
-      router.refresh()
+        setEmails(
+          result.data.length > 0
+            ? result.data.map((value) => createRow(value))
+            : [createRow()]
+        )
+        toastSuccess(
+          "Đã lưu cài đặt thông báo.",
+          result.data.length > 0
+            ? `Thông báo đặt lịch sẽ gửi tới ${result.data.length} email.`
+            : `Chưa có email nhận thông báo. Hệ thống sẽ gửi tới ${fallbackEmail}.`
+        )
+        router.refresh()
+      } catch (error) {
+        reportAdminFailure(error, {
+          fallback: "Không lưu được cài đặt thông báo.",
+          onRetry: () => handleSubmit(event),
+        })
+      }
     })
   }
 

@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { saveTestimonialsSectionAction } from "@/app/admin/(dashboard)/testimonials/actions"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -51,9 +52,12 @@ export function TestimonialsSectionForm({
       toastSuccess("Đã lưu tiêu đề.")
       router.refresh()
     } catch (error) {
-      toastError(
-        error instanceof Error ? error.message : "Không lưu được tiêu đề."
-      )
+      reportAdminFailure(error, {
+        fallback: "Không lưu được tiêu đề.",
+        onRetry: () => {
+          void handleSubmit(event)
+        },
+      })
     } finally {
       setPending(false)
     }

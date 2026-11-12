@@ -5,12 +5,16 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { Calendar as CalendarIcon, CircleAlert, ImagePlus, RefreshCcw, Trash2 } from "lucide-react"
 import { savePromotionPopupAction } from "@/app/admin/(dashboard)/promotions/actions"
-import { AdminSessionExpiredError, persistUploadedImages } from "@/lib/persist-admin-images"
+import { persistUploadedImages } from "@/lib/persist-admin-images"
+import { compressAdminImage } from "@/lib/admin-image-compress"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { cmsImageDisplaySrc } from "@/lib/cms-image"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { detectImageTypeFromBytes, readFileHeader } from "@/lib/image-file"
 import {
   PROMOTION_IMAGE_TOO_LARGE_MESSAGE,
   PROMOTION_IMAGE_TYPE_MESSAGE,
+  PROMOTION_IMAGE_TYPES,
   parsePromotionLink,
   promotionDateOrderError,
   promotionImageErrorMessage,
@@ -106,7 +110,16 @@ export function PromotionPopupForm({ initial }: { initial: PromotionPopupRecord 
 
   const replaceImage = async (file: File | undefined) => {
     if (!file) return
-    const validation = await validatePromotionImageFile(file)
+    const header = await readFileHeader(file)
+    const detected = detectImageTypeFromBytes(header)
+    const allowed = new Set<string>(PROMOTION_IMAGE_TYPES)
+    if (!detected || !allowed.has(detected) || (file.type && file.type !== detected)) {
+      setImageError("type")
+      return
+    }
+
+    const prepared = await compressAdminImage(file)
+    const validation = await validatePromotionImageFile(prepared)
     if (!validation.ok) {
       setImageError(validation.reason === "size" ? "size" : "type")
       return
@@ -116,10 +129,10 @@ export function PromotionPopupForm({ initial }: { initial: PromotionPopupRecord 
       if (current?.previewUrl.startsWith("blob:")) URL.revokeObjectURL(current.previewUrl)
       return {
         storageKey: null,
-        filename: file.name,
-        bytes: file.size,
-        previewUrl: URL.createObjectURL(file),
-        file,
+        filename: prepared.name,
+        bytes: prepared.size,
+        previewUrl: URL.createObjectURL(prepared),
+        file: prepared,
       }
     })
     setImageError(null)
@@ -206,16 +219,21 @@ export function PromotionPopupForm({ initial }: { initial: PromotionPopupRecord 
         toastSuccess("Đã lưu cài đặt.")
         router.refresh()
       } catch (error) {
-        if (error instanceof AdminSessionExpiredError) {
-          toastError(error.message)
-          router.push("/admin/login")
-          return
-        }
-        const message =
-          error instanceof Error ? error.message : "Không lưu được cài đặt."
+        const outcome = reportAdminFailure(error, {
+          fallback: "Không lưu được cài đặt.",
+          onUnauthenticated: () => {
+            toastError("Phiên đăng nhập đã hết hạn.")
+            router.push("/admin/login")
+          },
+          onRetry: () => {
+            onSubmit(event)
+          },
+        })
+        if (outcome === "unauthenticated") return
+        if (outcome === "busy") return
+        const message = error instanceof Error ? error.message : "Không lưu được cài đặt."
         if (message === PROMOTION_IMAGE_TOO_LARGE_MESSAGE) setImageError("size")
         else if (message === PROMOTION_IMAGE_TYPE_MESSAGE) setImageError("type")
-        toastError(message)
       }
     })
   }

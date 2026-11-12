@@ -23,6 +23,8 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, ImagePlus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toastError } from "@/lib/admin-toast"
+import { compressAdminImage } from "@/lib/admin-image-compress"
+import { subscribeAdminUploadProgress } from "@/lib/persist-admin-images"
 import {
   ACCEPTED_IMAGE_TYPES,
   MAX_IMAGE_FILE_SIZE,
@@ -114,6 +116,8 @@ export function ImageUploader({
   const imagesRef = useRef(images)
   const [isDraggingFiles, setIsDraggingFiles] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [preparingLabel, setPreparingLabel] = useState<string | null>(null)
+  const [uploadingId, setUploadingId] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
   const single = maxFiles === 1
   const current = images[0] ?? null
@@ -125,6 +129,8 @@ export function ImageUploader({
   useEffect(() => {
     return () => revokeImages(imagesRef.current)
   }, [])
+
+  useEffect(() => subscribeAdminUploadProgress(setUploadingId), [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -161,7 +167,21 @@ export function ImageUploader({
       const nextFiles = accepted.slice(0, remaining)
 
       if (nextFiles.length > 0) {
-        const nextImages = nextFiles.map(toUploadedImage)
+        const prepared: File[] = []
+        setPreparingLabel(
+          nextFiles.length > 1 ? `Đang nén ảnh 1/${nextFiles.length}` : "Đang nén ảnh..."
+        )
+        try {
+          for (let index = 0; index < nextFiles.length; index += 1) {
+            if (nextFiles.length > 1) {
+              setPreparingLabel(`Đang nén ảnh ${index + 1}/${nextFiles.length}`)
+            }
+            prepared.push(await compressAdminImage(nextFiles[index]))
+          }
+        } finally {
+          setPreparingLabel(null)
+        }
+        const nextImages = prepared.map(toUploadedImage)
         if (single) {
           revokeImages(images)
           onChange(nextImages)
@@ -303,11 +323,16 @@ export function ImageUploader({
           image={current}
           inputId={inputId}
           aspect={aspect}
+          uploading={uploadingId === current.id}
           onRemove={() => handleRemove(current.id)}
         />
       ) : (
         dropzone
       )}
+
+      {preparingLabel ? (
+        <p className="text-sm text-muted-foreground">{preparingLabel}</p>
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-sm text-destructive">
@@ -354,6 +379,7 @@ export function ImageUploader({
                       index={index}
                       aspect={aspect}
                       showCoverBadge={showCoverBadge}
+                      uploading={uploadingId === image.id}
                       onRemove={handleRemove}
                     />
                   ))}
@@ -365,6 +391,7 @@ export function ImageUploader({
                     image={activeImage}
                     aspect={aspect}
                     isCover={showCoverBadge && images[0]?.id === activeImage.id}
+                    uploading={uploadingId === activeImage.id}
                   />
                 ) : null}
               </DragOverlay>
@@ -435,11 +462,13 @@ function SingleImagePreview({
   image,
   inputId,
   aspect,
+  uploading,
   onRemove,
 }: {
   image: UploadedImage
   inputId: string
   aspect: "portrait" | "landscape" | "wide" | "banner"
+  uploading: boolean
   onRemove: () => void
 }) {
   return (
@@ -453,7 +482,9 @@ function SingleImagePreview({
       />
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-linear-to-t from-black/70 to-transparent px-3 pb-2 pt-10">
         <span className="truncate text-xs text-white/90">{image.name}</span>
-        {image.file ? (
+        {uploading ? (
+          <span className="shrink-0 text-[10px] text-white/80">Đang tải...</span>
+        ) : image.file ? (
           <span className="shrink-0 text-[10px] text-white/80">
             {formatFileSize(image.file.size)}
           </span>
@@ -488,12 +519,14 @@ function SortableImageTile({
   index,
   aspect,
   showCoverBadge,
+  uploading,
   onRemove,
 }: {
   image: UploadedImage
   index: number
   aspect: "portrait" | "landscape" | "wide" | "banner"
   showCoverBadge: boolean
+  uploading: boolean
   onRemove: (id: string) => void
 }) {
   const {
@@ -523,6 +556,7 @@ function SortableImageTile({
           image={image}
           aspect={aspect}
           isCover={showCoverBadge && index === 0}
+          uploading={uploading}
         />
         <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-md bg-background/90 px-1.5 py-0.5 text-[11px] font-medium text-foreground shadow-xs">
           <GripVertical className="size-3 text-muted-foreground" />
@@ -547,10 +581,12 @@ function ImageTilePreview({
   image,
   aspect,
   isCover,
+  uploading = false,
 }: {
   image: UploadedImage
   aspect: "portrait" | "landscape" | "wide" | "banner"
   isCover: boolean
+  uploading?: boolean
 }) {
   return (
     <div className={cn("relative w-full", aspectClass(aspect))}>
@@ -571,7 +607,11 @@ function ImageTilePreview({
           <span />
         )}
         <span className="truncate text-[10px] text-white/80">
-          {image.file ? formatFileSize(image.file.size) : image.name}
+          {uploading
+            ? "Đang tải..."
+            : image.file
+              ? formatFileSize(image.file.size)
+              : image.name}
         </span>
       </div>
     </div>
