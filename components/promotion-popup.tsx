@@ -154,7 +154,7 @@ function PromotionDialog({
         aria-modal="true"
         aria-label={dialogLabel}
         tabIndex={-1}
-        className="absolute top-1/2 left-1/2 aspect-[4/5] w-[min(85vw,calc(60dvh*0.8))] -translate-x-1/2 -translate-y-[46%] overflow-hidden rounded-none bg-[#fdfbf8] shadow-[0_18px_50px_rgba(20,10,14,0.45)] outline-none md:w-[520px] md:-translate-y-1/2 md:shadow-[0_24px_70px_rgba(20,10,14,0.45)]"
+        className="absolute top-1/2 left-1/2 aspect-[4/5] w-[min(85vw,calc(60dvh*0.8))] -translate-x-1/2 -translate-y-[46%] overflow-hidden rounded-none bg-[#fdfbf8] shadow-[0_18px_50px_rgba(20,10,14,0.45)] outline-none md:w-[min(520px,calc(90dvh*0.8))] md:-translate-y-1/2 md:shadow-[0_24px_70px_rgba(20,10,14,0.45)]"
       >
         {href ? (
           <a href={href} className="absolute inset-0 block cursor-pointer">
