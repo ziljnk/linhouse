@@ -425,6 +425,32 @@ export function recommendedProducts<T extends { slug?: string; name: string }>(
   return shuffleProducts(dedupedProducts(rest), random).slice(0, count)
 }
 
+export function resolveSuggestionRail<T extends { slug?: string; name: string }>(
+  catalog: T[],
+  selectedSlugs: readonly string[],
+  skip: ReadonlySet<string>,
+  fallback: () => T[],
+  count = PRODUCT_RAIL_COUNT
+) {
+  if (selectedSlugs.length === 0) return fallback()
+
+  const bySlug = new Map(catalog.map((item) => [productSlug(item), item]))
+  const picked: T[] = []
+  const seen = new Set(skip)
+
+  for (const slug of selectedSlugs) {
+    const item = bySlug.get(slug)
+    if (!item) continue
+    const key = productSlug(item)
+    if (seen.has(key)) continue
+    seen.add(key)
+    picked.push(item)
+    if (picked.length >= count) break
+  }
+
+  return picked.length > 0 ? picked : fallback()
+}
+
 export function catalogSlugs(dict: Dictionary) {
   const slugs = new Set<string>()
   const columns = [

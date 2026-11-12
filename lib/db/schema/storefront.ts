@@ -248,6 +248,27 @@ export const productCollection = mysqlTable(
   ]
 )
 
+export const productSuggestionItem = mysqlTable(
+  "product_suggestion_item",
+  {
+    rail: varchar("rail", { length: 32 }).notNull(),
+    productId: uuidColumn("product_id").notNull(),
+    sortOrder: int("sort_order").notNull().default(0),
+  },
+  (table) => [
+    primaryKey({
+      name: "product_suggestion_item_pkey",
+      columns: [table.rail, table.productId],
+    }),
+    index("product_suggestion_item_rail_sort_idx").on(table.rail, table.sortOrder),
+    foreignKey({
+      name: "product_suggestion_item_product_id_fkey",
+      columns: [table.productId],
+      foreignColumns: [product.id],
+    }).onDelete("cascade"),
+  ]
+)
+
 export const homeProductCarouselItem = mysqlTable(
   "home_product_carousel_item",
   {
@@ -415,7 +436,18 @@ export const productRelations = relations(product, ({ many }) => ({
   collections: many(productCollection),
   testimonials: many(testimonial),
   homeCarouselItems: many(homeProductCarouselItem),
+  suggestionItems: many(productSuggestionItem),
 }))
+
+export const productSuggestionItemRelations = relations(
+  productSuggestionItem,
+  ({ one }) => ({
+    product: one(product, {
+      fields: [productSuggestionItem.productId],
+      references: [product.id],
+    }),
+  })
+)
 
 export const homeProductCarouselItemRelations = relations(
   homeProductCarouselItem,

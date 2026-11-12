@@ -12,6 +12,7 @@ import {
 import {
   recommendedProducts,
   relatedProducts,
+  resolveSuggestionRail,
   type ProductKind,
 } from "@/lib/catalog"
 
@@ -30,21 +31,30 @@ const subscribe = () => () => {}
 
 function useProductRails(
   products: ProductSuggestion[],
-  current: { slug: string; name: string; kind?: ProductKind }
+  current: { slug: string; name: string; kind?: ProductKind },
+  rails: { related: readonly string[]; recommended: readonly string[] }
 ) {
   const cache = useRef<{
     key: string
     related: ProductSuggestion[]
     recommended: ProductSuggestion[]
   } | null>(null)
-  const key = `${current.slug}:${products.map((item) => item.slug).join("|")}`
+  const key = `${current.slug}:${products.map((item) => item.slug).join("|")}:${rails.related.join(",")}:${rails.recommended.join(",")}`
 
   return useSyncExternalStore(
     subscribe,
     () => {
       if (cache.current?.key === key) return cache.current
-      const related = relatedProducts(products, current)
-      const recommended = recommendedProducts(products, current, related)
+      const skip = new Set([current.slug])
+      const related = resolveSuggestionRail(products, rails.related, skip, () =>
+        relatedProducts(products, current)
+      )
+      const recommended = resolveSuggestionRail(
+        products,
+        rails.recommended,
+        skip,
+        () => recommendedProducts(products, current, related)
+      )
       const next = { key, related, recommended }
       cache.current = next
       return next
@@ -147,14 +157,16 @@ export function ProductSuggestions({
   relatedTitle,
   recommendedTitle,
   contactLabel,
+  selected = { related: [], recommended: [] },
 }: {
   current: { slug: string; name: string; kind?: ProductKind }
   products: ProductSuggestion[]
   relatedTitle: string
   recommendedTitle: string
   contactLabel: string
+  selected?: { related: readonly string[]; recommended: readonly string[] }
 }) {
-  const rails = useProductRails(products, current)
+  const rails = useProductRails(products, current, selected)
 
   if (!rails) return null
 

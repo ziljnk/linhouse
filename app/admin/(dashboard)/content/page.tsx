@@ -3,6 +3,7 @@ import { requireUsableAdminSession } from "@/lib/admin-session"
 import { listAdminAttributeGroups } from "@/lib/admin-storefront"
 import { getHomeCarouselEditor } from "@/lib/home-carousel-admin"
 import { getHomeProductCarouselEditor } from "@/lib/home-product-carousels-admin"
+import { getSuggestionRailEditor } from "@/lib/product-suggestion-rails-admin"
 import { getSiteContentForm, type ContentSection } from "@/lib/site-content"
 
 export const metadata = {
@@ -51,13 +52,15 @@ function withNameTokens(
 }
 
 export default async function AdminContentPage() {
-  const [, content, groups, homeCarousel, productCarousels] = await Promise.all([
-    requireUsableAdminSession(),
-    getSiteContentForm(),
-    listAdminAttributeGroups(),
-    getHomeCarouselEditor(),
-    getHomeProductCarouselEditor(),
-  ])
+  const [, content, groups, homeCarousel, productCarousels, suggestionRails] =
+    await Promise.all([
+      requireUsableAdminSession(),
+      getSiteContentForm(),
+      listAdminAttributeGroups(),
+      getHomeCarouselEditor(),
+      getHomeProductCarouselEditor(),
+      getSuggestionRailEditor(),
+    ])
 
   return (
     <div className="flex w-full flex-1 flex-col gap-6 p-6">
@@ -73,6 +76,7 @@ export default async function AdminContentPage() {
         defaults={content.defaults}
         homeCarousel={homeCarousel}
         productCarousels={productCarousels}
+        suggestionRails={suggestionRails}
       />
     </div>
   )

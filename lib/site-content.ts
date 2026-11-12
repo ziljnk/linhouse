@@ -746,7 +746,8 @@ export function contentModel() {
     {
       id: "product",
       title: "Trang sản phẩm",
-      description: "Tiêu đề, nút và đoạn mô tả dùng chung trên mọi trang sản phẩm.",
+      description:
+        "Tiêu đề, nút và đoạn mô tả dùng chung trên mọi trang sản phẩm. Hai carousel phía dưới có thể chọn sản phẩm; để trống thì trang tự lấy ngẫu nhiên.",
       fields: [
         field("product.related", "Tiêu đề sản phẩm liên quan", { group: "Tiêu đề và nút" }),
         field("product.youMayAlsoLike", "Tiêu đề gợi ý", { group: "Tiêu đề và nút" }),

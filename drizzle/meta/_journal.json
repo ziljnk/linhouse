@@ -92,6 +92,13 @@
       "when": 1790600000000,
       "tag": "0012_promotion_popup",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1790700000000,
+      "tag": "0013_product_suggestion_rails",
+      "breakpoints": true
     }
   ]
 }

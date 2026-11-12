@@ -46,6 +46,7 @@ import {
   productCollection,
   productImage,
   productKind,
+  productSuggestionItem,
   siteCopy,
   testimonial,
 } from "@/lib/db/schema"
@@ -53,6 +54,7 @@ import {
   HOME_PRODUCT_CAROUSEL_SLOTS,
   homeProductCarouselTitleKey,
 } from "@/lib/home-product-carousels"
+import type { SuggestionRail } from "@/lib/product-suggestion-rails"
 import { decodeStoredPlainText } from "@/lib/sanitize-content"
 import { isSearchableQuery, normalizeSearchQuery } from "@/lib/search-query"
 import { getSiteSettings } from "@/lib/site-settings-store"
@@ -767,6 +769,27 @@ function mapCollections(rows: StorefrontRows, locale: Locale): CollectionItem[] 
   })
 }
 
+function mapSuggestionRails(rows: StorefrontRows) {
+  const slugById = new Map(rows.products.map((row) => [row.id, row.slug]))
+  const slugsFor = (rail: SuggestionRail) =>
+    rows.suggestionItems
+      .filter((item) => item.rail === rail)
+      .slice()
+      .sort(
+        (a, b) =>
+          a.sortOrder - b.sortOrder || a.productId.localeCompare(b.productId)
+      )
+      .flatMap((item) => {
+        const slug = slugById.get(item.productId)
+        return slug ? [slug] : []
+      })
+
+  return {
+    related: slugsFor("related"),
+    recommended: slugsFor("recommended"),
+  }
+}
+
 function mapHomeProductCarousels(
   rows: StorefrontRows,
   locale: Locale,
@@ -958,6 +981,7 @@ const loadStorefrontRows = cache(async () => {
     copyRows,
     productKinds,
     productCarouselItems,
+    suggestionItems,
   ] = await Promise.all([
     db
       .select()
@@ -1032,6 +1056,18 @@ const loadStorefrontRows = cache(async () => {
         asc(homeProductCarouselItem.sortOrder),
         asc(homeProductCarouselItem.productId)
       ),
+    db
+      .select({
+        rail: productSuggestionItem.rail,
+        productId: productSuggestionItem.productId,
+        sortOrder: productSuggestionItem.sortOrder,
+      })
+      .from(productSuggestionItem)
+      .orderBy(
+        asc(productSuggestionItem.rail),
+        asc(productSuggestionItem.sortOrder),
+        asc(productSuggestionItem.productId)
+      ),
   ])
 
   return {
@@ -1048,6 +1084,7 @@ const loadStorefrontRows = cache(async () => {
     copy: Object.fromEntries(copyRows.map((row) => [row.key, row.value])),
     productKinds,
     productCarouselItems,
+    suggestionItems,
   }
 })
 
@@ -1097,11 +1134,13 @@ export const getStorefront = cache(async (locale: Locale, dict: Dictionary) => {
   ).filter((item) => item.image)
   const blogPosts = mapBlogPosts(rows, locale)
   const productCarousels = mapHomeProductCarousels(rows, locale, products)
+  const suggestionRails = mapSuggestionRails(rows)
 
   return {
     products,
     featuredProducts,
     productCarousels,
+    suggestionRails,
     collections,
     homeCollections,
     filterGroups,

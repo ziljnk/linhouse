@@ -81,6 +81,7 @@ export default async function ProductPage({
           footer: contact.footer,
         }}
         contactMethods={contact.contactMethods}
+        suggestionRails={storefront.suggestionRails}
       />
     </main>
   )

@@ -39,9 +39,11 @@ import {
 import { cn } from "@/lib/utils"
 import { HomeCarouselCard } from "@/components/admin/home-carousel-card"
 import { HomeProductCarouselCard } from "@/components/admin/home-product-carousel-card"
+import { ProductSuggestionRailCard } from "@/components/admin/product-suggestion-rail-card"
 import { HeroSection } from "@/components/hero-section"
 import type { HomeCarouselEditorData } from "@/lib/home-carousel"
 import type { HomeProductCarouselEditorData } from "@/lib/home-product-carousels"
+import type { SuggestionRailEditorData } from "@/lib/product-suggestion-rails"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -91,12 +93,14 @@ export function SiteContentForm({
   defaults,
   homeCarousel,
   productCarousels,
+  suggestionRails,
 }: {
   sections: ContentSection[]
   defaultValues: Record<string, ContentPair>
   defaults: Record<string, ContentPair>
   homeCarousel: HomeCarouselEditorData
   productCarousels: HomeProductCarouselEditorData
+  suggestionRails: SuggestionRailEditorData
 }) {
   const router = useRouter()
   const [values, setValues] = useState(() => cloneValues(defaultValues))
@@ -282,6 +286,17 @@ export function SiteContentForm({
                       />
                     ) : null}
                   </div>
+                  {section.id === "product" && group.title === "Tiêu đề và nút" ? (
+                    <div className="flex flex-col gap-4">
+                      {suggestionRails.rails.map((rail) => (
+                        <ProductSuggestionRailCard
+                          key={`${rail.rail}-${rail.version}`}
+                          rail={rail}
+                          products={productCarousels.products}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                   {section.id === "home" && group.title === "Bộ sưu tập" ? (
                     <HomeCarouselCard key={homeCarousel.version} editor={homeCarousel} />
                   ) : null}

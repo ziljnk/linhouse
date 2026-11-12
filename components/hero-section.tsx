@@ -62,7 +62,7 @@ export function HeroSection({
     {
       id: "description",
       node: (
-        <p className="mt-6 max-w-md text-base leading-relaxed font-light whitespace-pre-line text-charcoal/75 sm:text-lg">
+        <p className="mt-6 max-w-md text-base leading-relaxed font-light whitespace-pre-line text-charcoal/75 sm:text-lg lg:max-w-none">
           {withLineBreaks(copy.description)}
         </p>
       ),
@@ -112,13 +112,13 @@ export function HeroSection({
         )}
       >
         {preview ? (
-          <div className="@container w-full max-w-xl">
+          <div className="@container w-full max-w-xl lg:w-1/2 lg:max-w-none">
             {blocks.map((block) => (
               <div key={block.id}>{block.node}</div>
             ))}
           </div>
         ) : (
-          <ScrollRevealGroup className="@container w-full max-w-xl" stagger={0.14} delay={0.08}>
+          <ScrollRevealGroup className="@container w-full max-w-xl lg:w-1/2 lg:max-w-none" stagger={0.14} delay={0.08}>
             {blocks.map((block) => (
               <ScrollRevealItem key={block.id}>{block.node}</ScrollRevealItem>
             ))}

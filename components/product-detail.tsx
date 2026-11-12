@@ -42,6 +42,7 @@ export function ProductDetail({
   groups,
   dict,
   contactMethods,
+  suggestionRails = { related: [], recommended: [] },
 }: {
   locale: Locale
   product: CatalogProduct
@@ -50,6 +51,7 @@ export function ProductDetail({
   groups: CatalogFilterGroup[]
   dict: Dictionary
   contactMethods: { id: string; label: string }[]
+  suggestionRails?: { related: readonly string[]; recommended: readonly string[] }
 }) {
   const copy = dict.productPage
   const images = productGallery(product)
@@ -279,6 +281,7 @@ export function ProductDetail({
         relatedTitle={copy.related}
         recommendedTitle={copy.youMayAlsoLike}
         contactLabel={dict.products.contact}
+        selected={suggestionRails}
       />
     </div>
   )
