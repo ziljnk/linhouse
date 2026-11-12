@@ -9,6 +9,10 @@ import {
   MAX_IMAGE_FILE_SIZE,
   validateImageFile,
 } from "@/lib/image-file"
+import {
+  promotionImageErrorMessage,
+  validatePromotionImageFile,
+} from "@/lib/promotion-popup"
 
 export async function POST(request: Request) {
   const session = await getAdminSession()
@@ -16,7 +20,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const formData = await request.formData()
+  let formData: FormData
+  try {
+    formData = await request.formData()
+  } catch {
+    return NextResponse.json({ error: "Thiếu file ảnh." }, { status: 400 })
+  }
   const file = formData.get("file")
   const type = String(formData.get("type") ?? "")
 
@@ -31,10 +40,19 @@ export async function POST(request: Request) {
     )
   }
 
-  const validation = await validateImageFile(file, {
-    maxSize: MAX_IMAGE_FILE_SIZE,
-  })
+  const promotionUpload = type === "promotions"
+  const validation = promotionUpload
+    ? await validatePromotionImageFile(file)
+    : await validateImageFile(file, {
+        maxSize: MAX_IMAGE_FILE_SIZE,
+      })
   if (!validation.ok) {
+    if (promotionUpload) {
+      return NextResponse.json(
+        { error: promotionImageErrorMessage(validation.reason) },
+        { status: 400 }
+      )
+    }
     if (validation.reason === "size") {
       return NextResponse.json(
         { error: "Ảnh vượt quá 10MB." },

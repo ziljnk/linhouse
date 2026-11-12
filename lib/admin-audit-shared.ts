@@ -17,6 +17,7 @@ export const AUDIT_AREAS = [
   "seo",
   "settings",
   "notifications",
+  "promotion",
 ] as const
 export type AuditArea = (typeof AUDIT_AREAS)[number]
 
@@ -50,6 +51,7 @@ export const AUDIT_AREA_LABELS: Record<AuditArea, string> = {
   seo: "SEO",
   settings: "Cài đặt",
   notifications: "Thông báo",
+  promotion: "Khuyến mãi",
 }
 
 const PREVIEW_LIMIT = 280
