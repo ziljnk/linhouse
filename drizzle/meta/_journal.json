@@ -85,6 +85,13 @@
       "when": 1790500000000,
       "tag": "0011_home_product_carousels",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "5",
+      "when": 1790600000000,
+      "tag": "0012_promotion_popup",
+      "breakpoints": true
     }
   ]
 }

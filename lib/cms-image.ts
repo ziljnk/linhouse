@@ -8,6 +8,7 @@ export const CMS_IMAGE_TYPES = [
   "testimonials",
   "about",
   "hero",
+  "promotions",
 ] as const
 
 export type CmsImageVariantWidth = (typeof CMS_IMAGE_VARIANT_WIDTHS)[number]

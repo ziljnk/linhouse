@@ -781,5 +781,10 @@
     "zaloPhone": "0902678114",
     "facebookUrl": "https://www.facebook.com/linhousebigsize",
     "instagramUrl": "https://www.instagram.com/linhouse.bridal"
+  },
+  "promotion": {
+    "dialogLabel": "Khuyến mãi",
+    "close": "Đóng",
+    "viewOffer": "Xem ưu đãi"
   }
 }

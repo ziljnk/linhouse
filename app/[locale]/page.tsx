@@ -8,6 +8,8 @@ import { HeroSection } from "@/components/hero-section"
 import { HomeProductCarousels } from "@/components/home-product-carousels"
 import { TestimonialSection } from "@/components/testimonial-section"
 import { JsonLd } from "@/components/json-ld"
+import { PromotionPopup } from "@/components/promotion-popup"
+import { getPromotionPopup } from "@/lib/promotion-popup-store"
 import { getStorefront, getStorefrontContact } from "@/lib/storefront"
 import { resolveStaticPageSeo, staticPageMetadata } from "@/lib/page-seo"
 import { homeStructuredData } from "@/lib/structured-data"
@@ -28,10 +30,11 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
   if (!hasLocale(locale)) notFound()
 
   const dict = await getDictionary(locale)
-  const [storefront, contact, seo] = await Promise.all([
+  const [storefront, contact, seo, promotion] = await Promise.all([
     getStorefront(locale, dict),
     getStorefrontContact(locale, dict),
     resolveStaticPageSeo(locale, "home"),
+    getPromotionPopup(),
   ])
   const sameAs = [contact.social.facebookUrl, contact.social.instagramUrl].filter(
     (url) => url.startsWith("http")
@@ -85,6 +88,20 @@ export default async function Page({ params }: PageProps<"/[locale]">) {
           readMore={dict.home.blog.readMore}
           viewAll={dict.home.blog.viewAll}
           posts={storefront.blogPosts}
+        />
+      ) : null}
+      {promotion.enabled && promotion.imageStorageKey ? (
+        <PromotionPopup
+          storageKey={promotion.imageStorageKey}
+          alt={promotion.imageAlt}
+          href={promotion.linkUrl}
+          startsOn={promotion.startsOn}
+          endsOn={promotion.endsOn}
+          labels={{
+            dialogLabel: dict.promotion.dialogLabel,
+            close: dict.promotion.close,
+            viewOffer: dict.promotion.viewOffer,
+          }}
         />
       ) : null}
     </main>

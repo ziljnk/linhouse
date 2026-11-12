@@ -16,6 +16,7 @@ import {
   collectionImage,
   media,
   productImage,
+  promotionPopup,
   testimonial,
 } from "@/lib/db/schema"
 
@@ -91,7 +92,7 @@ export async function saveCmsImageVariants(
 async function storageKeysInUse(keys: string[]) {
   if (!keys.length) return new Set<string>()
 
-  const [products, collectionCovers, collectionImages, posts, stories] =
+  const [products, collectionCovers, collectionImages, posts, stories, promotions] =
     await Promise.all([
       db
         .select({ value: productImage.url })
@@ -113,11 +114,22 @@ async function storageKeysInUse(keys: string[]) {
         .select({ value: testimonial.imageUrl })
         .from(testimonial)
         .where(inArray(testimonial.imageUrl, keys)),
+      db
+        .select({ value: promotionPopup.imageStorageKey })
+        .from(promotionPopup)
+        .where(inArray(promotionPopup.imageStorageKey, keys)),
     ])
 
   return new Set(
-    [...products, ...collectionCovers, ...collectionImages, ...posts, ...stories]
-      .map((row) => parseCmsStorageKey(row.value))
+    [
+      ...products,
+      ...collectionCovers,
+      ...collectionImages,
+      ...posts,
+      ...stories,
+      ...promotions,
+    ]
+      .map((row) => (row.value ? parseCmsStorageKey(row.value) : null))
       .filter((key): key is string => key !== null)
   )
 }
