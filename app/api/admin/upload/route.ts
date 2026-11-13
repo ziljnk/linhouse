@@ -66,6 +66,9 @@ export async function POST(request: Request) {
   }
 
   try {
+    // The browser already resized and compressed the file. Variant writes
+    // only build the srcset the storefront already serves, and skip a
+    // re-encode when the upload is an oriented WebP that would not shrink.
     const saved = await saveCmsImageVariants(
       Buffer.from(await file.arrayBuffer()),
       type

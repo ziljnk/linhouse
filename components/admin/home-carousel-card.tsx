@@ -45,6 +45,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
+import { ADMIN_SERVER_BUSY_MESSAGE } from "@/lib/admin-request-errors"
 import {
   HOME_CAROUSEL_GENERIC_ERROR,
   HOME_CAROUSEL_LIMIT,
@@ -230,9 +232,20 @@ export function HomeCarouselCard({ editor }: { editor: HomeCarouselEditorData })
       }
       toastSuccess("Đã lưu carousel trang chủ.")
       router.refresh()
-    } catch {
-      setError(HOME_CAROUSEL_GENERIC_ERROR)
-      toastError(HOME_CAROUSEL_GENERIC_ERROR)
+    } catch (error) {
+      const outcome = reportAdminFailure(error, {
+        fallback: HOME_CAROUSEL_GENERIC_ERROR,
+        onRetry: () => {
+          void save()
+        },
+      })
+      setError(
+        outcome === "busy"
+          ? ADMIN_SERVER_BUSY_MESSAGE
+          : outcome === "unauthenticated"
+            ? "Phiên đăng nhập đã hết hạn."
+            : HOME_CAROUSEL_GENERIC_ERROR
+      )
     } finally {
       setPending(false)
     }

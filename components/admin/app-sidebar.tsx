@@ -75,7 +75,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               size="lg"
               tooltip="LINHouse Admin"
-              render={<Link href="/admin" />}
+              render={<Link href="/admin" prefetch={false} />}
             >
               <span className="relative size-8 shrink-0 overflow-hidden rounded-md">
                 <Image
@@ -106,7 +106,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActivePath(pathname, item.href)}
                     tooltip={item.title}
-                    render={<Link href={item.href} />}
+                    render={<Link href={item.href} prefetch={false} />}
                   >
                     <item.icon />
                     <span>{item.title}</span>
@@ -129,7 +129,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={isActivePath(pathname, item.href)}
                     tooltip={item.title}
-                    render={<Link href={item.href} />}
+                    render={<Link href={item.href} prefetch={false} />}
                   >
                     <item.icon />
                     <span>{item.title}</span>
@@ -146,7 +146,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="Xem website" render={<Link href="/vi" />}>
+            <SidebarMenuButton tooltip="Xem website" render={<Link href="/vi" prefetch={false} />}>
               <span>Xem website</span>
             </SidebarMenuButton>
           </SidebarMenuItem>

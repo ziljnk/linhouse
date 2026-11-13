@@ -51,6 +51,7 @@ import {
   type SiteSettings,
 } from "@/lib/site-settings"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { cn } from "@/lib/utils"
 
 const FLOAT_CHANNELS: {
@@ -519,17 +520,24 @@ export function SettingsForm({
     setValues(result.data)
 
     startTransition(async () => {
-      const response = await saveSiteSettingsAction(result.data)
-      if (!response.ok) {
-        toastError(response.error)
-        return
-      }
+      try {
+        const response = await saveSiteSettingsAction(result.data)
+        if (!response.ok) {
+          toastError(response.error)
+          return
+        }
 
-      toastSuccess(
-        "Đã lưu cài đặt.",
-        "Thông tin mới sẽ hiện trên website."
-      )
-      router.refresh()
+        toastSuccess(
+          "Đã lưu cài đặt.",
+          "Thông tin mới sẽ hiện trên website."
+        )
+        router.refresh()
+      } catch (error) {
+        reportAdminFailure(error, {
+          fallback: "Không lưu được cài đặt.",
+          onRetry: () => handleSubmit(event),
+        })
+      }
     })
   }
 

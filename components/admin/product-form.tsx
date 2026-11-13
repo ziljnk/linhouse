@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { FormDraftNotices, FormDraftStatus } from "@/components/admin/form-draft-notice"
 import {
@@ -8,10 +8,8 @@ import {
   useFormDraft,
   type RestoredFormDraft,
 } from "@/hooks/use-form-draft"
-import {
-  hasActiveAdminSession,
-  isSessionExpiredFailure,
-} from "@/lib/admin-session-client"
+import { hasActiveAdminSession } from "@/lib/admin-session-client"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { Languages, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -270,6 +268,9 @@ export function ProductForm({
   const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
   const [pending, setPending] = useState(false)
+  const persistRef = useRef<
+    (intent: PublishIntent, publishedAt?: string | null) => Promise<void>
+  >(async () => {})
   const [translating, setTranslating] = useState(false)
   const [descriptionTab, setDescriptionTab] = useState<"vi" | "en">("vi")
 
@@ -456,17 +457,20 @@ export function ProductForm({
       }
       router.refresh()
     } catch (error) {
-      if (isSessionExpiredFailure(error)) {
-        draft.markSessionExpired()
-        return
-      }
-      toastError(
-        error instanceof Error ? error.message : "Không lưu được sản phẩm."
-      )
+      reportAdminFailure(error, {
+        fallback: "Không lưu được sản phẩm.",
+        onUnauthenticated: () => draft.markSessionExpired(),
+        onRetry: () => {
+          void persistRef.current(intent, publishedAt)
+        },
+      })
     } finally {
       setPending(false)
     }
   }
+  useEffect(() => {
+    persistRef.current = persistAndSave
+  })
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

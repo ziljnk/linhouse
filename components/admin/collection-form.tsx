@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { FormDraftNotices, FormDraftStatus } from "@/components/admin/form-draft-notice"
 import {
@@ -10,8 +10,8 @@ import {
 } from "@/hooks/use-form-draft"
 import {
   hasActiveAdminSession,
-  isSessionExpiredFailure,
 } from "@/lib/admin-session-client"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { Languages, Loader2 } from "lucide-react"
 import { HomeCarouselLimitNotice } from "@/components/admin/home-carousel-card"
 import { Button } from "@/components/ui/button"
@@ -138,6 +138,9 @@ export function CollectionForm({
   const [seo, setSeo] = useState<SeoLocaleValues>(defaultValues?.seo ?? emptySeo)
   const [showOnHome, setShowOnHome] = useState(defaultValues?.showOnHome ?? false)
   const [pending, setPending] = useState(false)
+  const persistRef = useRef<
+    (intent: PublishIntent, publishedAt?: string | null) => Promise<void>
+  >(async () => {})
   const carouselBlocked =
     homeCarouselCount >= HOME_CAROUSEL_LIMIT && !defaultValues?.showOnHome
   const [translating, setTranslating] = useState(false)
@@ -296,17 +299,20 @@ export function CollectionForm({
       }
       router.refresh()
     } catch (error) {
-      if (isSessionExpiredFailure(error)) {
-        draft.markSessionExpired()
-        return
-      }
-      toastError(
-        error instanceof Error ? error.message : "Không lưu được bộ sưu tập."
-      )
+      reportAdminFailure(error, {
+        fallback: "Không lưu được bộ sưu tập.",
+        onUnauthenticated: () => draft.markSessionExpired(),
+        onRetry: () => {
+          void persistRef.current(intent, publishedAt)
+        },
+      })
     } finally {
       setPending(false)
     }
   }
+  useEffect(() => {
+    persistRef.current = persistAndSave
+  })
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

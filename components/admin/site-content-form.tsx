@@ -28,6 +28,7 @@ import {
   HOME_HERO_IMAGE_KEY,
 } from "@/lib/home-hero-image"
 import { toastError, toastInfo, toastSuccess } from "@/lib/admin-toast"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { cmsImageDisplaySrc, getImageUrl } from "@/lib/cms-image"
 import type { ContentField, ContentPair, ContentSection } from "@/lib/site-content"
 import {
@@ -142,7 +143,12 @@ export function SiteContentForm({
       toastSuccess("Đã lưu nội dung.", "Chữ mới sẽ hiện trên website.")
       router.refresh()
     } catch (error) {
-      toastError(error instanceof Error ? error.message : "Không lưu được nội dung.")
+      reportAdminFailure(error, {
+        fallback: "Không lưu được nội dung.",
+        onRetry: () => {
+          void handleSubmit(event)
+        },
+      })
     } finally {
       setPending(false)
     }
@@ -657,7 +663,12 @@ async function replaceHeroImage(
     handlers.onChange(url)
   } catch (error) {
     handlers.setImages(heroPreview(current))
-    toastError(error instanceof Error ? error.message : "Không tải được ảnh lên.")
+    reportAdminFailure(error, {
+      fallback: "Không tải được ảnh lên.",
+      onRetry: () => {
+        void replaceHeroImage(next, current, handlers)
+      },
+    })
   } finally {
     handlers.setUploading(false)
     handlers.onUploadChange(false)
@@ -756,7 +767,12 @@ async function replaceMilestoneImage(
     handlers.onChange(url)
   } catch (error) {
     handlers.setImages(milestonePreview(current))
-    toastError(error instanceof Error ? error.message : "Không tải được ảnh lên.")
+    reportAdminFailure(error, {
+      fallback: "Không tải được ảnh lên.",
+      onRetry: () => {
+        void replaceMilestoneImage(next, current, handlers)
+      },
+    })
   } finally {
     handlers.setUploading(false)
     handlers.onUploadChange(false)

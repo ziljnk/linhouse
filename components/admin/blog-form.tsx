@@ -10,10 +10,8 @@ import {
   useFormDraft,
   type RestoredFormDraft,
 } from "@/hooks/use-form-draft"
-import {
-  hasActiveAdminSession,
-  isSessionExpiredFailure,
-} from "@/lib/admin-session-client"
+import { hasActiveAdminSession } from "@/lib/admin-session-client"
+import { reportAdminFailure } from "@/lib/admin-save-error"
 import { Plus } from "lucide-react"
 import {
   createBlogCategoryAction,
@@ -195,6 +193,9 @@ export function BlogForm({
   )
   const [scheduleError, setScheduleError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const persistRef = useRef<
+    (intent: BlogIntent, publishedAt?: string | null) => Promise<void>
+  >(async () => {})
 
   useEffect(() => {
     setCategoryList(categories)
@@ -383,17 +384,20 @@ export function BlogForm({
       }
       router.refresh()
     } catch (error) {
-      if (isSessionExpiredFailure(error)) {
-        draft.markSessionExpired()
-        return
-      }
-      toastError(
-        error instanceof Error ? error.message : "Không lưu được bài viết."
-      )
+      reportAdminFailure(error, {
+        fallback: "Không lưu được bài viết.",
+        onUnauthenticated: () => draft.markSessionExpired(),
+        onRetry: () => {
+          void persistRef.current(intent, publishedAt)
+        },
+      })
     } finally {
       setPending(false)
     }
   }
+  useEffect(() => {
+    persistRef.current = persistAndSave
+  })
 
   const saveDraft = () => {
     if (!titleVi.trim()) {

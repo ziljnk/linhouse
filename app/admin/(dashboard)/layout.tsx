@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { AdminPageLoadGuard } from "@/components/admin/admin-page-guard"
 import { AppSidebar } from "@/components/admin/app-sidebar"
 import {
   SidebarInset,
@@ -26,6 +27,7 @@ export default async function AdminDashboardLayout({
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger />
         </header>
+        <AdminPageLoadGuard />
         {children}
       </SidebarInset>
     </SidebarProvider>
