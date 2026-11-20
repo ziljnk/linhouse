@@ -38,6 +38,7 @@ import {
 import type { PriceDisplay, ProductKind } from "@/lib/admin-products"
 import {
   parsePurchaseOptions,
+  salePriceInputError,
   type ProductPurchaseOption,
 } from "@/lib/catalog"
 import {
@@ -61,6 +62,7 @@ export type ProductInput = {
   purchaseOptions?: ProductPurchaseOption[]
   imageUrls?: string[]
   priceVnd?: number | null
+  salePriceVnd?: number | null
   priceDisplay?: PriceDisplay
   kind?: ProductKind
   isOld?: boolean
@@ -256,12 +258,17 @@ function validateProduct(input: ProductInput) {
   if (priceDisplay === "amount" && (input.priceVnd == null || input.priceVnd <= 0)) {
     return actionFail("Vui lòng nhập giá sản phẩm.")
   }
+  const salePriceVnd = priceDisplay === "amount" ? (input.salePriceVnd ?? null) : null
+  const saleError =
+    priceDisplay === "amount" ? salePriceInputError(input.priceVnd, salePriceVnd) : null
+  if (saleError) return actionFail(saleError)
   const slugResult = requireSlug(input.slug)
   if (!slugResult.ok) return slugResult
   return {
     ok: true as const,
     slug: slugResult.slug,
     priceDisplay,
+    salePriceVnd,
     imageUrls,
   }
 }
@@ -272,6 +279,7 @@ type ProductAuditSnapshot = {
   slug: string
   description: { vi: string; en: string }
   priceVnd: number | null
+  salePriceVnd: number | null
   priceDisplay: PriceDisplay
   kind: ProductKind
   isOld: boolean
@@ -302,6 +310,11 @@ function productAuditChanges(
     { label: "Đường dẫn", before: before?.slug ?? "", after: after.slug },
     ...localizedChanges("Mô tả", before?.description, after.description),
     { label: "Giá", before: before?.priceVnd ?? "", after: after.priceVnd ?? "" },
+    {
+      label: "Giá sau giảm",
+      before: before?.salePriceVnd ?? "",
+      after: after.salePriceVnd ?? "",
+    },
     {
       label: "Cách hiện giá",
       before: before ? PRICE_DISPLAY_LABELS[before.priceDisplay] : "",
@@ -411,6 +424,7 @@ async function loadProductAuditState(id: string): Promise<ProductAuditSnapshot |
     slug: row.slug,
     description: row.description,
     priceVnd: row.priceVnd,
+    salePriceVnd: row.salePriceVnd,
     priceDisplay: row.priceDisplay,
     kind: row.kind,
     isOld: row.isOld,
@@ -458,6 +472,7 @@ export async function createProductAction(
     code: sanitizePlainText(input.code ?? ""),
     description: toLocalized(input.descriptionVi ?? "", input.descriptionEn ?? ""),
     priceVnd: input.priceVnd ?? null,
+    salePriceVnd: parsed.salePriceVnd,
     priceDisplay: parsed.priceDisplay,
     kind,
     isOld: input.isOld === true,
@@ -552,6 +567,7 @@ export async function updateProductAction(
     code: sanitizePlainText(input.code ?? ""),
     description: toLocalized(input.descriptionVi ?? "", input.descriptionEn ?? ""),
     priceVnd: input.priceVnd ?? null,
+    salePriceVnd: parsed.salePriceVnd,
     priceDisplay: parsed.priceDisplay,
     kind,
     isOld: input.isOld === true,

@@ -43,9 +43,11 @@ import {
 } from "@/components/ui/table"
 import { UnsavedDraftTag, useEntityDrafts } from "@/components/admin/draft-list-cues"
 import { Badge } from "@/components/ui/badge"
+import { productSale } from "@/lib/catalog"
 import {
   formatProductPrice,
   formatScheduledAt,
+  formatVnd,
   productKindLabel,
   PRODUCT_STATUS_LABELS,
   PRODUCT_STATUSES,
@@ -69,6 +71,28 @@ const STATUS_FILTER_OPTIONS = [
     label: PRODUCT_STATUS_LABELS[status],
   })),
 ]
+
+function ProductPriceCell({ product }: { product: AdminProductListItem }) {
+  const sale = productSale({
+    priceDisplay: product.priceDisplay,
+    priceVnd: product.price,
+    salePriceVnd: product.salePrice,
+  })
+
+  if (!sale) {
+    return formatProductPrice(product.price, product.priceDisplay)
+  }
+
+  return (
+    <div className="flex flex-col gap-0.5 tabular-nums">
+      <span className="text-[11px] text-muted-foreground line-through">
+        {formatVnd(sale.regularPriceVnd)}
+      </span>
+      <span className="font-medium text-primary">{formatVnd(sale.salePriceVnd)}</span>
+      <span className="text-[10px] text-primary">{sale.label}</span>
+    </div>
+  )
+}
 
 export function ProductsTable({
   products,
@@ -375,7 +399,7 @@ export function ProductsTable({
                       </div>
                     </TableCell>
                     <TableCell className="tabular-nums">
-                      {formatProductPrice(product.price, product.priceDisplay)}
+                      <ProductPriceCell product={product} />
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

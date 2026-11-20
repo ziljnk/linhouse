@@ -15,11 +15,13 @@ import {
 import {
   productHref,
   productPriceLabel,
+  productSale,
   productSlug,
   productTitle,
   showsProductPrice,
   type CatalogProduct,
 } from "@/lib/catalog"
+import { ProductSalePriceRow, SaleBadge } from "@/components/product-sale"
 import type { HomeProductCarouselSlot } from "@/lib/home-product-carousels"
 import { cn } from "@/lib/utils"
 
@@ -134,10 +136,11 @@ function ProductSlide({
   contactLabel: string
 }) {
   const href = productHref(locale, product)
+  const sale = productSale(product)
 
   return (
     <article className="flex h-full flex-col">
-      <Link href={href} className="block outline-none focus-visible:ring-2 focus-visible:ring-gold">
+      <Link href={href} className="relative block outline-none focus-visible:ring-2 focus-visible:ring-gold">
         <OptimizedImage
           src={product.image}
           alt={productTitle(product)}
@@ -146,6 +149,7 @@ function ProductSlide({
           sizes="(min-width: 1024px) 25vw, 50vw"
           className="aspect-3/4 w-full object-cover"
         />
+        {sale ? <SaleBadge percent={sale.percent} /> : null}
       </Link>
       <div className="px-2 pt-3 pb-2 text-center uppercase sm:px-3 sm:pt-4">
         {product.code ? (
@@ -158,7 +162,9 @@ function ProductSlide({
             {productTitle(product)}
           </Link>
         </h3>
-        {showsProductPrice(product) ? (
+        {sale ? (
+          <ProductSalePriceRow sale={sale} className="mt-3" />
+        ) : showsProductPrice(product) ? (
           <p className="mt-3 text-[11px] tracking-[0.14em] text-burgundy sm:text-xs sm:tracking-[0.18em]">
             {productPriceLabel(product, contactLabel)}
           </p>

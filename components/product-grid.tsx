@@ -5,11 +5,13 @@ import { OptimizedImage } from "@/components/ui/optimized-image"
 import {
   productHref,
   productPriceLabel,
+  productSale,
   productSlug,
   productTitle,
   showsProductPrice,
   type CatalogProduct,
 } from "@/lib/catalog"
+import { ProductSalePriceRow, SaleBadge } from "@/components/product-sale"
 import { cn } from "@/lib/utils"
 
 export function ProductGrid({
@@ -35,6 +37,7 @@ export function ProductGrid({
     >
       {products.map((product, index) => {
         const href = productHref(locale, product)
+        const sale = productSale(product)
 
         return (
           <ScrollReveal
@@ -44,7 +47,7 @@ export function ProductGrid({
             duration={0.7}
           >
             <article className="flex h-full flex-col bg-ivory">
-              <Link href={href} className="block">
+              <Link href={href} className="relative block">
                 <OptimizedImage
                   src={product.image}
                   alt={productTitle(product)}
@@ -57,6 +60,7 @@ export function ProductGrid({
                   }
                   className="aspect-3/4 w-full object-cover"
                 />
+                {sale ? <SaleBadge percent={sale.percent} /> : null}
               </Link>
               <div className="px-2 pt-3 pb-5 text-center uppercase sm:px-4 sm:pt-5 sm:pb-7">
                 {product.code ? (
@@ -69,7 +73,9 @@ export function ProductGrid({
                     {productTitle(product)}
                   </Link>
                 </h3>
-                {showsProductPrice(product) ? (
+                {sale ? (
+                  <ProductSalePriceRow sale={sale} className="mt-3 sm:mt-4" />
+                ) : showsProductPrice(product) ? (
                   <p className="mt-3 text-[11px] tracking-[0.14em] text-burgundy sm:mt-4 sm:text-xs sm:tracking-[0.18em]">
                     {productPriceLabel(product, contactLabel)}
                   </p>

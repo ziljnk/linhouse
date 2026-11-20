@@ -14,6 +14,7 @@ import {
   productGallery,
   productHref,
   productKindOf,
+  productSale,
   productSlug,
   productSpecRows,
   productTitle,
@@ -55,6 +56,7 @@ export function ProductDetail({
 }) {
   const copy = dict.productPage
   const images = productGallery(product)
+  const sale = productSale(product)
   const suggestions = catalog.map((item) => ({
     slug: productSlug(item),
     name: item.name,
@@ -63,10 +65,9 @@ export function ProductDetail({
     title: productTitle(item),
     image: item.image,
     href: productHref(locale, item),
-    priceLabel:
-      showsProductPrice(item) && item.priceVnd != null
-        ? formatProductPriceVnd(item.priceVnd)
-        : null,
+    priceDisplay: item.priceDisplay,
+    priceVnd: item.priceVnd ?? null,
+    salePriceVnd: item.salePriceVnd ?? null,
   }))
   const specs = productSpecRows(product, groups)
   const silhouette = catalogOptionLabel(groups, "silhouette", product.silhouette)
@@ -102,6 +103,7 @@ export function ProductDetail({
             prevLabel={copy.prevImage}
             nextLabel={copy.nextImage}
             thumbnailLabel={copy.thumbnail}
+            salePercent={sale?.percent ?? null}
           />
         </div>
 
@@ -133,7 +135,19 @@ export function ProductDetail({
           <h1 className="mt-2 font-heading text-3xl font-medium tracking-[0.08em] text-burgundy-deep uppercase sm:text-4xl">
             {productTitle(product)}
           </h1>
-          {showsProductPrice(product) && product.priceVnd != null ? (
+          {sale ? (
+            <div className="mt-5 flex flex-wrap items-baseline gap-2.5 sm:gap-3.5">
+              <span className="font-heading text-[15px] tracking-[0.06em] text-[#9a9088] line-through sm:text-lg">
+                {formatProductPriceVnd(sale.regularPriceVnd)}
+              </span>
+              <span className="font-heading text-xl font-medium tracking-[0.06em] text-[#762a40] sm:text-[26px]">
+                {formatProductPriceVnd(sale.salePriceVnd)}
+              </span>
+              <span className="hidden bg-[#f3e8eb] px-2 py-1 text-[11px] leading-none tracking-[0.1em] text-[#762a40] sm:inline">
+                {sale.label}
+              </span>
+            </div>
+          ) : showsProductPrice(product) && product.priceVnd != null ? (
             <p className="mt-5 font-heading text-xl tracking-[0.08em] text-burgundy sm:text-2xl">
               {formatProductPriceVnd(product.priceVnd)}
             </p>

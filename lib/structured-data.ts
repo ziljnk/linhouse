@@ -1,5 +1,5 @@
 import type { CatalogProduct, CollectionItem } from "@/lib/catalog"
-import { productTitle, showsProductPrice } from "@/lib/catalog"
+import { productSale, productTitle, showsProductPrice } from "@/lib/catalog"
 import { publicImageUrl } from "@/lib/public-image"
 import {
   BRAND_LOGO,
@@ -113,6 +113,7 @@ export async function productStructuredData(
   }
   if (imageUrls.length) data.image = imageUrls
   if (showsProductPrice(product) && product.priceVnd) {
+    const sale = productSale(product)
     const inStock = product.purchaseOptions?.some(
       (option) => option === "rent" || option === "ready-to-purchase"
     )
@@ -120,7 +121,17 @@ export async function productStructuredData(
       "@type": "Offer",
       url,
       priceCurrency: "VND",
-      price: product.priceVnd,
+      price: sale ? sale.salePriceVnd : product.priceVnd,
+      ...(sale
+        ? {
+            priceSpecification: {
+              "@type": "UnitPriceSpecification",
+              priceType: "https://schema.org/ListPrice",
+              price: sale.regularPriceVnd,
+              priceCurrency: "VND",
+            },
+          }
+        : {}),
       ...(inStock ? { availability: "https://schema.org/InStock" } : {}),
     }
   }
