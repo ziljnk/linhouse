@@ -104,6 +104,7 @@ export type AdminProductRecord = {
   tags: string[]
   purchaseOptions: ProductPurchaseOption[]
   priceVnd: number | null
+  salePriceVnd: number | null
   priceDisplay: AdminProductListItem["priceDisplay"]
   kind: ProductKind
   isOld: boolean
@@ -430,6 +431,7 @@ export async function listAdminProducts(
       code: decodeStoredPlainText(row.code),
       image,
       price: row.priceVnd,
+      salePrice: row.salePriceVnd,
       priceDisplay: row.priceDisplay,
       kind: row.kind,
       category,
@@ -477,6 +479,7 @@ export async function getAdminProduct(
     tags: (row.tags ?? []).map((tag) => decodeStoredPlainText(tag)),
     purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
     priceVnd: row.priceVnd,
+    salePriceVnd: row.salePriceVnd,
     priceDisplay: row.priceDisplay,
     kind: row.kind,
     isOld: row.isOld,

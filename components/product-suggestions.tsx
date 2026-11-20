@@ -10,11 +10,15 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel"
 import {
+  formatProductPriceVnd,
+  productSale,
   recommendedProducts,
   relatedProducts,
   resolveSuggestionRail,
+  showsProductPrice,
   type ProductKind,
 } from "@/lib/catalog"
+import { ProductSalePriceRow, SaleBadge } from "@/components/product-sale"
 
 export type ProductSuggestion = {
   slug: string
@@ -24,7 +28,9 @@ export type ProductSuggestion = {
   title: string
   image: string
   href: string
-  priceLabel: string | null
+  priceVnd: number | null
+  salePriceVnd: number | null
+  priceDisplay?: "amount" | "contact"
 }
 
 const subscribe = () => () => {}
@@ -102,13 +108,16 @@ function ProductRail({
           {title}
         </h2>
         <CarouselContent className="-ml-3 sm:-ml-4">
-          {products.map((product) => (
+          {products.map((product) => {
+            const sale = productSale(product)
+
+            return (
             <CarouselItem
               key={product.slug}
               className="basis-1/2 pl-3 sm:pl-4 lg:basis-1/4"
             >
               <article className="flex h-full flex-col bg-ivory">
-                <Link href={product.href} className="block">
+                <Link href={product.href} className="relative block">
                   <OptimizedImage
                     src={product.image}
                     alt={product.title}
@@ -117,6 +126,7 @@ function ProductRail({
                     sizes="(min-width: 1024px) 25vw, 50vw"
                     className="aspect-3/4 w-full object-cover"
                   />
+                  {sale ? <SaleBadge percent={sale.percent} /> : null}
                 </Link>
                 <div className="px-2 pt-3 pb-5 text-center uppercase sm:px-4 sm:pt-5 sm:pb-7">
                   {product.code ? (
@@ -129,9 +139,11 @@ function ProductRail({
                       {product.title}
                     </Link>
                   </h3>
-                  {product.priceLabel ? (
+                  {sale ? (
+                    <ProductSalePriceRow sale={sale} className="mt-3 sm:mt-4" />
+                  ) : showsProductPrice(product) && product.priceVnd != null ? (
                     <p className="mt-3 text-[11px] tracking-[0.14em] text-burgundy sm:mt-4 sm:text-xs sm:tracking-[0.18em]">
-                      {product.priceLabel}
+                      {formatProductPriceVnd(product.priceVnd)}
                     </p>
                   ) : (
                     <a
@@ -144,7 +156,8 @@ function ProductRail({
                 </div>
               </article>
             </CarouselItem>
-          ))}
+            )
+          })}
         </CarouselContent>
       </Carousel>
     </section>

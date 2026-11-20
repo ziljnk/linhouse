@@ -52,6 +52,7 @@ export default async function EditProductPage({
           tags: product.tags,
           purchaseOptions: product.purchaseOptions,
           priceVnd: product.priceVnd,
+          salePriceVnd: product.salePriceVnd,
           priceDisplay: product.priceDisplay,
           kind: product.kind,
           isOld: product.isOld,

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react"
 import useEmblaCarousel from "embla-carousel-react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import { SaleBadge } from "@/components/product-sale"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { cn } from "@/lib/utils"
 
@@ -95,12 +96,14 @@ export function ProductGallery({
   prevLabel,
   nextLabel,
   thumbnailLabel,
+  salePercent = null,
 }: {
   images: string[]
   alt: string
   prevLabel: string
   nextLabel: string
   thumbnailLabel: string
+  salePercent?: number | null
 }) {
   const canNavigate = images.length > 1
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: canNavigate })
@@ -191,6 +194,8 @@ export function ProductGallery({
             ))}
           </div>
         </div>
+
+        {salePercent != null ? <SaleBadge percent={salePercent} size="gallery" /> : null}
 
         {canNavigate ? (
           <>

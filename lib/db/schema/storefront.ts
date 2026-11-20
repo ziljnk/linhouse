@@ -149,6 +149,7 @@ export const product = mysqlTable(
     code: varchar("code", { length: 255 }).notNull().default(""),
     description: json("description").$type<LocalizedText>().notNull(),
     priceVnd: int("price_vnd"),
+    salePriceVnd: int("sale_price_vnd"),
     priceDisplay: mysqlEnum("price_display", priceDisplayValues)
       .notNull()
       .default("contact"),

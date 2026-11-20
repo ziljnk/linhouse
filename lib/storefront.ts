@@ -196,6 +196,10 @@ function productViewCount() {
   )`
 }
 
+function effectivePriceOrder() {
+  return sql`case when ${product.priceDisplay} = 'amount' and ${product.priceVnd} > 0 and ${product.salePriceVnd} > 0 and ${product.salePriceVnd} < ${product.priceVnd} then ${product.salePriceVnd} else ${product.priceVnd} end`
+}
+
 function catalogOrderBy(sort: CatalogSort): SQL[] {
   switch (sort) {
     case "newest":
@@ -209,14 +213,14 @@ function catalogOrderBy(sort: CatalogSort): SQL[] {
       return [
         newProductsFirst(),
         pricedFirst(),
-        asc(product.priceVnd),
+        asc(effectivePriceOrder()),
         asc(product.sortOrder),
       ]
     case "price-desc":
       return [
         newProductsFirst(),
         pricedFirst(),
-        desc(product.priceVnd),
+        desc(effectivePriceOrder()),
         asc(product.sortOrder),
       ]
     case "name-asc":
@@ -729,6 +733,7 @@ function mapProducts(
       featured: row.featured,
       kind: row.kind,
       priceVnd: row.priceVnd,
+      salePriceVnd: row.salePriceVnd,
       priceDisplay: row.priceDisplay,
       purchaseOptions: parsePurchaseOptions(row.purchaseOptions),
       description: textOf(row.description, locale),

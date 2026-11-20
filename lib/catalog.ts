@@ -52,6 +52,7 @@ export type CatalogProduct = Dictionary["catalog"][number] & {
   seoDescription?: string
   seoKeywords?: string
   priceVnd?: number | null
+  salePriceVnd?: number | null
   priceDisplay?: "amount" | "contact"
   kind?: ProductKind
   purchaseOptions?: ProductPurchaseOption[]
@@ -298,12 +299,130 @@ export function productHref(locale: Locale, product: CatalogProduct) {
   return `/${locale}/product/${productSlug(product)}`
 }
 
-export function showsProductPrice(product: CatalogProduct) {
+export function showsProductPrice(product: ProductPriceSource) {
   return (
     product.priceDisplay === "amount" &&
     product.priceVnd != null &&
     product.priceVnd > 0
   )
+}
+
+/** Unicode minus, matching the storefront badge “−20%”. */
+export const SALE_MINUS = "−"
+
+export const SALE_PERCENT_ERROR = "Phần trăm phải từ 1 đến 99."
+export const SALE_PRICE_ERROR = "Giá sau giảm phải thấp hơn giá gốc."
+
+export type ProductPriceSource = {
+  priceDisplay?: "amount" | "contact" | null
+  priceVnd?: number | null
+  salePriceVnd?: number | null
+}
+
+export type ActiveProductSale = {
+  regularPriceVnd: number
+  salePriceVnd: number
+  percent: number
+  label: string
+}
+
+export function salePercentLabel(percent: number) {
+  return `${SALE_MINUS}${percent}%`
+}
+
+export function percentFromPrices(priceVnd: number, salePriceVnd: number) {
+  if (!(priceVnd > 0) || !Number.isFinite(priceVnd) || !Number.isFinite(salePriceVnd)) {
+    return null
+  }
+  return Math.round(((priceVnd - salePriceVnd) / priceVnd) * 100)
+}
+
+export function salePriceFromPercent(priceVnd: number, percent: number) {
+  if (!(priceVnd > 0) || !Number.isFinite(priceVnd) || !Number.isFinite(percent)) {
+    return null
+  }
+  return Math.round((priceVnd * (100 - percent)) / 100)
+}
+
+/**
+ * A sale is on only for a displayed amount whose sale price is a positive
+ * number strictly below the regular price. Percent is never stored.
+ */
+export function productSale(product: ProductPriceSource): ActiveProductSale | null {
+  const price = product.priceVnd
+  const sale = product.salePriceVnd
+  if (product.priceDisplay !== "amount") return null
+  if (typeof price !== "number" || typeof sale !== "number") return null
+  if (!Number.isFinite(price) || !Number.isFinite(sale)) return null
+  if (!(price > 0 && sale > 0 && sale < price)) return null
+  const percent = percentFromPrices(price, sale)
+  if (percent == null) return null
+  return {
+    regularPriceVnd: price,
+    salePriceVnd: sale,
+    percent,
+    label: salePercentLabel(percent),
+  }
+}
+
+/** Price the customer pays: the sale price when a sale is active, otherwise the regular amount. */
+export function effectiveProductPrice(product: ProductPriceSource): number | null {
+  const sale = productSale(product)
+  if (sale) return sale.salePriceVnd
+  if (showsProductPrice(product) && product.priceVnd != null) return product.priceVnd
+  return null
+}
+
+export function salePriceInputError(
+  priceVnd: number | null | undefined,
+  salePriceVnd: number | null | undefined
+) {
+  if (salePriceVnd == null) return null
+  if (
+    priceVnd == null ||
+    !Number.isInteger(priceVnd) ||
+    priceVnd <= 0 ||
+    !Number.isInteger(salePriceVnd) ||
+    salePriceVnd <= 0 ||
+    salePriceVnd >= priceVnd
+  ) {
+    return SALE_PRICE_ERROR
+  }
+  const percent = percentFromPrices(priceVnd, salePriceVnd)
+  if (percent == null || percent < 1 || percent > 99) return SALE_PERCENT_ERROR
+  return null
+}
+
+export function productSaleFormError(input: {
+  priceVnd: number | null
+  percent: number | null
+  salePriceVnd: number | null
+}) {
+  const { priceVnd, percent, salePriceVnd } = input
+  if (percent == null && salePriceVnd == null) return null
+
+  if (
+    salePriceVnd != null &&
+    (priceVnd == null ||
+      !Number.isInteger(priceVnd) ||
+      !Number.isInteger(salePriceVnd) ||
+      salePriceVnd <= 0 ||
+      salePriceVnd >= priceVnd)
+  ) {
+    return SALE_PRICE_ERROR
+  }
+
+  if (percent == null || !Number.isInteger(percent) || percent < 1 || percent > 99) {
+    return SALE_PERCENT_ERROR
+  }
+
+  if (salePriceVnd == null) {
+    return priceVnd == null ? null : SALE_PRICE_ERROR
+  }
+
+  const computed = percentFromPrices(priceVnd ?? 0, salePriceVnd)
+  if (computed == null || computed < 1 || computed > 99) return SALE_PERCENT_ERROR
+  return null
 }
 
 export function formatProductPriceVnd(amount: number) {

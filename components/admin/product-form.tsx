@@ -10,7 +10,7 @@ import {
 } from "@/hooks/use-form-draft"
 import { hasActiveAdminSession } from "@/lib/admin-session-client"
 import { reportAdminFailure } from "@/lib/admin-save-error"
-import { Languages, Loader2 } from "lucide-react"
+import { CircleAlert, Languages, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -60,6 +60,7 @@ import { persistUploadedImages } from "@/lib/persist-admin-images"
 import { ADMIN_IMAGE_SIZE_HINTS } from "@/lib/admin-image-sizes"
 import {
   formatPriceInput,
+  formatVnd,
   parsePriceVnd,
   PRICE_DISPLAY_LABELS,
   PRICE_DISPLAYS,
@@ -69,6 +70,13 @@ import {
   type ProductKind,
   type ProductPurchaseOption,
 } from "@/lib/admin-products"
+import {
+  percentFromPrices,
+  productSale,
+  productSaleFormError,
+  SALE_PERCENT_ERROR,
+  salePriceFromPercent,
+} from "@/lib/catalog"
 import { toastError, toastSuccess } from "@/lib/admin-toast"
 import { isLivePublished, type PublishIntent } from "@/lib/content-status"
 import { PublishIntentActions } from "@/components/admin/publish-intent-actions"
@@ -187,6 +195,7 @@ export type ProductFormValues = {
   purchaseOptions?: ProductPurchaseOption[]
   imageUrls?: string[]
   priceVnd?: number | null
+  salePriceVnd?: number | null
   priceDisplay?: PriceDisplay
   kind?: ProductKind
   isOld?: boolean
@@ -208,9 +217,18 @@ type ProductDraftFields = {
   slug: string
   priceDisplay: PriceDisplay
   priceInput: string
+  salePercentInput: string
+  salePriceInput: string
   kind: ProductKind
   isOld: boolean
   seo: SeoLocaleValues
+}
+
+function readWholeNumber(value: string) {
+  const digits = value.replace(/\D/g, "")
+  if (!digits) return null
+  const amount = Number(digits)
+  return Number.isSafeInteger(amount) ? amount : null
 }
 
 export function ProductForm({
@@ -255,6 +273,21 @@ export function ProductForm({
   const [priceInput, setPriceInput] = useState(
     defaultValues?.priceVnd ? formatPriceInput(String(defaultValues.priceVnd)) : ""
   )
+  const [salePercentInput, setSalePercentInput] = useState(() => {
+    const price = defaultValues?.priceVnd
+    const sale = defaultValues?.salePriceVnd
+    if (price != null && sale != null && price > 0) {
+      const percent = percentFromPrices(price, sale)
+      if (percent != null && percent >= 0) return String(percent)
+    }
+    return ""
+  })
+  const [salePriceInput, setSalePriceInput] = useState(
+    defaultValues?.salePriceVnd != null && defaultValues.salePriceVnd > 0
+      ? formatPriceInput(String(defaultValues.salePriceVnd))
+      : ""
+  )
+  const [saleEdited, setSaleEdited] = useState<"percent" | "price">("percent")
   const fallbackKind = kinds.find((item) => item.slug === "gown")?.slug ?? kinds[0]?.slug ?? "gown"
   const [kind, setKind] = useState<ProductKind>(defaultValues?.kind ?? fallbackKind)
   const [isOld, setIsOld] = useState(defaultValues?.isOld ?? false)
@@ -342,6 +375,8 @@ export function ProductForm({
     slug,
     priceDisplay,
     priceInput,
+    salePercentInput,
+    salePriceInput,
     kind,
     isOld,
     seo,
@@ -359,6 +394,9 @@ export function ProductForm({
     setSlug(fields.slug ?? "")
     setPriceDisplay(fields.priceDisplay ?? "contact")
     setPriceInput(fields.priceInput ?? "")
+    setSalePercentInput(fields.salePercentInput ?? "")
+    setSalePriceInput(fields.salePriceInput ?? "")
+    setSaleEdited("percent")
     setKind(fields.kind ?? "gown")
     setIsOld(fields.isOld ?? false)
     setSeo(fields.seo ?? emptySeo)
@@ -381,6 +419,84 @@ export function ProductForm({
     onRestore: applyProductDraft,
   })
 
+  const saleFormError =
+    priceDisplay === "amount"
+      ? productSaleFormError({
+          priceVnd: parsePriceVnd(priceInput),
+          percent: readWholeNumber(salePercentInput),
+          salePriceVnd: readWholeNumber(salePriceInput),
+        })
+      : null
+  const salePreview =
+    priceDisplay === "amount"
+      ? productSale({
+          priceDisplay: "amount",
+          priceVnd: parsePriceVnd(priceInput),
+          salePriceVnd: readWholeNumber(salePriceInput),
+        })
+      : null
+  const showSalePreview =
+    salePreview != null && salePreview.percent >= 1 && salePreview.percent <= 99
+
+  const onPriceInputChange = (raw: string) => {
+    const next = formatPriceInput(raw)
+    setPriceInput(next)
+    const price = parsePriceVnd(next)
+    if (!salePercentInput && !salePriceInput) return
+    if (price == null) return
+    if (saleEdited !== "price") {
+      const percent = readWholeNumber(salePercentInput)
+      if (percent != null && percent >= 1 && percent <= 99) {
+        const sale = salePriceFromPercent(price, percent)
+        if (sale != null && sale > 0 && sale < price) {
+          setSalePriceInput(formatPriceInput(String(sale)))
+        }
+      }
+      return
+    }
+    const sale = readWholeNumber(salePriceInput)
+    if (sale != null) {
+      const percent = percentFromPrices(price, sale)
+      if (percent != null) setSalePercentInput(String(Math.max(percent, 0)))
+    }
+  }
+
+  const onSalePercentChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 3)
+    setSaleEdited("percent")
+    if (!digits) {
+      setSalePercentInput("")
+      setSalePriceInput("")
+      return
+    }
+    const percent = Number(digits)
+    setSalePercentInput(String(percent))
+    const price = parsePriceVnd(priceInput)
+    if (price != null && percent >= 1 && percent <= 99) {
+      const sale = salePriceFromPercent(price, percent)
+      setSalePriceInput(sale != null && sale > 0 ? formatPriceInput(String(sale)) : "")
+      return
+    }
+    setSalePriceInput("")
+  }
+
+  const onSalePriceChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "")
+    setSaleEdited("price")
+    if (!digits) {
+      setSalePercentInput("")
+      setSalePriceInput("")
+      return
+    }
+    setSalePriceInput(formatPriceInput(digits))
+    const price = parsePriceVnd(priceInput)
+    const sale = Number(digits)
+    if (price != null && price > 0 && Number.isFinite(sale)) {
+      const percent = percentFromPrices(price, sale)
+      if (percent != null) setSalePercentInput(String(percent < 0 ? 0 : percent))
+    }
+  }
+
   const persistAndSave = async (intent: PublishIntent, publishedAt?: string | null) => {
     await draft.flush()
     if (!name.trim()) {
@@ -395,6 +511,11 @@ export function ProductForm({
 
     if (priceDisplay === "amount" && parsePriceVnd(priceInput) == null) {
       toastError("Vui lòng nhập giá sản phẩm.")
+      return
+    }
+
+    if (saleFormError) {
+      toastError(saleFormError)
       return
     }
 
@@ -419,6 +540,8 @@ export function ProductForm({
         purchaseOptions,
         imageUrls,
         priceVnd: parsePriceVnd(priceInput),
+        salePriceVnd:
+          priceDisplay === "amount" ? readWholeNumber(salePriceInput) : null,
         priceDisplay,
         kind,
         isOld,
@@ -488,6 +611,10 @@ export function ProductForm({
     }
     if (priceDisplay === "amount" && parsePriceVnd(priceInput) == null) {
       toastError("Vui lòng nhập giá sản phẩm.")
+      return
+    }
+    if (saleFormError) {
+      toastError(saleFormError)
       return
     }
     setScheduleError(null)
@@ -623,25 +750,91 @@ export function ProductForm({
               ))}
             </RadioGroup>
             {priceDisplay === "amount" ? (
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="product-price">Giá (VND)</Label>
-                <Input
-                  id="product-price"
-                  name="priceVnd"
-                  inputMode="numeric"
-                  value={priceInput}
-                  onChange={(event) =>
-                    setPriceInput(formatPriceInput(event.target.value))
-                  }
-                  placeholder="18.000.000"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Giá khách thấy trên website, ví dụ 18.000.000.
-                </p>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="product-price">Giá (VND)</Label>
+                  <Input
+                    id="product-price"
+                    name="priceVnd"
+                    inputMode="numeric"
+                    value={priceInput}
+                    onChange={(event) => onPriceInputChange(event.target.value)}
+                    placeholder="18.000.000"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Giá khách thấy trên website, ví dụ 18.000.000.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-sm font-medium">
+                    Giảm giá{" "}
+                    <span className="font-normal text-muted-foreground">(tuỳ chọn)</span>
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="flex flex-col gap-2">
+                      <Label
+                        htmlFor="product-sale-percent"
+                        className="text-xs font-normal text-muted-foreground"
+                      >
+                        % giảm
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="product-sale-percent"
+                          name="salePercent"
+                          inputMode="numeric"
+                          value={salePercentInput}
+                          onChange={(event) => onSalePercentChange(event.target.value)}
+                          placeholder="20"
+                          aria-invalid={saleFormError === SALE_PERCENT_ERROR}
+                          className="pr-8"
+                        />
+                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Label
+                        htmlFor="product-sale-price"
+                        className="text-xs font-normal text-muted-foreground"
+                      >
+                        Giá sau giảm (VND)
+                      </Label>
+                      <Input
+                        id="product-sale-price"
+                        name="salePriceVnd"
+                        inputMode="numeric"
+                        value={salePriceInput}
+                        onChange={(event) => onSalePriceChange(event.target.value)}
+                        placeholder="14.400.000"
+                        aria-invalid={saleFormError != null && saleFormError !== SALE_PERCENT_ERROR}
+                      />
+                    </div>
+                  </div>
+                  {showSalePreview && salePreview ? (
+                    <p className="rounded-lg bg-[#f3ebe6] px-3 py-2.5 text-sm">
+                      Giá bán:{" "}
+                      <span className="font-semibold text-[#7a1020]">
+                        {formatVnd(salePreview.salePriceVnd)}
+                      </span>{" "}
+                      ({salePreview.label})
+                    </p>
+                  ) : null}
+                  {saleFormError ? (
+                    <p role="alert" className="flex items-center gap-1.5 text-xs text-destructive">
+                      <CircleAlert className="size-3.5 shrink-0" />
+                      {saleFormError}
+                    </p>
+                  ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    Nhập một ô → ô kia tự điền. Xoá cả hai ô để tắt giảm giá. Không có ngày kết thúc.
+                  </p>
+                </div>
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Khách sẽ thấy chữ “Liên hệ” thay cho số tiền.
+                Khách sẽ thấy chữ “Liên hệ”. Không hiện ô giảm giá.
               </p>
             )}
           </fieldset>

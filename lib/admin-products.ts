@@ -55,6 +55,7 @@ export type AdminProductListItem = {
   code: string
   image: string
   price: number | null
+  salePrice: number | null
   priceDisplay: PriceDisplay
   kind: ProductKind
   category: string
@@ -119,6 +120,7 @@ export function toAdminProductListItem(
     code: product.code ?? "",
     image: product.image,
     price: productPrice(product.name),
+    salePrice: null,
     priceDisplay: "amount",
     kind: product.kind ?? "gown",
     category: CATEGORY_LABELS[product.silhouette] ?? product.silhouette,
